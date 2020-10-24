@@ -4,7 +4,7 @@ from pywinauto import mouse, keyboard
 from pywinauto.win32functions import windll
 from pywinauto.win32structures import POINT
 
-class RPA_mouse_keyboard():
+class RPA_mouse_keyboard:
 
     def get_mouse_position(self):
         pt = POINT()
