@@ -1,7 +1,5 @@
 from ctypes import byref
 
-import win32api
-import win32con
 from pywinauto import mouse, keyboard
 from pywinauto.win32functions import windll
 from pywinauto.win32structures import POINT
