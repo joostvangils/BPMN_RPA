@@ -30,6 +30,6 @@ class RPA_System:
     def log_off_current_user(self):
         os.system("shutdown /l /f /t 00")
 
+    def lock_workstation(self):
+        os.system("rundll32.exe user32.dll,LockWorkStation")
 
-# sp = RPA_System()
-# sp.run_application(r"C:\Windows\System32\notepad.exe")
