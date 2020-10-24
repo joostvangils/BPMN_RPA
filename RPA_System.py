@@ -31,5 +31,5 @@ class RPA_System:
         os.system("shutdown /l /f /t 00")
 
 
-sp = RPA_System()
-sp.run_application(r"C:\Windows\System32\notepad.exe")
+# sp = RPA_System()
+# sp.run_application(r"C:\Windows\System32\notepad.exe")
