@@ -197,19 +197,12 @@ class WorkflowEngine():
         :returns: A dictionary that can be used as direct input for parameters in a function call
         """
         retn = {}
-        if hasattr(step, "Mapping"):
+        mapping = None
+        if hasattr(step, "mapping"):
             mapping = self.build_dict_from_mapping(step.mapping)
-        else:
-            mapping = self.build_dict_from_mapping(getattr(step, f"PythonMapping_{method_to_call.__name__}"))
-        if hasattr(step, "PythonValue"):
-            if len(getattr(step, "PythonValue")) > 0:
-                valuestring = getattr(step, "PythonValue")
-                retn[list(mapping.keys())[0]] = valuestring
-                return retn
         for key, value in mapping.items():
-            retn[key] = output_previous_step[value]
+            retn[key] = output_previous_step[int(value)]
         return retn
-
     class dynamic_object(object):
         pass
 

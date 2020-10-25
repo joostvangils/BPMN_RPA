@@ -1,4 +1,4 @@
 def main():
     hw = "Hello World!"
     print(hw)
-    return hw
+    return ["this", "is", "a", "test"]
