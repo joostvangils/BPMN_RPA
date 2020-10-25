@@ -1,126 +1,207 @@
+import base64
 import importlib
 import os
+import urllib
+import zlib
 from inspect import signature
-
+import xml.etree.ElementTree as ET
 import typing
+from operator import attrgetter
+
 import win32com.client
 from typing import List, Any
 
+import xmltodict
 
-class Visio():
 
-    def __init__(self, modulepath: str, visible: bool = True):
+class WorkflowEngine():
+
+    def __init__(self, modulepath: str):
         """
-        Klasse voor automatiseren van Visio
-
-        :param visible: Optioneel. Indicator of de applicatie Visio zichtbaar moet worden geopend.
+        Class for automating DrawIO diagrams
         :param modulePath: Het pad naar de folder waarin de modules staan die worden uitgevoerd
         """
         self.pythonPath = "c:\\users\\jogil\\venv\\Scripts\\python.exe"
-        self.modulePath = modulepath
-        self.visio = win32com.client.Dispatch("Visio.Application")
-        self.visio.Visible = visible
+        self.modulePath = os.getcwd() + "\\Scripts\\"
 
-    def Open(self, name: str) -> Any:
+    def open(self, name: str) -> Any:
         """
-        Openen van een Visio document
+        Open a DrawIO document
 
-        :param name: Het volledige pad inclusief extensie van het te openen document
-        :returns: Een Visio document object
+        :param name: The full path (including extension) of the document
+        :returns: A DrawIO document object
         """
         # Open an existing document.
-        doc = self.visio.Documents.Open(name)
-        return doc
-
-    def GetFlow(self, doc) -> Any:
-        """
-        Ophalen van de elementen van de flow in het Document.
-
-        :param doc: Het visio document object dat de flow elementen bevat.
-        :returns: Een array van flow elementen
-        """
-        retn = []
-        for shape in doc.Pages.Item(1).Shapes:
-            retn.append(self.GetStepFromShape(shape))
+        xml_file = open(name, "r")
+        xml_root = ET.fromstring(xml_file.read())
+        raw_text = xml_root[0].text
+        base64_decode = base64.b64decode(raw_text)
+        inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
+        url_decode = urllib.parse.unquote(inflated_xml)
+        retn = xmltodict.parse(url_decode)
         return retn
 
-    def GetStepFromShape(self, shape):
-        """
-        Maakt een Step-object van het Shape-object
 
-        :param shape: Het Shape-object waarvan een Step-object moet worden gemaakt
-        :returns: Een Step-object
+    def get_flow(self, ordered_dict) -> Any:
+        """
+        Retreiving the elements of the flow in the Document.
+
+        :param ordered_dict: The document object containing the flow elements.
+        :returns: A List of flow elements
+        """
+        retn = []
+        connectors = []
+        shapes = []
+        objects = ordered_dict['mxGraphModel']['root']['object']
+        for shape in ordered_dict['mxGraphModel']['root']['mxCell']:
+            style = shape.get("@style")
+            if style is not None:
+                step = self.get_step_from_shape(shape)
+                if step.type == "connector":
+                    connectors.append(step)
+                else:
+                    shapes.append(step)
+        if not isinstance(objects, list):
+            # there is only one shape
+            step = self.get_step_from_shape(objects)
+            shapes.append(step)
+        else:
+            for shape in objects:
+                step = self.get_step_from_shape(shape)
+                shapes.append(step)
+        # Find start shape
+        for shape in shapes:
+            incoming_connector = None
+            outgoing_connector = None
+            for conn in connectors:
+                if conn.target == shape.id:
+                    incoming_connector = conn
+                    break
+            if incoming_connector is None:
+                shape.IsStart = True
+        retn = shapes + connectors
+        return retn
+
+    def get_step_from_shape(self, shape):
+        """
+        Build a Step-object from the Shape-object
+
+        :param shape: The Shape-object
+        :returns: A Step-object
         """
         retn = self.dynamic_object()
         row = 0
-        while True:
-            if shape.CellsSRCExists(243, row, 0, 0):
-                setattr(retn, str(shape.CellsSRC(243, row, 0).name).replace("Prop.", ""), str(shape.CellsSRC(243, row, 0).formula).replace('"', ''))
-                row += 1
-            else:
-                break
+        retn.id = shape.get("@id")
+        if shape.get("@source") is not None:
+            retn.source = shape.get("@source")
+        if shape.get("@target") is not None:
+            retn.target = shape.get("@target")
+            retn.type = "connector"
+        if shape.get("@value") is not None:
+            retn.name = shape.get("@value")
+        if shape.get("@Module") is not None:
+            retn.module = shape.get("@Module")
+        if shape.get("@Class") is not None:
+            retn.classname = shape.get("@Class")
+        if shape.get("@Function") is not None:
+            retn.function = shape.get("@Function")
+        if shape.get("@label") is not None:
+            retn.name = shape.get("@label")
+        if shape.get("@script") is not None:
+            retn.script = shape.get("@script")
+        if shape.get("@class") is not None:
+            retn.script = shape.get("@class")
+        if shape.get("@function") is not None:
+            retn.script = shape.get("@function")
+        if shape.get("@source") is None and shape.get("@target") is None:
+            retn.type = "shape"
+            retn.IsStart = False
         return retn
 
-    def RunFlow(self, steps):
-        """
-        Voert een Flow uit.
 
-        :params staps: De lijst met Steps die moeten worden uitgevoerd
+    def run_flow(self, steps):
+        """
+        Execute a Workflow.
+
+        :params steps: The steps that must be executed in the flow
         """
         previous_step = None
         output_previous_step = None
-        for st in steps:
+        shape_steps = [x for x in steps if x.type == "shape"]
+        step = [x for x in shape_steps if x.IsStart == True][0]
+        while True:
             input = []
             try:
                 # to fetch module
-                if hasattr(st, "PythonModule"):
-                    spec = importlib.util.spec_from_file_location(st.PythonModule, self.modulePath + st.PythonModule)
+                if hasattr(step, "module"):
+                    spec = importlib.util.spec_from_file_location(step.module, self.modulePath + step.module)
                     module_object = importlib.util.module_from_spec(spec)
                     spec.loader.exec_module(module_object)
-                    if hasattr(module_object, st.PythonClass):
-                        class_object = getattr(module_object, st.PythonClass)
-                        method_to_call = getattr(class_object, st.PythonFunction)
+                    if hasattr(module_object, step.classname):
+                        class_object = getattr(module_object, step.classname)
+                        method_to_call = getattr(class_object, step.function)
                     else:
-                        method_to_call = getattr(module_object, st.PythonFunction)
+                        method_to_call = getattr(module_object, step.function)
                     sig = signature(method_to_call)
                     if str(sig) != "()":
-                        input = self.getInputParameters(step=st, method_to_call=method_to_call, signature=sig, output_previous_step=output_previous_step)
+                        input = self.get_input_parameters(step=step, method_to_call=method_to_call, signature=sig, output_previous_step=output_previous_step)
                         output_previous_step = method_to_call(**input)
                     else:
                         output_previous_step = method_to_call()
-                    previous_step = st
-                    print(f"{st.PythonClass}.{st.PythonFunction} executed.")
+                    previous_step = step
+                    print(f"{step.classname}.{step.function} executed.")
             except Exception as e:
                 pass
-            previous_step = st
+            step = self.get_next_step(step, steps)
+            if step is None:
+                break
+            previous_step = step
 
-    def buildDictFromMapping(self, mapping: str) -> typing.Dict[str, str]:
+    def get_next_step(self, current_step, steps):
         """
-        Maak een dictionary van de mapping string
+        Get the next step in the flow
 
-        :param mapping: De mapping string waarvan een dictionary moet worden gemaakt
-        :returns: Een dictionary
+        :param current_step: The step object of the current step
+        :param steps: The steps collection
+        :return: The next step object
+        """
+        connectors = [x for x in steps if x.type == "connector"]
+        try:
+            my_connector = [x for x in connectors if x.source == current_step.id][0]
+        except Exception as e:
+            return None
+        if my_connector is None:
+            return None
+        shapes = [x for x in steps if x.type == "shape"]
+        return [x for x in shapes if x.id == my_connector.target][0]
+
+    def build_dict_from_mapping(self, mapping: str) -> typing.Dict[str, str]:
+        """
+        Create a dictionary from a mapping string
+
+        :param mapping: The mapping string that must be converted to a dictionary
+        :returns: The dictionary
         """
         retn = {}
         for map in mapping.split(";"):
             retn[map.split("=")[0].strip()] = map.split("=")[1].strip()
         return retn
 
-    def getInputParameters(self, step: Any, method_to_call: Any, signature: Any, output_previous_step: Any) -> typing.Dict[str, Any]:
+    def get_input_parameters(self, step: Any, method_to_call: Any, signature: Any, output_previous_step: Any) -> typing.Dict[str, Any]:
         """
-        Ophalen van de parameters om een functie dynamisch te kunnen aanroepen
+        Fetching parameters to create a dynamic function
 
-        :param step: Het step-object van de huidige stap
-        :param method_to_call: Het object van de functie die wordt aangeroepen
-        :param signature: Het signature object van de functie die wordt aangeroepen
-        :param output_previous_step: Het door de vorige stap doorgegeven object
-        :returns: Een dictionary die direct in de functieaanroep als parameters kunnen worden meegegeven
+        :param step: The current step object
+        :param method_to_call: The object of the function that must be called
+        :param signature: The signature object of the function that must be called
+        :param output_previous_step: The output-object of the previous step
+        :returns: A dictionary that can be used as direct input for parameters in a function call
         """
         retn = {}
         if hasattr(step, "PythonMapping_All"):
-            mapping = self.buildDictFromMapping(getattr(step, "PythonMapping_All"))
+            mapping = self.build_dict_from_mapping(getattr(step, "PythonMapping_All"))
         else:
-            mapping = self.buildDictFromMapping(getattr(step, f"PythonMapping_{method_to_call.__name__}"))
+            mapping = self.build_dict_from_mapping(getattr(step, f"PythonMapping_{method_to_call.__name__}"))
         if hasattr(step, "PythonValue"):
             if len(getattr(step, "PythonValue")) > 0:
                 valuestring = getattr(step, "PythonValue")
@@ -134,8 +215,10 @@ class Visio():
         pass
 
 
-# visio = Visio("c:\\tmp\\", True)
-# doc = visio.Open(r"C:\Users\jogil\Desktop\BPMN\hello_world.vsdx")
-# steps = visio.GetFlow(doc)
-# visio.RunFlow(steps)
-# print("OK")
+# Test
+we = WorkflowEngine("c:\\tmp\\")
+doc = we.open(f"{os.getcwd()}\\test.xml")
+steps = we.get_flow(doc)
+we.run_flow(steps)
+
+print("OK")
