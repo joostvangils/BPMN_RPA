@@ -22,14 +22,14 @@ class WorkflowEngine():
         :param modulePath: Het pad naar de folder waarin de modules staan die worden uitgevoerd
         """
         self.pythonPath = "c:\\users\\jogil\\venv\\Scripts\\python.exe"
-        self.modulePath = os.getcwd() + "\\Scripts\\"
+        self.modulePath = modulepath
 
     def open(self, name: str) -> Any:
         """
         Open a DrawIO document
 
-        :param name: The full path (including extension) of the document
-        :returns: A DrawIO document object
+        :param name: The name (including extension) of the diagram
+        :returns: A DrawIO dictionary object
         """
         # Open an existing document.
         xml_file = open(name, "r")
@@ -49,7 +49,6 @@ class WorkflowEngine():
         :param ordered_dict: The document object containing the flow elements.
         :returns: A List of flow elements
         """
-        retn = []
         connectors = []
         shapes = []
         objects = ordered_dict['mxGraphModel']['root']['object']
@@ -72,7 +71,6 @@ class WorkflowEngine():
         # Find start shape
         for shape in shapes:
             incoming_connector = None
-            outgoing_connector = None
             for conn in connectors:
                 if conn.target == shape.id:
                     incoming_connector = conn
@@ -105,6 +103,8 @@ class WorkflowEngine():
             retn.classname = shape.get("@Class")
         if shape.get("@Function") is not None:
             retn.function = shape.get("@Function")
+        if shape.get("@Mapping") is not None:
+            retn.mapping = shape.get("@Mapping")
         if shape.get("@label") is not None:
             retn.name = shape.get("@label")
         if shape.get("@script") is not None:
@@ -130,7 +130,6 @@ class WorkflowEngine():
         shape_steps = [x for x in steps if x.type == "shape"]
         step = [x for x in shape_steps if x.IsStart == True][0]
         while True:
-            input = []
             try:
                 # to fetch module
                 if hasattr(step, "module"):
@@ -198,8 +197,8 @@ class WorkflowEngine():
         :returns: A dictionary that can be used as direct input for parameters in a function call
         """
         retn = {}
-        if hasattr(step, "PythonMapping_All"):
-            mapping = self.build_dict_from_mapping(getattr(step, "PythonMapping_All"))
+        if hasattr(step, "Mapping"):
+            mapping = self.build_dict_from_mapping(step.mapping)
         else:
             mapping = self.build_dict_from_mapping(getattr(step, f"PythonMapping_{method_to_call.__name__}"))
         if hasattr(step, "PythonValue"):
@@ -216,9 +215,8 @@ class WorkflowEngine():
 
 
 # Test
-we = WorkflowEngine("c:\\tmp\\")
-doc = we.open(f"{os.getcwd()}\\test.xml")
+we = WorkflowEngine(f"{os.getcwd()}\\Scripts\\")
+doc = we.open(f"test.xml")
 steps = we.get_flow(doc)
 we.run_flow(steps)
 
-print("OK")
