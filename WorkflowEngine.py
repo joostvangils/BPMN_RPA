@@ -96,6 +96,8 @@ class WorkflowEngine():
             retn.type = "connector"
         if shape.get("@value") is not None:
             retn.name = shape.get("@value")
+        if shape.get("@Type") is not None:
+            retn.name = shape.get("@Type")
         if shape.get("@Module") is not None:
             retn.module = shape.get("@Module")
         if shape.get("@Class") is not None:
@@ -105,7 +107,8 @@ class WorkflowEngine():
         if shape.get("@Mapping") is not None:
             retn.mapping = shape.get("@Mapping")
         if shape.get("@label") is not None:
-            retn.name = shape.get("@label")
+            if len(shape.get("@label")) > 0:
+                retn.label = shape.get("@label")
         if shape.get("@script") is not None:
             retn.script = shape.get("@script")
         if shape.get("@class") is not None:
@@ -132,7 +135,7 @@ class WorkflowEngine():
                 # to fetch module
                 if hasattr(step, "module"):
                     if str(step.mapping).lower() == "full_object":
-                        method_to_call = getattr(output_previous_step, step.function)
+                        method_to_call = getattr(output_previous_step.get("class_object"), step.function)
                     else:
                         method_to_call = None
                         input = None
@@ -145,6 +148,7 @@ class WorkflowEngine():
                                 method_to_call = getattr(class_object, step.function)
                         else:
                             method_to_call = getattr(module_object, step.function)
+
                     if method_to_call is not None:
                         sig = signature(method_to_call)
                         if str(sig) != "()" and sig is not None:
@@ -152,26 +156,29 @@ class WorkflowEngine():
                                                           output_previous_step=output_previous_step)
                     else:
                         sig = None
+
                     if input is not None:
                         if len(step.function) > 0:
-                            output_previous_step = method_to_call(**input)
+                            output_previous_step = {"class_object": class_object(), "result": method_to_call(**input)}
                         else:
-                            output_previous_step = class_object(**input)
+                            output_previous_step = {"class_object": class_object(**input), "result": None}
                     else:
                         if len(step.function) > 0:
-                            output_previous_step = method_to_call()
+                            output_previous_step = {"class_object": class_object(), "result": method_to_call()}
+                            if output_previous_step is None:
+                                output_previous_step = {"class_object": class_object(), "result": None}
                         else:
-                            output_previous_step = class_object()
+                            output_previous_step ={"class_object": class_object(), "result": None}
                     previous_step = step
                     print(f"{step.classname}.{step.function} executed.")
             except Exception as e:
                 pass
-            step = self.get_next_step(step, steps)
+            step = self.get_next_step(step, steps, output_previous_step)
             if step is None:
                 break
             previous_step = step
 
-    def get_next_step(self, current_step, steps):
+    def get_next_step(self, current_step, steps, output_previous_step):
         """
         Get the next step in the flow
 
@@ -187,7 +194,16 @@ class WorkflowEngine():
         if my_connector is None:
             return None
         shapes = [x for x in steps if x.type == "shape"]
-        return [x for x in shapes if x.id == my_connector.target][0]
+        retn = [x for x in shapes if x.id == my_connector.target][0]
+        if hasattr(retn, "name"):
+            if str(retn.name).lower() == "exclusive gateway":
+                connectors = [x for x in connectors if x.source == retn.id]
+                if output_previous_step.get("result"):
+                    conn = [x for x in connectors if str(x.name).lower() == "true"]
+                else:
+                    conn = [x for x in connectors if str(x.name).lower() == "false"]
+                retn = [x for x in shapes if x.id == conn[0].target][0]
+        return retn
 
     def build_dict_from_mapping(self, mapping: str) -> typing.Dict[str, str]:
         """
@@ -218,13 +234,12 @@ class WorkflowEngine():
                 mapping = self.build_dict_from_mapping(step.mapping)
         if mapping is not None:
             for key, value in mapping.items():
-                retn[key] = output_previous_step[int(value)]
+                retn[key] = output_previous_step.get("result")[int(value)]
             return retn
         else:
             return None
     class dynamic_object(object):
         pass
-
 
 # Test
 # engine = WorkflowEngine("c:\\python\\python.exe")
