@@ -5,8 +5,8 @@ With this Framework you can draw Business Process Model Notation based Diagrams 
 It is based on the mxGraph model notation of https://app.diagrams.net/.
 
 ### Content:
-* [Quick Start](#Quick start)
-* [Allowed Shapes](#Allowed Shapes)
+* [Quick Start](#Quick-start)
+* [Allowed Shapes](#Allowed-Shapes)
 * [Example](#Example)
 
 
