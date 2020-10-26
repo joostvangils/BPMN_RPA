@@ -1,5 +1,5 @@
 # BPMN_RPA
-Robotic Process Automation by using Driagrams.net BPMN diagrams.
+Robotic Process Automation in Windows by using Driagrams.net BPMN diagrams.
 
 With this Framework you can draw Business Process Model Notation based Diagrams and run those diagrams with a WorkflowEngine.
 It is based on the mxGraph model notation of https://app.diagrams.net/.
