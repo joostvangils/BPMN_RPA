@@ -1,7 +1,9 @@
 import base64
 import importlib
 import os
+import sqlite3
 import urllib
+import uuid
 import zlib
 from inspect import signature
 import xml.etree.ElementTree as ET
@@ -22,6 +24,9 @@ class WorkflowEngine():
         :param pythonpath: The full path to the python.exe file
         """
         self.pythonPath = pythonpath
+        self.db = SQL()
+        self.uid = uuid.uuid1()  # Generate a unique ID for our flow
+        self.name = None
 
     def open(self, path: str) -> Any:
         """
@@ -32,6 +37,7 @@ class WorkflowEngine():
         """
         # Open an existing document.
         xml_file = open(path, "r")
+        self.name = path.split("\\")[-1].lower().replace(".xml", "")
         xml_root = ET.fromstring(xml_file.read())
         raw_text = xml_root[0].text
         base64_decode = base64.b64decode(raw_text)
@@ -39,7 +45,6 @@ class WorkflowEngine():
         url_decode = urllib.parse.unquote(inflated_xml)
         retn = xmltodict.parse(url_decode)
         return retn
-
 
     def get_flow(self, ordered_dict) -> Any:
         """
@@ -134,6 +139,9 @@ class WorkflowEngine():
             try:
                 # to fetch module
                 if hasattr(step, "module"):
+                    # Create a record in the orchestrator database
+                    sql = f"INSERT INTO Workflows (uid, name, current_step) VALUES ('{self.uid}', '{self.name}', '{step.name}')"
+                    id = self.db.run_sql(sql=sql, tablename="Workflows")  # execute, commit and return the inserted id
                     if str(step.mapping).lower() == "full_object":
                         method_to_call = getattr(output_previous_step.get("class_object"), step.function)
                     else:
@@ -170,6 +178,9 @@ class WorkflowEngine():
                         else:
                             output_previous_step ={"class_object": class_object(), "result": None}
                     previous_step = step
+                    # Update the result
+                    sql = f"UPDATE Workflows SET result ='{str(output_previous_step.get('result'))}' WHERE id={id};"
+                    self.db.run_sql(sql)
                     print(f"{step.classname}.{step.function} executed.")
             except Exception as e:
                 pass
@@ -241,9 +252,52 @@ class WorkflowEngine():
     class dynamic_object(object):
         pass
 
+class SQL():
+
+    def __init__(self):
+        """
+        Class for SQLite actions on the Orchestrator database.
+        """
+        self.connection = sqlite3.connect('orchestrator.db')
+
+    def run_sql(self, sql, tablename: str = ""):
+        """
+        Run SQL command and commit.
+        :param sql: The SQL command to execute.
+        :param tablename: Optional. The tablename of the table used in the SQL command, for returning the last id of the primary key column.
+        :return: The last inserted id of the primary key column
+        """
+        self.connection.execute(sql)
+        self.connection.commit()
+        if len(tablename) > 0:
+            return self.get_inserted_id("Workflows")
+        else:
+            return None
+
+    def get_inserted_id(self, tablename: str) -> int:
+        """
+        Get the last inserted id of the primary key column of the table
+        :param tablename: The name of the table to get the last id of
+        :return: The last inserted id of the primary key column
+        """
+        sql = f"SELECT MAX(id) FROM {tablename};"
+        curs = self.connection.cursor()
+        curs.execute(sql)
+        row = curs.fetchone()
+        return int(row[0])
+
+    def orchestrator(self):
+        """
+        Create tables for the Orchestrator database
+        """
+        sql = "CREATE TABLE IF NOT EXISTS Workflows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,uid TEXT NOT NULL,name TEXT NOT NULL,current_step TEXT,result TEXT,timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);"
+        self.run_sql(sql)
+
+
 # Test
-# engine = WorkflowEngine("c:\\python\\python.exe")
-# doc = engine.open("test.xml")
-# steps = engine.get_flow(doc)
-# engine.run_flow(steps)
+engine = WorkflowEngine("c:\\python\\python.exe")
+engine.db.orchestrator()
+doc = engine.open(f"{os.getcwd()}\\test.xml")
+steps = engine.get_flow(doc)
+engine.run_flow(steps)
 
