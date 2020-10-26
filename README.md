@@ -12,7 +12,7 @@ Usage:
 
 Example:
 
-engine = WorkflowEngine(f"{os.getcwd()}\\Scripts\\")
+engine = WorkflowEngine(f"{os.getcwd()}\\Scripts\\", "c:\\python\\python.exe")
 doc = engine.open("test.xml")
 steps = engine.get_flow(doc)
 engine.run_flow(steps)
