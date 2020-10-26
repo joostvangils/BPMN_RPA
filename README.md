@@ -5,12 +5,12 @@ With this Framework you can draw Business Process Model Notation based Diagrams 
 It is based on the mxGraph model notation of https://app.diagrams.net/.
 
 ### Content:
-* [Quick Start](#Quick start)
-* [Allowed Shapes](#Allowed)
+* [Quick Start](#Quick startt)
+* [Allowed Shapes](#Allowed Shapes)
 * [Example](#Example)
 
 
-#### Quick start:
+#### Quick start
 - Open the diagram.net (or DrawIO desktop) app
 - Import the BPMN RPA Shapes ( file -> import from -> device)
 - Create your Diagram in https://app.diagrams.net/ or in the Desktop application by using the BPMN_RPA Shape-set
@@ -18,7 +18,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 - Save your diagram as XML
 - Run your workflow by using the WorkflowEngine
 
-#### Allowed Shapes:
+#### Allowed Shapes
 For the Workflow engine to recognize the flow, you are restricted to use the following Shapes:
 
 * Tasks. Each Task must contain the following Data attributes:
@@ -31,7 +31,7 @@ For the Workflow engine to recognize the flow, you are restricted to use the fol
 * Sequence flow arrow. If the Sequence flow arrow is originating from an Exclusive Gateway, the Sequence flow arrow must have a value of 'True' or 'False'.
 
 
-#### Example:
+#### Example
 
 ```Python
 engine = WorkflowEngine("c:\\\python\\\python.exe")
