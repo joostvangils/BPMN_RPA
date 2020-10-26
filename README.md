@@ -14,7 +14,7 @@ Usage:
 
 Example:
 
-engine = WorkflowEngine("c:\\python\\python.exe")<br>
+engine = WorkflowEngine("c:\\\python\\\python.exe")<br>
 doc = engine.open("test.xml")<br>
 steps = engine.get_flow(doc)<br>
 engine.run_flow(steps)<br>
