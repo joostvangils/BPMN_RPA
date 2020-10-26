@@ -16,24 +16,22 @@ import xmltodict
 
 class WorkflowEngine():
 
-    def __init__(self, modulepath: str, pythonpath: str):
+    def __init__(self, pythonpath: str):
         """
         Class for automating DrawIO diagrams
-        :param modulePath: The path to the folder containing the scripts to execute
         :param pythonpath: The full path to the python.exe file
         """
         self.pythonPath = pythonpath
-        self.modulePath = modulepath
 
-    def open(self, name: str) -> Any:
+    def open(self, path: str) -> Any:
         """
         Open a DrawIO document
 
-        :param name: The name (including extension) of the diagram
+        :param name: The full path (including extension) of the diagram file
         :returns: A DrawIO dictionary object
         """
         # Open an existing document.
-        xml_file = open(name, "r")
+        xml_file = open(path, "r")
         xml_root = ET.fromstring(xml_file.read())
         raw_text = xml_root[0].text
         base64_decode = base64.b64decode(raw_text)
@@ -119,7 +117,6 @@ class WorkflowEngine():
             retn.IsStart = False
         return retn
 
-
     def run_flow(self, steps):
         """
         Execute a Workflow.
@@ -134,20 +131,37 @@ class WorkflowEngine():
             try:
                 # to fetch module
                 if hasattr(step, "module"):
-                    spec = importlib.util.spec_from_file_location(step.module, self.modulePath + step.module)
-                    module_object = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(module_object)
-                    if hasattr(module_object, step.classname):
-                        class_object = getattr(module_object, step.classname)
-                        method_to_call = getattr(class_object, step.function)
+                    if str(step.mapping).lower() == "full_object":
+                        method_to_call = getattr(output_previous_step, step.function)
                     else:
-                        method_to_call = getattr(module_object, step.function)
-                    sig = signature(method_to_call)
-                    if str(sig) != "()":
-                        input = self.get_input_parameters(step=step, method_to_call=method_to_call, signature=sig, output_previous_step=output_previous_step)
-                        output_previous_step = method_to_call(**input)
+                        method_to_call = None
+                        input = None
+                        spec = importlib.util.spec_from_file_location(step.module, step.module)
+                        module_object = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(module_object)
+                        if hasattr(module_object, step.classname):
+                            class_object = getattr(module_object, step.classname)
+                            if len(step.function) > 0:
+                                method_to_call = getattr(class_object, step.function)
+                        else:
+                            method_to_call = getattr(module_object, step.function)
+                    if method_to_call is not None:
+                        sig = signature(method_to_call)
+                        if str(sig) != "()" and sig is not None:
+                            input = self.get_input_parameters(step=step, method_to_call=method_to_call, signature=sig,
+                                                          output_previous_step=output_previous_step)
                     else:
-                        output_previous_step = method_to_call()
+                        sig = None
+                    if input is not None:
+                        if len(step.function) > 0:
+                            output_previous_step = method_to_call(**input)
+                        else:
+                            output_previous_step = class_object(**input)
+                    else:
+                        if len(step.function) > 0:
+                            output_previous_step = method_to_call()
+                        else:
+                            output_previous_step = class_object()
                     previous_step = step
                     print(f"{step.classname}.{step.function} executed.")
             except Exception as e:
@@ -200,17 +214,21 @@ class WorkflowEngine():
         retn = {}
         mapping = None
         if hasattr(step, "mapping"):
-            mapping = self.build_dict_from_mapping(step.mapping)
-        for key, value in mapping.items():
-            retn[key] = output_previous_step[int(value)]
-        return retn
+            if len(step.mapping) > 0 and str(step.mapping) != "full_object":
+                mapping = self.build_dict_from_mapping(step.mapping)
+        if mapping is not None:
+            for key, value in mapping.items():
+                retn[key] = output_previous_step[int(value)]
+            return retn
+        else:
+            return None
     class dynamic_object(object):
         pass
 
 
 # Test
-we = WorkflowEngine(f"{os.getcwd()}\\Scripts\\", "c:\\users\\jogil\\venv\\Scripts\\python.exe")
-doc = we.open(f"test.xml")
-steps = we.get_flow(doc)
-we.run_flow(steps)
+# engine = WorkflowEngine("c:\\python\\python.exe")
+# doc = engine.open("test.xml")
+# steps = engine.get_flow(doc)
+# engine.run_flow(steps)
 
