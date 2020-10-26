@@ -12,9 +12,9 @@ Usage:
 
 Example:
 
-engine = WorkflowEngine(f"{os.getcwd()}\\Scripts\\", "c:\\python\\python.exe")
-doc = engine.open("test.xml")
-steps = engine.get_flow(doc)
-engine.run_flow(steps)
+engine = WorkflowEngine(f"{os.getcwd()}\\Scripts\\", "c:\\python\\python.exe")<br>
+doc = engine.open("test.xml")<br>
+steps = engine.get_flow(doc)<br>
+engine.run_flow(steps)<br>
 
 You can download the DrawIO desktop version [here](https://github.com/jgraph/drawio-desktop/releases)
