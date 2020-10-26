@@ -16,12 +16,13 @@ import xmltodict
 
 class WorkflowEngine():
 
-    def __init__(self, modulepath: str):
+    def __init__(self, modulepath: str, pythonpath: str):
         """
         Class for automating DrawIO diagrams
-        :param modulePath: Het pad naar de folder waarin de modules staan die worden uitgevoerd
+        :param modulePath: The path to the folder containing the scripts to execute
+        :param pythonpath: The full path to the python.exe file
         """
-        self.pythonPath = "c:\\users\\jogil\\venv\\Scripts\\python.exe"
+        self.pythonPath = pythonpath
         self.modulePath = modulepath
 
     def open(self, name: str) -> Any:
@@ -208,7 +209,7 @@ class WorkflowEngine():
 
 
 # Test
-we = WorkflowEngine(f"{os.getcwd()}\\Scripts\\")
+we = WorkflowEngine(f"{os.getcwd()}\\Scripts\\", "c:\\users\\jogil\\venv\\Scripts\\python.exe")
 doc = we.open(f"test.xml")
 steps = we.get_flow(doc)
 we.run_flow(steps)
