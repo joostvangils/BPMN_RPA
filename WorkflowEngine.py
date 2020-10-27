@@ -76,9 +76,10 @@ class WorkflowEngine():
         for shape in shapes:
             incoming_connector = None
             for conn in connectors:
-                if conn.target == shape.id:
-                    incoming_connector = conn
-                    break
+                if hasattr(conn, "target"):
+                    if conn.target == shape.id:
+                        incoming_connector = conn
+                        break
             if incoming_connector is None:
                 shape.IsStart = True
         retn = shapes + connectors
@@ -94,36 +95,41 @@ class WorkflowEngine():
         retn = self.dynamic_object()
         row = 0
         retn.id = shape.get("@id")
-        if shape.get("@source") is not None:
-            retn.source = shape.get("@source")
-        if shape.get("@target") is not None:
-            retn.target = shape.get("@target")
+        for key, value in shape.items():
+            attr = str(key).lower().replace("@", "")
+            if attr == "class":
+                attr = "classname"  # 'çlass' is a reserved keyword, so use 'çlassname'
+            setattr(retn, attr, value)
+        if shape.get("@source") is not None or shape.get("@target") is not None:
             retn.type = "connector"
-        if shape.get("@value") is not None:
-            retn.name = shape.get("@value")
-        if shape.get("@Type") is not None:
-            retn.name = shape.get("@Type")
-        if shape.get("@Module") is not None:
-            retn.module = shape.get("@Module")
-        if shape.get("@Class") is not None:
-            retn.classname = shape.get("@Class")
-        if shape.get("@Function") is not None:
-            retn.function = shape.get("@Function")
-        if shape.get("@Mapping") is not None:
-            retn.mapping = shape.get("@Mapping")
         if shape.get("@label") is not None:
-            if len(shape.get("@label")) > 0:
-                retn.label = shape.get("@label")
-        if shape.get("@script") is not None:
-            retn.script = shape.get("@script")
-        if shape.get("@class") is not None:
-            retn.script = shape.get("@class")
-        if shape.get("@function") is not None:
-            retn.script = shape.get("@function")
+            if not hasattr(retn, "name"):
+                retn.name = retn.label
         if shape.get("@source") is None and shape.get("@target") is None:
             retn.type = "shape"
             retn.IsStart = False
         return retn
+
+
+    def get_parameters_from_shapevalues(self, step: Any, signature: Any) -> str:
+        """
+        If input values are provided in the Shapevalues, then create a mapping
+        :param step: The step to use the Shapevalues of to create the mapping
+        :param signature: The imput parametes of the function that needs to be called
+        :return: A mapping string
+        """
+        mapping = ""
+        for key, value in signature.parameters.items():
+            if str(key).lower() != "self":
+                val = str(getattr(step, str(key).lower()))
+                if len(val) == 0:
+                    val = "''"
+                mapping += f"{str(key).lower()}={val};"
+        if len(mapping) > 0:
+            return mapping[0:-1]
+        else:
+            return None
+
 
     def run_flow(self, steps):
         """
@@ -139,6 +145,7 @@ class WorkflowEngine():
             try:
                 # to fetch module
                 if hasattr(step, "module"):
+                    class_object = None
                     # Create a record in the orchestrator database
                     sql = f"INSERT INTO Workflows (uid, name, current_step) VALUES ('{self.uid}', '{self.name}', '{step.name}')"
                     id = self.db.run_sql(sql=sql, tablename="Workflows")  # execute, commit and return the inserted id
@@ -147,6 +154,8 @@ class WorkflowEngine():
                     else:
                         method_to_call = None
                         input = None
+                        if not str(step.module).__contains__("\\"):
+                            step.module = f"{os.getcwd()}\\Scripts\\{step.module}"
                         spec = importlib.util.spec_from_file_location(step.module, step.module)
                         module_object = importlib.util.module_from_spec(spec)
                         spec.loader.exec_module(module_object)
@@ -164,15 +173,28 @@ class WorkflowEngine():
                                                           output_previous_step=output_previous_step)
                     else:
                         sig = None
+                    if input is None:
+                        # Get input-parameters from Shapevalues
+                        shapevalues = self.get_parameters_from_shapevalues(step=step, signature=sig)
+                        if shapevalues is not None:
+                            input = self.build_dict_from_mapping(shapevalues)
+                        else:
+                            input = None
 
                     if input is not None:
                         if len(step.function) > 0:
-                            output_previous_step = {"class_object": class_object(), "result": method_to_call(**input)}
+                            if class_object is None:
+                                output_previous_step = {"class_object": None, "result": method_to_call(**input)}
+                            else:
+                                output_previous_step = {"class_object": class_object(), "result": method_to_call(**input)}
                         else:
                             output_previous_step = {"class_object": class_object(**input), "result": None}
                     else:
                         if len(step.function) > 0:
-                            output_previous_step = {"class_object": class_object(), "result": method_to_call()}
+                            if class_object is None:
+                                output_previous_step = {"class_object": None, "result": method_to_call()}
+                            else:
+                                output_previous_step = {"class_object": class_object(), "result": method_to_call()}
                             if output_previous_step is None:
                                 output_previous_step = {"class_object": class_object(), "result": None}
                         else:
@@ -245,7 +267,10 @@ class WorkflowEngine():
                 mapping = self.build_dict_from_mapping(step.mapping)
         if mapping is not None:
             for key, value in mapping.items():
-                retn[key] = output_previous_step.get("result")[int(value)]
+                if output_previous_step is not None:
+                    retn[key] = output_previous_step.get("result")[int(value)]
+                else:
+                    return None
             return retn
         else:
             return None
@@ -297,7 +322,7 @@ class SQL():
 # Test
 engine = WorkflowEngine("c:\\python\\python.exe")
 engine.db.orchestrator()
-doc = engine.open(f"{os.getcwd()}\\test.xml")
+doc = engine.open(f"test.xml")  # c:\\temp\\test.xml
 steps = engine.get_flow(doc)
 engine.run_flow(steps)
 
