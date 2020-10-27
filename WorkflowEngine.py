@@ -119,12 +119,17 @@ class WorkflowEngine():
         :return: A mapping string
         """
         mapping = ""
+        returnNone = True
         for key, value in signature.parameters.items():
             if str(key).lower() != "self":
                 val = str(getattr(step, str(key).lower()))
                 if len(val) == 0:
                     val = "''"
+                else:
+                    returnNone = False
                 mapping += f"{str(key).lower()}={val};"
+        if returnNone:
+            return None
         if len(mapping) > 0:
             return mapping[0:-1]
         else:
@@ -173,13 +178,12 @@ class WorkflowEngine():
                                                           output_previous_step=output_previous_step)
                     else:
                         sig = None
-                    if input is None:
-                        # Get input-parameters from Shapevalues
-                        shapevalues = self.get_parameters_from_shapevalues(step=step, signature=sig)
-                        if shapevalues is not None:
-                            input = self.build_dict_from_mapping(shapevalues)
-                        else:
-                            input = None
+
+                    # Get input-parameters from Shapevalues and overwrite Input if any values are given
+                    shapevalues = self.get_parameters_from_shapevalues(step=step, signature=sig)
+                    if shapevalues is not None:
+                        input = self.build_dict_from_mapping(shapevalues)
+
 
                     if input is not None:
                         if len(step.function) > 0:
