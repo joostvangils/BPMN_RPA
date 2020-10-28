@@ -36,7 +36,7 @@ For the Workflow engine to recognize the flow, you are restricted to use the fol
      * Mapping: The mapping of the input parameters to the output of the previous task.
     
    * Optional attributes:
-     * You can specify any value directly by adding an extra attribute to the shape with **exactly the same name** as the expected input parameter(s) of the function. If you leave the value(s) blank, then the mapping values will be used. In this way you can combine direct values with mapping values.
+     * You can specify any input value for the called function directly by adding an extra attribute to the shape with **exactly the same name** as the expected input parameter(s) of the function. If you leave the value(s) blank, then the mapping values will be used. In this way you can combine direct values with mapping values.
       
       P.e.: to call 
       ```Python
