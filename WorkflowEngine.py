@@ -111,11 +111,12 @@ class WorkflowEngine():
         return retn
 
 
-    def get_parameters_from_shapevalues(self, step: Any, signature: Any) -> str:
+    def get_parameters_from_shapevalues(self, step: Any, signature: Any, input: Any) -> str:
         """
         If input values are provided in the Shapevalues, then create a mapping
         :param step: The step to use the Shapevalues of to create the mapping
         :param signature: The imput parametes of the function that needs to be called
+        :param input: The inputs from the previous step
         :return: A mapping string
         """
         mapping = ""
@@ -124,7 +125,10 @@ class WorkflowEngine():
             if str(key).lower() != "self":
                 val = str(getattr(step, str(key).lower()))
                 if len(val) == 0:
-                    val = "''"
+                    if input is not None:
+                        val = input.get(str(value))
+                    else:
+                        val = "''"
                 else:
                     returnNone = False
                 mapping += f"{str(key).lower()}={val};"
@@ -179,7 +183,14 @@ class WorkflowEngine():
                         sig = None
 
                     # Get input-parameters from Shapevalues and overwrite Input if any values are given
-                    shapevalues = self.get_parameters_from_shapevalues(step=step, signature=sig)
+                    mapping = None
+                    if hasattr(step, "mapping"):
+                        mapping = step.mapping
+                        if len(mapping) == 0:
+                            mapping = None
+                    else:
+                        mapping = None
+                    shapevalues = self.get_parameters_from_shapevalues(step=step, signature=sig, input=input)
                     if shapevalues is not None:
                         input = self.build_dict_from_mapping(shapevalues)
 
