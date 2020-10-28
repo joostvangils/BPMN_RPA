@@ -9,7 +9,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 * [Allowed Shapes](#Allowed-Shapes)
   * [Tasks](#Tasks)
   * [Gateways](#Gateways)
-  * [Sequence flow arrow](#Sequence flow arrow)
+  * [Sequence flow arrow](#Sequence-flow-arrow)
 * [Example](#Example)
 
 
