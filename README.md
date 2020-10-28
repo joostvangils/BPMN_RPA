@@ -10,6 +10,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
   * [Tasks](#Tasks)
   * [Gateways](#Gateways)
   * [Sequence flow arrow](#Sequence-flow-arrow)
+* [Variables](#Variables)
 * [Example](#Example)
 
 
@@ -33,7 +34,9 @@ For the Workflow engine to recognize the flow, you are restricted to use the fol
         * From installed package: specify only the module name (without extension .py).
      * Class: for reference to the Class to use in the Module.
      * Function: The name of the Function to Call.
-     * Mapping: The mapping of the input parameters to the output of the previous task.
+     * Output_variable: The name of the variable that must store the output of the current action.
+     * Mapping: The mapping of the input parameters to the output of the previous task. This shoul be a string, containing the key-value pairs. <br>
+       P.e.: param1=0;param2=%test[2]% which means: use the first output of the previous step as the input parameter with the name 'param1' and use the third element of the variable with name '%test%' as the second input parameter with the name 'param2'.
     
    * Optional attributes:
      * You can specify any input value for the called function directly by adding an extra attribute to the shape with **exactly the same name** as the expected input parameter(s) of the function. If you add these extra attributes, but decide to leave these value(s) blank, then the mapping values (output values from previous step) will be used. In this way you can combine direct values with mapping values.
@@ -50,6 +53,21 @@ For the Workflow engine to recognize the flow, you are restricted to use the fol
 ##### Sequence flow arrow
    * If the Sequence flow arrow is originating from an Exclusive Gateway, the Sequence flow arrow must have a value of 'True' or 'False'.
 
+#### Variables
+The % sign is used as brackets around a Variable. For example, "%name%" is the Variable 'name'. When you use %name% as an input, the Action will use the value that has previously been stored in that Variable, so you should have an earlier Action that assigned a value to %name% as an output. By assigning output values to Variables, and then using them as input in later steps, you can pass information through a Workflow.
+ 
+You can store any type of information into a variable, like:
+* Texts
+* Numbers
+* Booleans
+* Lists
+* Class objects 
+etc. etc.
+
+##### Retreiving information
+In order to retrieve a specific item of a list, you must use the following format (notation): %VariableName[ItemNumber]%. The “ItemNumber” should be 0 for the first item of the list, 1 for the second and so on. For example, if you have a list that is stored in the variable %MyList% and contains 10 items, you can retrieve the first item with: %MyList[0]% and the last item with %MyList[9]%.
+
+For data tables, you must use the following notation: %VariableName[RowNumber][ColumnNumber]%. “RowNumber” and “ColumnNumber” should be 0 for the first item (row or column), 1 for the second and so on. For example, if you have a data table that is stored in the variable %MyDataTable%, you can retrieve the first item with: %MyDataTable[0][0]%. 
 
 ##### Example
 
