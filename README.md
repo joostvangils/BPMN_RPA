@@ -43,9 +43,7 @@ For the Workflow engine to recognize the flow, you are restricted to use the fol
       os.system('Notepad')
       ```
       You look up the name of the input parameter(s) in the official documentation (or in the code). In this example, the input parameter is called 'command'. You then set the following attributes:
-      <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/os_system.PNG" align="left" height="48" width="48" ></a>
-
-      ![os](https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/os_system.PNG)
+      <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/os_system.PNG" height="150" width="100" ></a>
     
 ##### GateWays
    * For now you can only use the Exclusive Gateway. This Gateway has to have a Data attribute named 'Type' with the value 'Exclusive Gateway'.
