@@ -247,10 +247,12 @@ class WorkflowEngine():
 
                     previous_step = step
                     # Update the result
-                    sql = f"UPDATE Workflows SET result ='{str(output_previous_step.get('result'))}' WHERE id={id};"
+                    sql_out = str(output_previous_step).replace("\'", "\'\'")
+                    sql = f"UPDATE Workflows SET result ='{sql_out}' WHERE id={id};"
                     self.db.run_sql(sql)
                     print(f"{step.classname}.{step.function} executed.")
             except Exception as e:
+                print(f"Error: {e}")
                 pass
             step = self.get_next_step(step, steps, output_previous_step)
             if step is None:
