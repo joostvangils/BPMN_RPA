@@ -1,5 +1,6 @@
 import base64
 import importlib
+import inspect
 import os
 import sqlite3
 import urllib
@@ -27,6 +28,7 @@ class WorkflowEngine():
         self.db = SQL()
         self.uid = uuid.uuid1()  # Generate a unique ID for our flow
         self.name = None
+        self.variables = {}  # Dictionary to hold WorkflowEngine variables
 
     def open(self, path: str) -> Any:
         """
@@ -110,7 +112,6 @@ class WorkflowEngine():
             retn.IsStart = False
         return retn
 
-
     def get_parameters_from_shapevalues(self, step: Any, signature: Any, input: Any) -> str:
         """
         If input values are provided in the Shapevalues, then create a mapping
@@ -139,6 +140,19 @@ class WorkflowEngine():
         else:
             return None
 
+    def step_has_direct_variables(self, step: Any) -> bool:
+        """
+        Check if a step uses any variables as input for any of the Shapevalue fields
+        :param step: The step to check
+        :return: True or Flase
+        """
+        attrs = vars(step)
+        col = [key for key,val in attrs.items() if str(val).startswith("%") and str(val).endswith("%") and str(key) != "output_variable"]
+        if len(col) > 0:
+            return True
+        else:
+            return False
+
     def run_flow(self, steps):
         """
         Execute a Workflow.
@@ -157,10 +171,15 @@ class WorkflowEngine():
                     # Create a record in the orchestrator database
                     sql = f"INSERT INTO Workflows (uid, name, current_step) VALUES ('{self.uid}', '{self.name}', '{step.name}')"
                     id = self.db.run_sql(sql=sql, tablename="Workflows")  # execute, commit and return the inserted id
-                    if str(step.mapping).lower() == "full_object":
-                        method_to_call = getattr(output_previous_step.get("class_object"), step.function)
-                    else:
-                        method_to_call = None
+
+                    # region get function call
+                    method_to_call = None
+                    if self.step_has_direct_variables(step):
+                        # Get variable from stack
+                        var = self.variables.get(step.output_variable)
+                        if inspect.isclass(var):
+                            method_to_call = getattr(self.variables.get(step.output_variable), step.function)
+                    if method_to_call is None:
                         input = None
                         if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(".py"):
                             step.module = f"{os.getcwd()}\\Scripts\\{step.module}"
@@ -176,15 +195,17 @@ class WorkflowEngine():
                                 method_to_call = getattr(class_object, step.function)
                         else:
                             method_to_call = getattr(module_object, step.function)
+                    # endregion
 
                     if method_to_call is not None:
                         sig = signature(method_to_call)
                         if str(sig) != "()" and sig is not None:
                             input = self.get_input_parameters(step=step, method_to_call=method_to_call, signature=sig,
-                                                          output_previous_step=output_previous_step)
+                                                              output_previous_step=output_previous_step)
                     else:
                         sig = None
 
+                    # region get input
                     # Get input-parameters from Shapevalues and overwrite Input if any values are given
                     mapping = None
                     if hasattr(step, "mapping"):
@@ -196,24 +217,34 @@ class WorkflowEngine():
                     shapevalues = self.get_parameters_from_shapevalues(step=step, signature=sig, input=input)
                     if shapevalues is not None:
                         input = self.build_dict_from_mapping(shapevalues)
+                    # endregion
+
+                    # region execute function call and get returned values
                     if input is not None:
                         if len(step.function) > 0:
                             if class_object is None:
-                                output_previous_step = {"class_object": None, "result": method_to_call(**input)}
+                                output_previous_step = method_to_call(**input)
                             else:
-                                output_previous_step = {"class_object": class_object(), "result": method_to_call(**input)}
+                                output_previous_step = method_to_call(**input)
                         else:
-                            output_previous_step = {"class_object": class_object(**input), "result": None}
+                            output_previous_step = class_object(**input)
                     else:
                         if len(step.function) > 0:
                             if class_object is None:
-                                output_previous_step = {"class_object": None, "result": method_to_call()}
+                                output_previous_step = method_to_call()
                             else:
-                                output_previous_step = {"class_object": class_object(), "result": method_to_call()}
+                                output_previous_step = method_to_call()
                             if output_previous_step is None:
-                                output_previous_step = {"class_object": class_object(), "result": None}
+                                output_previous_step = class_object()
                         else:
-                            output_previous_step ={"class_object": class_object(), "result": None}
+                            output_previous_step = class_object()
+                    # endregion
+
+                    # region set Output variable
+                        if len(step.output_variable) > 0 and str(step.output_variable).startswith("%") and str(step.output_variable).endswith("%"):
+                            self.variables.update({f"{step.output_variable}": output_previous_step})  # Update the variables list
+                    # endregion
+
                     previous_step = step
                     # Update the result
                     sql = f"UPDATE Workflows SET result ='{str(output_previous_step.get('result'))}' WHERE id={id};"
@@ -265,7 +296,8 @@ class WorkflowEngine():
             retn[map.split("=")[0].strip()] = map.split("=")[1].strip()
         return retn
 
-    def get_input_parameters(self, step: Any, method_to_call: Any, signature: Any, output_previous_step: Any) -> typing.Dict[str, Any]:
+    def get_input_parameters(self, step: Any, method_to_call: Any, signature: Any, output_previous_step: Any) -> \
+    typing.Dict[str, Any]:
         """
         Fetching parameters to create a dynamic function
 
@@ -283,14 +315,28 @@ class WorkflowEngine():
         if mapping is not None:
             for key, value in mapping.items():
                 if output_previous_step is not None:
-                    retn[key] = output_previous_step.get("result")[int(value)]
+                    if str(value).startswith("%") and str(value).endswith("%"):
+                        var = value.replace("%", "")
+                        nr = None
+                        var = var.split("[")[0]
+                        if value.__contains__("[") and value.__contains__("]"):
+                            nr = int(str(value.replace("%", "").split("[")[1]).replace("]", ""))
+                        var_val = self.variables.get(f"%{var}%")
+                        if isinstance(var_val, list) and nr is not None:
+                            retn[key] = var_val[nr]
+                        if inspect.isclass(var_val):
+                            retn[key] = var_val
+                    else:
+                        retn[key] = output_previous_step.get("result")[int(value)]
                 else:
                     return None
             return retn
         else:
             return None
+
     class dynamic_object(object):
         pass
+
 
 class SQL():
 
@@ -340,4 +386,3 @@ engine.db.orchestrator()
 doc = engine.open(f"test.xml")  # c:\\temp\\test.xml
 steps = engine.get_flow(doc)
 engine.run_flow(steps)
-
