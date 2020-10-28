@@ -35,9 +35,9 @@ For the Workflow engine to recognize the flow, you are restricted to use the fol
     * Optional:
       * You can specify any value directly by adding an extra attribute to the shape with the same name as the expected input parameter(s) of the function. If you leave the value(s) blank, then the mapping values will be used. In this way you can combine direct values with mapping values.
       P.e.: to call 
-      '''Python
+      ```Python
       os.system('Notepad')
-      '''
+      ```
       You can set the following attributes:
       ![os](https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/os_system.PNG)
     
