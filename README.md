@@ -21,11 +21,17 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 #### Allowed Shapes
 For the Workflow engine to recognize the flow, you are restricted to use the following Shapes:
 
-* Tasks. Each Task must contain the following Data attributes:
+* Tasks.
+    #####Mandatory
+    Each Task must contain the following Data attributes:
     * Module: This is the full path to the Python file that contains your Class and/or function.
+    ** From file: specify the full path (including extension .py) if you want to load you module from a specific file location.
+    ** From file in Script directory: specify only the module name (including extension .py) of the module you want to use.
+    ** From installed package: specify only the module name (without extension .py).
     * Class: for reference to the Class to use in the Module.
     * Function: The name of the Function to Call.
     * Mapping: The mapping of the input parameters to the output of the previous task.
+    
 * GateWays:
     * For now you can only use the Exclusive Gateway. This Gateway has to have a Data attribute named 'Type' with the value 'Exclusive Gateway'.
 * Sequence flow arrow. If the Sequence flow arrow is originating from an Exclusive Gateway, the Sequence flow arrow must have a value of 'True' or 'False'.
