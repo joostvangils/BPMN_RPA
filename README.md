@@ -7,6 +7,9 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 ### Content:
 * [Quick Start](#Quick-start)
 * [Allowed Shapes](#Allowed-Shapes)
+  * [Tasks](#Tasks)
+  * [Gateways](#Gateways)
+  * [Sequence flow arrow](#Sequence flow arrow)
 * [Example](#Example)
 
 
@@ -21,7 +24,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 #### Allowed Shapes
 For the Workflow engine to recognize the flow, you are restricted to use the following Shapes:
 
-##### Tasks.
+##### Tasks
 
    * Mandatory:
      * Module: This is the full path to the Python file that contains your Class and/or function.
@@ -42,9 +45,9 @@ For the Workflow engine to recognize the flow, you are restricted to use the fol
       You can set the following attributes:
       ![os](https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/os_system.PNG)
     
-##### GateWays:
+##### GateWays
    * For now you can only use the Exclusive Gateway. This Gateway has to have a Data attribute named 'Type' with the value 'Exclusive Gateway'.
-##### Sequence flow arrow. 
+##### Sequence flow arrow
    * If the Sequence flow arrow is originating from an Exclusive Gateway, the Sequence flow arrow must have a value of 'True' or 'False'.
 
 
