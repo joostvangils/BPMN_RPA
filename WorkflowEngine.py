@@ -162,11 +162,14 @@ class WorkflowEngine():
                     else:
                         method_to_call = None
                         input = None
-                        if not str(step.module).__contains__("\\"):
+                        if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(".py"):
                             step.module = f"{os.getcwd()}\\Scripts\\{step.module}"
-                        spec = importlib.util.spec_from_file_location(step.module, step.module)
-                        module_object = importlib.util.module_from_spec(spec)
-                        spec.loader.exec_module(module_object)
+                        if str(step.module).lower().__contains__(".py"):
+                            spec = importlib.util.spec_from_file_location(step.module, step.module)
+                            module_object = importlib.util.module_from_spec(spec)
+                            spec.loader.exec_module(module_object)
+                        else:
+                            module_object = importlib.import_module(step.module)
                         if hasattr(module_object, step.classname):
                             class_object = getattr(module_object, step.classname)
                             if len(step.function) > 0:
@@ -193,8 +196,6 @@ class WorkflowEngine():
                     shapevalues = self.get_parameters_from_shapevalues(step=step, signature=sig, input=input)
                     if shapevalues is not None:
                         input = self.build_dict_from_mapping(shapevalues)
-
-
                     if input is not None:
                         if len(step.function) > 0:
                             if class_object is None:
