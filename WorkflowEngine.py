@@ -2,6 +2,7 @@ import base64
 import importlib
 import inspect
 import os
+import site
 import sqlite3
 import urllib
 import uuid
@@ -120,25 +121,39 @@ class WorkflowEngine():
         :param input: The inputs from the previous step
         :return: A mapping string
         """
-        mapping = ""
+        mapping = {}
         returnNone = True
         for key, value in signature.parameters.items():
             if str(key).lower() != "self":
-                val = str(getattr(step, str(key).lower()))
-                if len(val) == 0:
-                    if input is not None:
-                        val = input.get(str(value))
+                try:
+                    val = str(getattr(step, str(key).lower()))
+                except Exception as e:
+                    if str(value).__contains__("="):
+                        val = value.default
                     else:
-                        val = "''"
-                else:
-                    returnNone = False
-                mapping += f"{str(key).lower()}={val};"
+                        val = None
+                if val is not None:
+                    if len(str(val)) == 0:
+                        if input is not None:
+                            val = input.get(str(value))
+                        else:
+                            if str(value).__contains__("="):
+                                val = value.default
+                            else:
+                                val = "''"
+                    else:
+                        returnNone = False
+                if isinstance(val, str):
+                    if val.replace(".", "").isnumeric():
+                        if val.__contains__("."):
+                            val = float(val)
+                        else:
+                            val = int(val)
+                mapping[str(key).lower()]=val
         if returnNone:
             return None
-        if len(mapping) > 0:
-            return mapping[0:-1]
         else:
-            return None
+            return mapping
 
     def step_has_direct_variables(self, step: Any) -> bool:
         """
@@ -183,6 +198,8 @@ class WorkflowEngine():
                         input = None
                         if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(".py"):
                             step.module = f"{os.getcwd()}\\Scripts\\{step.module}"
+                        if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(step.module).__contains__(".py"):
+                            step.module = f"{site.getsitepackages()[1]}\\{step.module}"
                         if str(step.module).lower().__contains__(".py"):
                             spec = importlib.util.spec_from_file_location(step.module, step.module)
                             module_object = importlib.util.module_from_spec(spec)
@@ -216,7 +233,7 @@ class WorkflowEngine():
                         mapping = None
                     shapevalues = self.get_parameters_from_shapevalues(step=step, signature=sig, input=input)
                     if shapevalues is not None:
-                        input = self.build_dict_from_mapping(shapevalues)
+                        input = shapevalues
                     # endregion
 
                     # region execute function call and get returned values
@@ -250,7 +267,10 @@ class WorkflowEngine():
                     sql_out = str(output_previous_step).replace("\'", "\'\'")
                     sql = f"UPDATE Workflows SET result ='{sql_out}' WHERE id={id};"
                     self.db.run_sql(sql)
-                    print(f"{step.classname}.{step.function} executed.")
+                    if len(step.classname) == 0:
+                        print(f"{step.function} executed.")
+                    else:
+                        print(f"{step.classname}.{step.function} executed.")
             except Exception as e:
                 print(f"Error: {e}")
                 pass
@@ -320,12 +340,19 @@ class WorkflowEngine():
                     if str(value).startswith("%") and str(value).endswith("%"):
                         var = value.replace("%", "")
                         nr = None
+                        attr = None
                         var = var.split("[")[0]
                         if value.__contains__("[") and value.__contains__("]"):
                             nr = int(str(value.replace("%", "").split("[")[1]).replace("]", ""))
+                        if value.__contains__(".") and not value.__contains__("["):
+                            attr = value.replace("%", "").split(".")[1]
                         var_val = self.variables.get(f"%{var}%")
-                        if isinstance(var_val, list) and nr is not None:
+                        if (isinstance(var_val, list) or isinstance(var_val, tuple)) and nr is not None:
                             retn[key] = var_val[nr]
+                        if isinstance(var_val, dict) and attr is not None:
+                            retn[key] = var_val.get(attr)
+                        if isinstance(var_val, object) and attr is not None:
+                            retn[key] = getattr(var_val, attr)
                         if inspect.isclass(var_val):
                             retn[key] = var_val
                     else:
@@ -385,6 +412,6 @@ class SQL():
 # Test
 engine = WorkflowEngine("c:\\python\\python.exe")
 engine.db.orchestrator()
-doc = engine.open(f"test.xml")  # c:\\temp\\test.xml
+doc = engine.open(f"c:\\temp\\test_system.xml")  # c:\\temp\\test.xml
 steps = engine.get_flow(doc)
 engine.run_flow(steps)
