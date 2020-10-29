@@ -29,6 +29,8 @@ class WorkflowEngine():
         self.db = SQL()
         self.uid = uuid.uuid1()  # Generate a unique ID for our flow
         self.name = None
+        self.loopcounter = None
+        self.loopvariable = None
         self.variables = {}  # Dictionary to hold WorkflowEngine variables
 
     def open(self, path: str) -> Any:
@@ -109,7 +111,13 @@ class WorkflowEngine():
             if not hasattr(retn, "name"):
                 retn.name = retn.label
         if shape.get("@source") is None and shape.get("@target") is None:
-            retn.type = "shape"
+            if hasattr(retn, "type"):
+                if not retn.type.lower().__contains__("gateway"):
+                    retn.type = "shape"
+                else:
+                    retn.type = retn.type.lower()
+            else:
+                retn.type = "shape"
             retn.IsStart = False
         return retn
 
@@ -287,6 +295,7 @@ class WorkflowEngine():
         :param steps: The steps collection
         :return: The next step object
         """
+        retn = None
         connectors = [x for x in steps if x.type == "connector"]
         try:
             my_connector = [x for x in connectors if x.source == current_step.id][0]
@@ -295,15 +304,21 @@ class WorkflowEngine():
         if my_connector is None:
             return None
         shapes = [x for x in steps if x.type == "shape"]
-        retn = [x for x in shapes if x.id == my_connector.target][0]
-        if hasattr(retn, "name"):
-            if str(retn.name).lower() == "exclusive gateway":
-                connectors = [x for x in connectors if x.source == retn.id]
+        col_conn = [x for x in shapes if x.id == my_connector.target]
+        if len(col_conn) > 0:
+            retn = col_conn[0]
+        if retn is None:
+            incoming_connector = [x for x in connectors if x.source == current_step.id][0]
+            gateway = [x for x in steps if x.id == incoming_connector.target][0]
+            if gateway.type == "exclusive gateway":
                 if output_previous_step.get("result"):
                     conn = [x for x in connectors if str(x.name).lower() == "true"]
                 else:
                     conn = [x for x in connectors if str(x.name).lower() == "false"]
                 retn = [x for x in shapes if x.id == conn[0].target][0]
+        if hasattr(retn, "loopcounter"):
+            self.loopcounter = int(retn.loopcounter)
+            self.loopvariable = retn.output_variable
         return retn
 
     def build_dict_from_mapping(self, mapping: str) -> typing.Dict[str, str]:
@@ -412,6 +427,6 @@ class SQL():
 # Test
 engine = WorkflowEngine("c:\\python\\python.exe")
 engine.db.orchestrator()
-doc = engine.open(f"c:\\temp\\test_system.xml")  # c:\\temp\\test.xml
+doc = engine.open(f"test_loop.xml")  # c:\\temp\\test.xml
 steps = engine.get_flow(doc)
 engine.run_flow(steps)
