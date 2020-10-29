@@ -16,7 +16,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 
 #### Quick start
 - Open the diagram.net (or DrawIO desktop) app
-- Import the BPMN RPA Shapes ( file -> import from -> device)
+- Import one of the BPMN RPA Shape libraries ( file -> import from -> device)
 - Create your Diagram in https://app.diagrams.net/ or in the Desktop application by using the BPMN_RPA Shape-set
 - Set the right mappings for each shape
 - Save your diagram as XML
@@ -61,13 +61,13 @@ You can store any type of information into a variable, like:
 * Numbers
 * Booleans
 * Lists
-* Class objects 
+* Class objects <br>
 etc. etc.
 
 ##### Retreiving information
-In order to retrieve a specific item of a list, you must use the following format (notation): %VariableName[ItemNumber]%. The “ItemNumber” should be 0 for the first item of the list, 1 for the second and so on. For example, if you have a list that is stored in the variable %MyList% and contains 10 items, you can retrieve the first item with: %MyList[0]% and the last item with %MyList[9]%.
+In order to retrieve a specific item of a list, you must use the following format (notation): %VariableName[ItemNumber]%. The “ItemNumber” should be 0 for the first item of the list, 1 for the second and so on. For example, if you have a list that is stored in the variable %MyList% and contains 10 items, you can retrieve the first item with: %MyList[0]% and the last item with %MyList[9]%. For data tables, you must use the following notation: %VariableName[RowNumber][ColumnNumber]%.
 
-For data tables, you must use the following notation: %VariableName[RowNumber][ColumnNumber]%. “RowNumber” and “ColumnNumber” should be 0 for the first item (row or column), 1 for the second and so on. For example, if you have a data table that is stored in the variable %MyDataTable%, you can retrieve the first item with: %MyDataTable[0][0]%. 
+If you would like to retreive an attribute of a stored object or dictionary in a variable, then you must use the %VariableName.attribute% notation.
 
 ##### Example
 
