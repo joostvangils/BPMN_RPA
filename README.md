@@ -25,8 +25,8 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 #### Allowed Shapes
 For the Workflow engine to recognize the flow, you are restricted to use the following Shapes:
 
-##### Tasks
-
+##### Tasks<br>
+You can use Tasks to call Python scripts. For the WorkflowEngine to recognize the Tasks, each Task must contain mandatory attributes.<br>
    * Mandatory attributes:
      * Module: This is the full path to the Python file that contains your Class and/or function.
         * From file: specify the full path (including extension .py) if you want to load you module from a specific file location.
