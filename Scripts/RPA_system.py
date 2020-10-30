@@ -12,5 +12,3 @@ def screenshot(path: str) -> str:
     myScreenshot.save(path)
     return path
 
-def test():
-    return "test"

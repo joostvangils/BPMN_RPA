@@ -4,6 +4,7 @@ import inspect
 import os
 import site
 import sqlite3
+import sys
 import urllib
 import uuid
 import zlib
@@ -29,8 +30,7 @@ class WorkflowEngine():
         self.db = SQL()
         self.uid = uuid.uuid1()  # Generate a unique ID for our flow
         self.name = None
-        self.loopcounter = None
-        self.loopvariable = None
+        self.loopvariables = []
         self.variables = {}  # Dictionary to hold WorkflowEngine variables
 
     def open(self, path: str) -> Any:
@@ -60,10 +60,14 @@ class WorkflowEngine():
         """
         connectors = []
         shapes = []
+        connectorvalues = {}
         objects = ordered_dict['mxGraphModel']['root']['object']
         for shape in ordered_dict['mxGraphModel']['root']['mxCell']:
             style = shape.get("@style")
             if style is not None:
+                if str(style).__contains__("edgeLabel"):
+                    # Save for later
+                    connectorvalues.update({shape.get("@parent"): shape.get("@value")})
                 step = self.get_step_from_shape(shape)
                 if step.type == "connector":
                     connectors.append(step)
@@ -87,6 +91,10 @@ class WorkflowEngine():
                         break
             if incoming_connector is None:
                 shape.IsStart = True
+        for conn in connectors:
+            val = connectorvalues.get(conn.id)
+            if val is not None:
+                conn.value = val
         retn = shapes + connectors
         return retn
 
@@ -121,7 +129,34 @@ class WorkflowEngine():
             retn.IsStart = False
         return retn
 
-    def get_parameters_from_shapevalues(self, step: Any, signature: Any, input: Any) -> str:
+    def get_variables_from_text(self, text: str) -> List[str]:
+        """
+        Get variable names (like '%variable%') from text.
+        :param text: The text to get the variables from
+        :return: A list with variable names.
+        """
+        if not isinstance(text, str):
+            return None
+        retn = []
+        start = -1
+        end = -1
+        t = 0
+        for c in text:
+            if c == "%":
+                if start > -1:
+                    end = t
+                if start == -1:
+                    start = t
+                if start > -1 and end > -1:
+                    retn.append(text[start: end +1])
+                    start = -1
+                    end = -1
+            t += 1
+        if len(retn) == 0:
+            retn = None
+        return retn
+
+    def get_parameters_from_shapevalues(self, step: Any, signature: Any) -> str:
         """
         If input values are provided in the Shapevalues, then create a mapping
         :param step: The step to use the Shapevalues of to create the mapping
@@ -143,7 +178,7 @@ class WorkflowEngine():
                 if val is not None:
                     if len(str(val)) == 0:
                         if input is not None:
-                            val = input.get(str(value))
+                            val = ""
                         else:
                             if str(value).__contains__("="):
                                 val = value.default
@@ -157,6 +192,20 @@ class WorkflowEngine():
                             val = float(val)
                         else:
                             val = int(val)
+                if not str(key).__contains__("variable"):
+                    textvars = self.get_variables_from_text(val)
+                    if textvars is not None:
+                        # replace textvariables with values
+                        for tv in textvars:
+                            replace_value = self.variables.get(tv)
+                            if replace_value is not None:
+                                # variable exists
+                                # Check if this is a loop-variable
+                                loopvars = [x for x in self.loopvariables if x.name == tv]
+                                if len(loopvars) > 0:
+                                    val = val.replace(tv, replace_value[loopvars[0].counter])
+                                else:
+                                    val = val.replace(tv, replace_value)
                 mapping[str(key).lower()]=val
         if returnNone:
             return None
@@ -213,7 +262,10 @@ class WorkflowEngine():
                             module_object = importlib.util.module_from_spec(spec)
                             spec.loader.exec_module(module_object)
                         else:
-                            module_object = importlib.import_module(step.module)
+                            if len(step.module) == 0:
+                                module_object = self
+                            else:
+                                module_object = importlib.import_module(step.module)
                         if hasattr(module_object, step.classname):
                             class_object = getattr(module_object, step.classname)
                             if len(step.function) > 0:
@@ -225,24 +277,7 @@ class WorkflowEngine():
                     if method_to_call is not None:
                         sig = signature(method_to_call)
                         if str(sig) != "()" and sig is not None:
-                            input = self.get_input_parameters(step=step, method_to_call=method_to_call, signature=sig,
-                                                              output_previous_step=output_previous_step)
-                    else:
-                        sig = None
-
-                    # region get input
-                    # Get input-parameters from Shapevalues and overwrite Input if any values are given
-                    mapping = None
-                    if hasattr(step, "mapping"):
-                        mapping = step.mapping
-                        if len(mapping) == 0:
-                            mapping = None
-                    else:
-                        mapping = None
-                    shapevalues = self.get_parameters_from_shapevalues(step=step, signature=sig, input=input)
-                    if shapevalues is not None:
-                        input = shapevalues
-                    # endregion
+                            input = self.get_parameters_from_shapevalues(step=step, signature=sig)
 
                     # region execute function call and get returned values
                     if input is not None:
@@ -265,11 +300,24 @@ class WorkflowEngine():
                             output_previous_step = class_object()
                     # endregion
 
-                    # region set Output variable
+                    # region set Output and loop variable
                         if len(step.output_variable) > 0 and str(step.output_variable).startswith("%") and str(step.output_variable).endswith("%"):
                             self.variables.update({f"{step.output_variable}": output_previous_step})  # Update the variables list
+                        if hasattr(step, "loopcounter"):
+                            # Update the total list count
+                            try:
+                                loopvar = [x for x in self.loopvariables if x.id == step.id][0]
+                                loopvar.start = int(step.loopcounter)  # set start of counter
+                                if int(loopvar.counter) <= loopvar.start:
+                                    loopvar.counter = int(loopvar.start)
+                                    loopvar.total_listitems = len(output_previous_step) - 2
+                                    loopvar.name = step.output_variable
+                            except Exception as e:
+                                print(f"Error: {e}")
+                        if hasattr(step, "loopcounter") and loopvar is not None:
+                            # It's a loop! Overwrite the output_previous_step with the right element
+                            output_previous_step = output_previous_step[loopvar.counter]
                     # endregion
-
                     previous_step = step
                     # Update the result
                     sql_out = str(output_previous_step).replace("\'", "\'\'")
@@ -287,6 +335,20 @@ class WorkflowEngine():
                 break
             previous_step = step
 
+    def loop_items_check(self, loop_variable: str) -> bool:
+        """
+        Check if there are more items to loop, or it has reached the end
+        :param loop_variable: The name of the loopvariable to check.
+        :return: True: the variable has more items to loop, False: the loop must end
+        """
+        loop = [x for x in self.loopvariables if x.name == loop_variable][0]
+        if loop.counter <= loop.total_listitems:
+            retn = True
+        else:
+            retn = False
+        loop.counter += 1
+        return retn
+
     def get_next_step(self, current_step, steps, output_previous_step):
         """
         Get the next step in the flow
@@ -296,87 +358,45 @@ class WorkflowEngine():
         :return: The next step object
         """
         retn = None
+        col_conn = []
         connectors = [x for x in steps if x.type == "connector"]
         try:
-            my_connector = [x for x in connectors if x.source == current_step.id][0]
+            if current_step.type == "exclusive gateway":
+                outgoing_connector = [x for x in connectors if x.source == current_step.id]
+            else:
+                outgoing_connector = [x for x in connectors if x.source == current_step.id][0]
         except Exception as e:
             return None
-        if my_connector is None:
+        if outgoing_connector is None:
             return None
-        shapes = [x for x in steps if x.type == "shape"]
-        col_conn = [x for x in shapes if x.id == my_connector.target]
+        if not isinstance(outgoing_connector, list):
+            shapes = [x for x in steps if x.type == "shape"]
+            col_conn = [x for x in shapes if x.id == outgoing_connector.target]
         if len(col_conn) > 0:
             retn = col_conn[0]
-        if retn is None:
-            incoming_connector = [x for x in connectors if x.source == current_step.id][0]
-            gateway = [x for x in steps if x.id == incoming_connector.target][0]
-            if gateway.type == "exclusive gateway":
-                if output_previous_step.get("result"):
-                    conn = [x for x in connectors if str(x.name).lower() == "true"]
-                else:
-                    conn = [x for x in connectors if str(x.name).lower() == "false"]
-                retn = [x for x in shapes if x.id == conn[0].target][0]
+        if retn is None and current_step.type != "exclusive gateway":
+            # Next step is a Gateway
+            # incoming_connector = [x for x in connectors if x.source == current_step.id][0]
+            retn = [x for x in steps if x.id == outgoing_connector.target][0]
+        if current_step.type == "exclusive gateway":
+            if output_previous_step:
+                conn = [x for x in outgoing_connector if (str(x.value).lower() == "true" and x.source == current_step.id)][0]
+            else:
+                conn = [x for x in outgoing_connector if (str(x.value).lower() == "false" and x.source == current_step.id)][0]
+            retn = [x for x in steps if x.id == conn.target][0]
         if hasattr(retn, "loopcounter"):
-            self.loopcounter = int(retn.loopcounter)
-            self.loopvariable = retn.output_variable
+            check_loopvar = [x for x in self.loopvariables if x.id == retn.id]
+            if len(check_loopvar) == 0:
+                try:
+                    loopvar = self.dynamic_object()
+                    loopvar.id = retn.id
+                    loopvar.start = int(retn.loopcounter)
+                    loopvar.counter = loopvar.start
+                    loopvar.total_listitems = 0
+                    self.loopvariables.append(loopvar)
+                except Exception as e:
+                    print(f"Error: {e}")
         return retn
-
-    def build_dict_from_mapping(self, mapping: str) -> typing.Dict[str, str]:
-        """
-        Create a dictionary from a mapping string
-
-        :param mapping: The mapping string that must be converted to a dictionary
-        :returns: The dictionary
-        """
-        retn = {}
-        for map in mapping.split(";"):
-            retn[map.split("=")[0].strip()] = map.split("=")[1].strip()
-        return retn
-
-    def get_input_parameters(self, step: Any, method_to_call: Any, signature: Any, output_previous_step: Any) -> \
-    typing.Dict[str, Any]:
-        """
-        Fetching parameters to create a dynamic function
-
-        :param step: The current step object
-        :param method_to_call: The object of the function that must be called
-        :param signature: The signature object of the function that must be called
-        :param output_previous_step: The output-object of the previous step
-        :returns: A dictionary that can be used as direct input for parameters in a function call
-        """
-        retn = {}
-        mapping = None
-        if hasattr(step, "mapping"):
-            if len(step.mapping) > 0 and str(step.mapping) != "full_object":
-                mapping = self.build_dict_from_mapping(step.mapping)
-        if mapping is not None:
-            for key, value in mapping.items():
-                if output_previous_step is not None:
-                    if str(value).startswith("%") and str(value).endswith("%"):
-                        var = value.replace("%", "")
-                        nr = None
-                        attr = None
-                        var = var.split("[")[0]
-                        if value.__contains__("[") and value.__contains__("]"):
-                            nr = int(str(value.replace("%", "").split("[")[1]).replace("]", ""))
-                        if value.__contains__(".") and not value.__contains__("["):
-                            attr = value.replace("%", "").split(".")[1]
-                        var_val = self.variables.get(f"%{var}%")
-                        if (isinstance(var_val, list) or isinstance(var_val, tuple)) and nr is not None:
-                            retn[key] = var_val[nr]
-                        if isinstance(var_val, dict) and attr is not None:
-                            retn[key] = var_val.get(attr)
-                        if isinstance(var_val, object) and attr is not None:
-                            retn[key] = getattr(var_val, attr)
-                        if inspect.isclass(var_val):
-                            retn[key] = var_val
-                    else:
-                        retn[key] = output_previous_step.get("result")[int(value)]
-                else:
-                    return None
-            return retn
-        else:
-            return None
 
     class dynamic_object(object):
         pass
