@@ -65,7 +65,7 @@ etc. etc.
 
 #### Loops
 You can create loops by using exclusive gateways. An exclusive gateway should always have two sequence flow arrows: one with the label "True" and the other with the label "False". The actual true/false decision isn't made in the exclusive gateway itself, but in the last sask before the exclusive gateway. An example:<br>
-<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/Loop_example.PNG" height="350" width="400" ></a>
+<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/Loop_example.PNG" height="300" width="400" ></a>
 
 Explanation:
 1. The loop starts with the 'Loop list' Task. This The function 'returnlist'is called in the module 'hello_world.py. There is no path specified for the module and the module name ends with '.py', so the path to the module will be '<current directory>\Scripts\hello_world.py'. This script returns a List with the elements ["this", "is", "a", "test"] and stores it in the variable named '%test%'. The attribute 'Loopcounter'is the important indication that this Task will be the start of a loop. The number in this field will be the start for the loop (p.e.: setting 'Loopcounter'to 1 results in loping the list from the second element in the list).<br>
