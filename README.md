@@ -26,17 +26,16 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 For the Workflow engine to recognize the flow, you are restricted to use the following Shapes:
 
 ##### Tasks<br>
-You can use Tasks to call Python scripts. For the WorkflowEngine to recognize the Tasks, each Task must contain mandatory attributes.<br>
-   * Mandatory attributes:
+You can use Tasks to call Python scripts. For the WorkflowEngine to recognize the Tasks, each Task has to contain attributes to make this possible.<br>
+   * Recommended attributes:
      * Module: This is the full path to the Python file that contains your Class and/or function.
         * From file: specify the full path (including extension .py) if you want to load you module from a specific file location.
         * From file in Script directory: specify only the module name (including extension .py) of the module you want to use.
         * From installed package: specify only the module name (without extension .py).
-     * Class: for reference to the Class to use in the Module.
-     * Function: The name of the Function to Call.
-     * Output_variable: The name of the variable that must store the output of the current action.
-     * Mapping: The mapping of the input parameters to the output of the previous task. This shoul be a string, containing the key-value pairs. <br>
-       P.e.: param1=0;param2=%test[2]% which means: use the first output of the previous step as the input parameter with the name 'param1' and use the third element of the variable with name '%test%' as the second input parameter with the name 'param2'.
+        * No Module field: you can delete the Module field to call a function in the WorkflowEngine class directly.
+     * Class: for reference to the Class to use in the Module. You can delete this field if the called module has only functions and no class.
+     * Function: The name of the Function to Call. This field is mandatory.
+     * Output_variable: The name of the variable that must store the output of the current action. If you don't use this field (or delete it), the current Task will have no output that can be used by other Tasks.
     
    * Optional attributes:
      * You can specify any input value for the called function directly by adding an extra attribute to the shape with **exactly the same name** as the expected input parameter(s) of the function. If you add these extra attributes, but decide to leave these value(s) blank, then the mapping values (output values from previous step) will be used. In this way you can combine direct values with mapping values.
