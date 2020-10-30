@@ -238,8 +238,9 @@ class WorkflowEngine():
         while True:
             try:
                 # to fetch module
+                class_object = None
+                module_object = self
                 if hasattr(step, "module"):
-                    class_object = None
                     # Create a record in the orchestrator database
                     sql = f"INSERT INTO Workflows (uid, name, current_step) VALUES ('{self.uid}', '{self.name}', '{step.name}')"
                     id = self.db.run_sql(sql=sql, tablename="Workflows")  # execute, commit and return the inserted id
@@ -248,85 +249,94 @@ class WorkflowEngine():
                     method_to_call = None
                     if self.step_has_direct_variables(step):
                         # Get variable from stack
-                        var = self.variables.get(step.output_variable)
-                        if inspect.isclass(var):
-                            method_to_call = getattr(self.variables.get(step.output_variable), step.function)
+                        if hasattr(step, "output_variable"):
+                            var = self.variables.get(step.output_variable)
+                            if inspect.isclass(var):
+                                method_to_call = getattr(self.variables.get(step.output_variable), step.function)
                     if method_to_call is None:
                         input = None
-                        if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(".py"):
-                            step.module = f"{os.getcwd()}\\Scripts\\{step.module}"
-                        if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(step.module).__contains__(".py"):
-                            step.module = f"{site.getsitepackages()[1]}\\{step.module}"
-                        if str(step.module).lower().__contains__(".py"):
-                            spec = importlib.util.spec_from_file_location(step.module, step.module)
-                            module_object = importlib.util.module_from_spec(spec)
-                            spec.loader.exec_module(module_object)
-                        else:
-                            if len(step.module) == 0:
-                                module_object = self
+                        if hasattr(step, "module"):
+                            if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(".py"):
+                                step.module = f"{os.getcwd()}\\Scripts\\{step.module}"
+                            if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(step.module).__contains__(".py"):
+                                step.module = f"{site.getsitepackages()[1]}\\{step.module}"
+                            if str(step.module).lower().__contains__(".py"):
+                                spec = importlib.util.spec_from_file_location(step.module, step.module)
+                                module_object = importlib.util.module_from_spec(spec)
+                                spec.loader.exec_module(module_object)
                             else:
-                                module_object = importlib.import_module(step.module)
-                        if hasattr(module_object, step.classname):
-                            class_object = getattr(module_object, step.classname)
-                            if len(step.function) > 0:
-                                method_to_call = getattr(class_object, step.function)
+                                if len(step.module) == 0:
+                                    module_object = self
+                                else:
+                                    module_object = importlib.import_module(step.module)
+                        if hasattr(step, "classname"):
+                            if hasattr(module_object, step.classname):
+                                class_object = getattr(module_object, step.classname)
+                                if len(step.function) > 0:
+                                    method_to_call = getattr(class_object, step.function)
                         else:
                             method_to_call = getattr(module_object, step.function)
+                else:
+                    if hasattr(step, "function"):
+                        method_to_call = getattr(module_object, step.function)
                     # endregion
 
-                    if method_to_call is not None:
-                        sig = signature(method_to_call)
-                        if str(sig) != "()" and sig is not None:
-                            input = self.get_parameters_from_shapevalues(step=step, signature=sig)
+                if method_to_call is not None:
+                    sig = signature(method_to_call)
+                    if str(sig) != "()" and sig is not None:
+                        input = self.get_parameters_from_shapevalues(step=step, signature=sig)
 
-                    # region execute function call and get returned values
-                    if input is not None:
-                        if len(step.function) > 0:
-                            if class_object is None:
-                                output_previous_step = method_to_call(**input)
-                            else:
-                                output_previous_step = method_to_call(**input)
+                # region execute function call and get returned values
+                if input is not None:
+                    if len(step.function) > 0:
+                        if class_object is None:
+                            output_previous_step = method_to_call(**input)
                         else:
-                            output_previous_step = class_object(**input)
+                            output_previous_step = method_to_call(**input)
                     else:
-                        if len(step.function) > 0:
-                            if class_object is None:
-                                output_previous_step = method_to_call()
-                            else:
-                                output_previous_step = method_to_call()
-                            if output_previous_step is None:
-                                output_previous_step = class_object()
+                        output_previous_step = class_object(**input)
+                else:
+                    if len(step.function) > 0:
+                        if class_object is None:
+                            output_previous_step = method_to_call()
                         else:
+                            output_previous_step = method_to_call()
+                        if output_previous_step is None:
                             output_previous_step = class_object()
-                    # endregion
+                    else:
+                        output_previous_step = class_object()
+                # endregion
 
-                    # region set Output and loop variable
-                        if len(step.output_variable) > 0 and str(step.output_variable).startswith("%") and str(step.output_variable).endswith("%"):
-                            self.variables.update({f"{step.output_variable}": output_previous_step})  # Update the variables list
-                        if hasattr(step, "loopcounter"):
-                            # Update the total list count
-                            try:
-                                loopvar = [x for x in self.loopvariables if x.id == step.id][0]
-                                loopvar.start = int(step.loopcounter)  # set start of counter
-                                if int(loopvar.counter) <= loopvar.start:
-                                    loopvar.counter = int(loopvar.start)
-                                    loopvar.total_listitems = len(output_previous_step) - 2
-                                    loopvar.name = step.output_variable
-                            except Exception as e:
-                                print(f"Error: {e}")
-                        if hasattr(step, "loopcounter") and loopvar is not None:
-                            # It's a loop! Overwrite the output_previous_step with the right element
-                            output_previous_step = output_previous_step[loopvar.counter]
-                    # endregion
+                # region set Output and loop variable
+                    if len(step.output_variable) > 0 and str(step.output_variable).startswith("%") and str(step.output_variable).endswith("%"):
+                        self.variables.update({f"{step.output_variable}": output_previous_step})  # Update the variables list
+                    if hasattr(step, "loopcounter"):
+                        # Update the total list count
+                        try:
+                            loopvar = [x for x in self.loopvariables if x.id == step.id][0]
+                            loopvar.start = int(step.loopcounter)  # set start of counter
+                            if int(loopvar.counter) <= loopvar.start:
+                                loopvar.counter = int(loopvar.start)
+                                loopvar.total_listitems = len(output_previous_step) - 2
+                                loopvar.name = step.output_variable
+                        except Exception as e:
+                            print(f"Error: {e}")
+                    if hasattr(step, "loopcounter") and loopvar is not None:
+                        # It's a loop! Overwrite the output_previous_step with the right element
+                        output_previous_step = output_previous_step[loopvar.counter]
+                # endregion
                     previous_step = step
                     # Update the result
                     sql_out = str(output_previous_step).replace("\'", "\'\'")
                     sql = f"UPDATE Workflows SET result ='{sql_out}' WHERE id={id};"
                     self.db.run_sql(sql)
-                    if len(step.classname) == 0:
-                        print(f"{step.function} executed.")
+                    if hasattr(step, "classname"):
+                        if len(step.classname) == 0:
+                            print(f"{step.function} executed.")
+                        else:
+                            print(f"{step.classname}.{step.function} executed.")
                     else:
-                        print(f"{step.classname}.{step.function} executed.")
+                        print(f"{step.function} executed.")
             except Exception as e:
                 print(f"Error: {e}")
                 pass
