@@ -64,7 +64,7 @@ Explanation:
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/Looplist_attributes.PNG" height="100" width="400" ></a>
 2. The MessageBox function is called ('<current directory>\Scripts\MessageBox.py'). The title will be "test" (that is: %test[3]%), and the message will be "this is a test" (%test[0]% %test[1]% %test[2]% %test[3]%).<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/MessageBox_attributes.PNG" height="100" width="400" ></a>
-3. 
+3. The 'More loop items?' Task checks if the List in the variable '%test%' has any items left to loop. If so, then it returns True, otherwise it will return False. The function is called within the WorkflowEngine class (no 'Module'or 'Class' specified).
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/Looptest_attributes.PNG" height="100" width="400" ></a>
 
 
