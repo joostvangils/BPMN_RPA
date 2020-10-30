@@ -11,6 +11,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
   * [Gateways](#Gateways)
   * [Sequence flow arrow](#Sequence-flow-arrow)
 * [Variables](#Variables)
+* [Loops](#Loops)
 * [Example](#Example)
 
 
