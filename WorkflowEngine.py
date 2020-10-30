@@ -192,7 +192,7 @@ class WorkflowEngine():
                         # replace textvariables with values
                         for tv in textvars:
                             lst = tv.replace("%", "").split("[")
-                            clean_textvar = "%" + lst[0] + "%"
+                            clean_textvar = "%" + lst[0].split(".")[0] + "%"
                             replace_value = self.variables.get(clean_textvar)
                             if replace_value is not None:
                                 # variable exists
@@ -202,9 +202,16 @@ class WorkflowEngine():
                                     val = val.replace(tv, replace_value[loopvars[0].counter])
                                 else:
                                     if tv.__contains__("[") and tv.__contains__("]"):
-                                        nr = str(lst[1]).replace("]", "")
-                                        if nr.isnumeric():
-                                            val = val.replace(tv, replace_value[int(nr)])
+                                        if isinstance(replace_value, list):
+                                            nr = str(lst[1]).replace("]", "")
+                                            if nr.isnumeric():
+                                                val = val.replace(tv, replace_value[int(nr)])
+                                    elif tv.__contains__("."):
+                                        attr = str(lst[0].split(".")[1]).replace(".", "")
+                                        if isinstance(replace_value, dict):
+                                            val = replace_value.get(attr)
+                                        if isinstance(replace_value, object):
+                                            val = getattr(replace_value, attr)
                                     else:
                                         val = val.replace(tv, replace_value)
                 mapping[str(key).lower()] = val
@@ -466,6 +473,6 @@ class SQL():
 # Test
 engine = WorkflowEngine("c:\\python\\python.exe")
 engine.db.orchestrator()
-doc = engine.open(f"test_loop.xml")  # c:\\temp\\test.xml
+doc = engine.open(f"test.xml")  # c:\\temp\\test.xml
 steps = engine.get_flow(doc)
 engine.run_flow(steps)
