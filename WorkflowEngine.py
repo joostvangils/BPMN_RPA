@@ -210,7 +210,7 @@ class WorkflowEngine():
                                         attr = str(lst[0].split(".")[1]).replace(".", "")
                                         if isinstance(replace_value, dict):
                                             val = replace_value.get(attr)
-                                        if isinstance(replace_value, object):
+                                        if isinstance(replace_value, object) and not isinstance(replace_value, dict):
                                             val = getattr(replace_value, attr)
                                     else:
                                         val = val.replace(tv, replace_value)
