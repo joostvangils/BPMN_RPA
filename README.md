@@ -64,7 +64,7 @@ Explanation:
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/Looplist_attributes.PNG" height="100" width="400" ></a>
 2. The MessageBox function is called ('<current directory>\Scripts\MessageBox.py'). The title will be "test" (that is: %test[3]%), and the message will be a word from the list in confirmity with the 'Loopcounter' number.<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/MessageBox_attributes.PNG" height="100" width="400" ></a><br>
-<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/loop_firstexecution.PNG" height="100" width="400" ></a><br>
+<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/loop_firstexecution.PNG" height="200" width="400" ></a><br>
 3. The 'More loop items?' Task checks if the List in the variable '%test%' has any items left to loop. If so, then it returns True, otherwise it will return False. If it returns True, the 'Loopcounter' is raised by 1. The function is called within the WorkflowEngine class (no 'Module'or 'Class' specified).<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/Looptest_attributes.PNG" height="100" width="400" ></a>
 4. The Exclusive Gateway is deciding which Sequence Flow Arrow to follow. If the loop is still ongoing, the 'Loop List' Task will be called again and the next element in the list will be returned.
