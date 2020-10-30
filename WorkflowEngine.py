@@ -197,15 +197,22 @@ class WorkflowEngine():
                     if textvars is not None:
                         # replace textvariables with values
                         for tv in textvars:
-                            replace_value = self.variables.get(tv)
+                            lst = tv.replace("%", "").split("[")
+                            clean_textvar = "%" + lst[0] + "%"
+                            replace_value = self.variables.get(clean_textvar)
                             if replace_value is not None:
                                 # variable exists
                                 # Check if this is a loop-variable
-                                loopvars = [x for x in self.loopvariables if x.name == tv]
+                                loopvars = [x for x in self.loopvariables if x.name == clean_textvar]
                                 if len(loopvars) > 0:
-                                    val = val.replace(tv, replace_value[loopvars[0].counter])
+                                        val = val.replace(tv, replace_value[loopvars[0].counter])
                                 else:
-                                    val = val.replace(tv, replace_value)
+                                    if tv.__contains__("[") and tv.__contains__("]"):
+                                        nr = str(lst[1]).replace("]", "")
+                                        if nr.isnumeric():
+                                            val = val.replace(tv, replace_value[int(nr)])
+                                    else:
+                                        val = val.replace(tv, replace_value)
                 mapping[str(key).lower()]=val
         if returnNone:
             return None
@@ -240,6 +247,8 @@ class WorkflowEngine():
                 # to fetch module
                 class_object = None
                 module_object = self
+                method_to_call = None
+                input = None
                 if hasattr(step, "module"):
                     # Create a record in the orchestrator database
                     sql = f"INSERT INTO Workflows (uid, name, current_step) VALUES ('{self.uid}', '{self.name}', '{step.name}')"
@@ -274,6 +283,8 @@ class WorkflowEngine():
                                 class_object = getattr(module_object, step.classname)
                                 if len(step.function) > 0:
                                     method_to_call = getattr(class_object, step.function)
+                            else:
+                                method_to_call = getattr(module_object, step.function)
                         else:
                             method_to_call = getattr(module_object, step.function)
                 else:
@@ -296,20 +307,23 @@ class WorkflowEngine():
                     else:
                         output_previous_step = class_object(**input)
                 else:
-                    if len(step.function) > 0:
-                        if class_object is None:
-                            output_previous_step = method_to_call()
-                        else:
-                            output_previous_step = method_to_call()
+                    if hasattr(step, "function"):
+                        if len(step.function) > 0:
+                            if class_object is None:
+                                output_previous_step = method_to_call()
+                            else:
+                                output_previous_step = method_to_call()
                         if output_previous_step is None:
                             output_previous_step = class_object()
                     else:
-                        output_previous_step = class_object()
+                        if class_object is not None:
+                            output_previous_step = class_object()
                 # endregion
 
                 # region set Output and loop variable
-                    if len(step.output_variable) > 0 and str(step.output_variable).startswith("%") and str(step.output_variable).endswith("%"):
-                        self.variables.update({f"{step.output_variable}": output_previous_step})  # Update the variables list
+                    if hasattr(step, "output_variable"):
+                        if len(step.output_variable) > 0 and str(step.output_variable).startswith("%") and str(step.output_variable).endswith("%"):
+                            self.variables.update({f"{step.output_variable}": output_previous_step})  # Update the variables list
                     if hasattr(step, "loopcounter"):
                         # Update the total list count
                         try:
@@ -328,15 +342,19 @@ class WorkflowEngine():
                     previous_step = step
                     # Update the result
                     sql_out = str(output_previous_step).replace("\'", "\'\'")
-                    sql = f"UPDATE Workflows SET result ='{sql_out}' WHERE id={id};"
-                    self.db.run_sql(sql)
+                    if sql_out != 'None':
+                        sql = f"UPDATE Workflows SET result ='{sql_out}' WHERE id={id};"
+                        self.db.run_sql(sql)
                     if hasattr(step, "classname"):
                         if len(step.classname) == 0:
-                            print(f"{step.function} executed.")
+                            if hasattr(step, "function"):
+                                print(f"{step.function} executed.")
                         else:
-                            print(f"{step.classname}.{step.function} executed.")
+                            if hasattr(step, "function"):
+                                print(f"{step.classname}.{step.function} executed.")
                     else:
-                        print(f"{step.function} executed.")
+                        if hasattr(step, "function"):
+                            print(f"{step.function} executed.")
             except Exception as e:
                 print(f"Error: {e}")
                 pass
@@ -457,6 +475,6 @@ class SQL():
 # Test
 engine = WorkflowEngine("c:\\python\\python.exe")
 engine.db.orchestrator()
-doc = engine.open(f"test_loop.xml")  # c:\\temp\\test.xml
+doc = engine.open(f"test.xml")  # c:\\temp\\test.xml
 steps = engine.get_flow(doc)
 engine.run_flow(steps)
