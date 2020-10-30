@@ -4,16 +4,11 @@ import inspect
 import os
 import site
 import sqlite3
-import sys
 import urllib
 import uuid
+import xml.etree.ElementTree as ET
 import zlib
 from inspect import signature
-import xml.etree.ElementTree as ET
-import typing
-from operator import attrgetter
-
-import win32com.client
 from typing import List, Any
 
 import xmltodict
@@ -33,16 +28,16 @@ class WorkflowEngine():
         self.loopvariables = []
         self.variables = {}  # Dictionary to hold WorkflowEngine variables
 
-    def open(self, path: str) -> Any:
+    def open(self, filepath: str) -> Any:
         """
         Open a DrawIO document
 
-        :param name: The full path (including extension) of the diagram file
+        :param filepath: The full path (including extension) of the diagram file
         :returns: A DrawIO dictionary object
         """
         # Open an existing document.
-        xml_file = open(path, "r")
-        self.name = path.split("\\")[-1].lower().replace(".xml", "")
+        xml_file = open(filepath, "r")
+        self.name = filepath.split("\\")[-1].lower().replace(".xml", "")
         xml_root = ET.fromstring(xml_file.read())
         raw_text = xml_root[0].text
         base64_decode = base64.b64decode(raw_text)
@@ -148,7 +143,7 @@ class WorkflowEngine():
                 if start == -1:
                     start = t
                 if start > -1 and end > -1:
-                    retn.append(text[start: end +1])
+                    retn.append(text[start: end + 1])
                     start = -1
                     end = -1
             t += 1
@@ -161,7 +156,6 @@ class WorkflowEngine():
         If input values are provided in the Shapevalues, then create a mapping
         :param step: The step to use the Shapevalues of to create the mapping
         :param signature: The imput parametes of the function that needs to be called
-        :param input: The inputs from the previous step
         :return: A mapping string
         """
         mapping = {}
@@ -205,7 +199,7 @@ class WorkflowEngine():
                                 # Check if this is a loop-variable
                                 loopvars = [x for x in self.loopvariables if x.name == clean_textvar]
                                 if len(loopvars) > 0:
-                                        val = val.replace(tv, replace_value[loopvars[0].counter])
+                                    val = val.replace(tv, replace_value[loopvars[0].counter])
                                 else:
                                     if tv.__contains__("[") and tv.__contains__("]"):
                                         nr = str(lst[1]).replace("]", "")
@@ -213,7 +207,7 @@ class WorkflowEngine():
                                             val = val.replace(tv, replace_value[int(nr)])
                                     else:
                                         val = val.replace(tv, replace_value)
-                mapping[str(key).lower()]=val
+                mapping[str(key).lower()] = val
         if returnNone:
             return None
         else:
@@ -226,7 +220,8 @@ class WorkflowEngine():
         :return: True or Flase
         """
         attrs = vars(step)
-        col = [key for key,val in attrs.items() if str(val).startswith("%") and str(val).endswith("%") and str(key) != "output_variable"]
+        col = [key for key, val in attrs.items() if
+               str(val).startswith("%") and str(val).endswith("%") and str(key) != "output_variable"]
         if len(col) > 0:
             return True
         else:
@@ -267,7 +262,8 @@ class WorkflowEngine():
                         if hasattr(step, "module"):
                             if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(".py"):
                                 step.module = f"{os.getcwd()}\\Scripts\\{step.module}"
-                            if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(step.module).__contains__(".py"):
+                            if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(
+                                    step.module).__contains__(".py"):
                                 step.module = f"{site.getsitepackages()[1]}\\{step.module}"
                             if str(step.module).lower().__contains__(".py"):
                                 spec = importlib.util.spec_from_file_location(step.module, step.module)
@@ -290,40 +286,34 @@ class WorkflowEngine():
                 else:
                     if hasattr(step, "function"):
                         method_to_call = getattr(module_object, step.function)
-                    # endregion
 
                 if method_to_call is not None:
                     sig = signature(method_to_call)
                     if str(sig) != "()" and sig is not None:
                         input = self.get_parameters_from_shapevalues(step=step, signature=sig)
 
-                # region execute function call and get returned values
+                # execute function call and get returned values
                 if input is not None:
                     if len(step.function) > 0:
-                        if class_object is None:
-                            output_previous_step = method_to_call(**input)
-                        else:
-                            output_previous_step = method_to_call(**input)
+                        output_previous_step = method_to_call(**input)
                     else:
                         output_previous_step = class_object(**input)
                 else:
                     if hasattr(step, "function"):
                         if len(step.function) > 0:
-                            if class_object is None:
-                                output_previous_step = method_to_call()
-                            else:
-                                output_previous_step = method_to_call()
+                            output_previous_step = method_to_call()
                         if output_previous_step is None:
                             output_previous_step = class_object()
                     else:
                         if class_object is not None:
                             output_previous_step = class_object()
-                # endregion
 
-                # region set Output and loop variable
+                    # set Output and loop variable
                     if hasattr(step, "output_variable"):
-                        if len(step.output_variable) > 0 and str(step.output_variable).startswith("%") and str(step.output_variable).endswith("%"):
-                            self.variables.update({f"{step.output_variable}": output_previous_step})  # Update the variables list
+                        if len(step.output_variable) > 0 and str(step.output_variable).startswith("%") and str(
+                                step.output_variable).endswith("%"):
+                            self.variables.update(
+                                {f"{step.output_variable}": output_previous_step})  # Update the variables list
                     if hasattr(step, "loopcounter"):
                         # Update the total list count
                         try:
@@ -338,7 +328,6 @@ class WorkflowEngine():
                     if hasattr(step, "loopcounter") and loopvar is not None:
                         # It's a loop! Overwrite the output_previous_step with the right element
                         output_previous_step = output_previous_step[loopvar.counter]
-                # endregion
                     previous_step = step
                     # Update the result
                     sql_out = str(output_previous_step).replace("\'", "\'\'")
@@ -377,7 +366,7 @@ class WorkflowEngine():
         loop.counter += 1
         return retn
 
-    def get_next_step(self, current_step, steps, output_previous_step):
+    def get_next_step(self, current_step, steps, output_previous_step: Any) -> Any:
         """
         Get the next step in the flow
 
@@ -408,9 +397,11 @@ class WorkflowEngine():
             retn = [x for x in steps if x.id == outgoing_connector.target][0]
         if current_step.type == "exclusive gateway":
             if output_previous_step:
-                conn = [x for x in outgoing_connector if (str(x.value).lower() == "true" and x.source == current_step.id)][0]
+                conn = \
+                [x for x in outgoing_connector if (str(x.value).lower() == "true" and x.source == current_step.id)][0]
             else:
-                conn = [x for x in outgoing_connector if (str(x.value).lower() == "false" and x.source == current_step.id)][0]
+                conn = \
+                [x for x in outgoing_connector if (str(x.value).lower() == "false" and x.source == current_step.id)][0]
             retn = [x for x in steps if x.id == conn.target][0]
         if hasattr(retn, "loopcounter"):
             check_loopvar = [x for x in self.loopvariables if x.id == retn.id]
@@ -475,6 +466,6 @@ class SQL():
 # Test
 engine = WorkflowEngine("c:\\python\\python.exe")
 engine.db.orchestrator()
-doc = engine.open(f"test.xml")  # c:\\temp\\test.xml
+doc = engine.open(f"test_loop.xml")  # c:\\temp\\test.xml
 steps = engine.get_flow(doc)
 engine.run_flow(steps)
