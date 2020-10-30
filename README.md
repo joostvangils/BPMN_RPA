@@ -60,12 +60,14 @@ You can create loops by using exclusive gateways. An exclusive gateway should al
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/Loop_example.PNG" height="350" width="400" ></a>
 
 Explanation:
-1. The loop starts with the 'Loop list' Task. This The function 'main'is called in the module 'hello_world.py. There is no path specified for the module and the module name ends with '.py', so the path to the module will be '<current directory>\Scripts\hello_world.py'. This script returns a List with the elements ["this", "is", "a", "test"] and stores it in the variable named '%test%'. The attribute 'Loopcounter'is the important indication that this Task will be the start of a loop. The number in this field will be the start for the loop (p.e.: setting 'Loopcounter'to 1 results in loping the list from the second element in the list).<br>
+1. The loop starts with the 'Loop list' Task. This The function 'returnlist'is called in the module 'hello_world.py. There is no path specified for the module and the module name ends with '.py', so the path to the module will be '<current directory>\Scripts\hello_world.py'. This script returns a List with the elements ["this", "is", "a", "test"] and stores it in the variable named '%test%'. The attribute 'Loopcounter'is the important indication that this Task will be the start of a loop. The number in this field will be the start for the loop (p.e.: setting 'Loopcounter'to 1 results in loping the list from the second element in the list).<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/Looplist_attributes.PNG" height="100" width="400" ></a>
-2. The MessageBox function is called ('<current directory>\Scripts\MessageBox.py'). The title will be "test" (that is: %test[3]%), and the message will be "this is a test" (%test[0]% %test[1]% %test[2]% %test[3]%).<br>
-<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/MessageBox_attributes.PNG" height="100" width="400" ></a>
-3. The 'More loop items?' Task checks if the List in the variable '%test%' has any items left to loop. If so, then it returns True, otherwise it will return False. The function is called within the WorkflowEngine class (no 'Module'or 'Class' specified).
+2. The MessageBox function is called ('<current directory>\Scripts\MessageBox.py'). The title will be "test" (that is: %test[3]%), and the message will be a word from the list in confirmity with the 'Loopcounter' number.<br>
+<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/MessageBox_attributes.PNG" height="100" width="400" ></a><br>
+<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/loop_firstexecution.PNG" height="100" width="400" ></a><br>
+3. The 'More loop items?' Task checks if the List in the variable '%test%' has any items left to loop. If so, then it returns True, otherwise it will return False. If it returns True, the 'Loopcounter' is raised by 1. The function is called within the WorkflowEngine class (no 'Module'or 'Class' specified).<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/Looptest_attributes.PNG" height="100" width="400" ></a>
+4. The Exclusive Gateway is deciding which Sequence Flow Arrow to follow. If the loop is still ongoing, the 'Loop List' Task will be called again and the next element in the list will be returned.
 
 
  
