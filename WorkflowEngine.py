@@ -3,6 +3,7 @@ import importlib
 import inspect
 import os
 import site
+import copy
 import sqlite3
 import urllib
 import uuid
@@ -26,6 +27,7 @@ class WorkflowEngine():
         self.uid = uuid.uuid1()  # Generate a unique ID for our flow
         self.name = None
         self.loopvariables = []
+        self.previous_step = None
         self.variables = {}  # Dictionary to hold WorkflowEngine variables
 
     def open(self, filepath: str) -> Any:
@@ -165,6 +167,14 @@ class WorkflowEngine():
         """
         mapping = {}
         returnNone = True
+        if signature is None:
+            if hasattr(self.previous_step, "output_variable"):
+                var = self.variables.get(self.previous_step.output_variable)
+                if var is not None:
+                    return var
+                else:
+                    return None
+            return None
         for key, value in signature.parameters.items():
             if str(key).lower() != "self":
                 try:
@@ -223,7 +233,7 @@ class WorkflowEngine():
                                         if isinstance(replace_value, object) and not isinstance(replace_value, dict):
                                             val = getattr(replace_value, attr)
                                     else:
-                                        val = val.replace(tv, replace_value)
+                                        val = val.replace(tv, str(replace_value))
                 mapping[str(key).lower()] = val
         if returnNone:
             return None
@@ -250,7 +260,7 @@ class WorkflowEngine():
 
         :params steps: The steps that must be executed in the flow
         """
-        previous_step = None
+        self.previous_step = None
         output_previous_step = None
         shape_steps = [x for x in steps if x.type == "shape"]
         step = [x for x in shape_steps if x.IsStart == True][0]
@@ -260,6 +270,7 @@ class WorkflowEngine():
                 class_object = None
                 module_object = self
                 method_to_call = None
+                sig = None
                 input = None
                 if hasattr(step, "module"):
                     # Create a record in the orchestrator database
@@ -305,14 +316,23 @@ class WorkflowEngine():
                         method_to_call = getattr(module_object, step.function)
 
                 if method_to_call is not None:
-                    sig = signature(method_to_call)
-                    if str(sig) != "()" and sig is not None:
+                    try:
+                        sig = signature(method_to_call)
+                    except Exception as e:
+                        print(e)
+                    if str(sig) != "()":
                         input = self.get_parameters_from_shapevalues(step=step, signature=sig)
 
                 # execute function call and get returned values
                 if input is not None:
                     if len(step.function) > 0:
-                        output_previous_step = method_to_call(**input)
+                        if isinstance(input, dict):
+                            output_previous_step = method_to_call(**input)
+                        else:
+                            try:
+                                output_previous_step = method_to_call(input)
+                            except:
+                                pass
                     else:
                         output_previous_step = class_object(**input)
                 else:
@@ -325,12 +345,7 @@ class WorkflowEngine():
                         if class_object is not None:
                             output_previous_step = class_object()
 
-                    # set Output and loop variable
-                    if hasattr(step, "output_variable"):
-                        if len(step.output_variable) > 0 and str(step.output_variable).startswith("%") and str(
-                                step.output_variable).endswith("%"):
-                            self.variables.update(
-                                {f"{step.output_variable}": output_previous_step})  # Update the variables list
+                    # set loop variable
                     if hasattr(step, "loopcounter"):
                         # Update the total list count
                         try:
@@ -345,7 +360,6 @@ class WorkflowEngine():
                     if hasattr(step, "loopcounter") and loopvar is not None:
                         # It's a loop! Overwrite the output_previous_step with the right element
                         output_previous_step = output_previous_step[loopvar.counter]
-                    previous_step = step
                     # Update the result
                     sql_out = str(output_previous_step).replace("\'", "\'\'")
                     if sql_out != 'None':
@@ -363,11 +377,25 @@ class WorkflowEngine():
                             print(f"{step.function} executed.")
             except Exception as e:
                 print(f"Error: {e}")
+
                 pass
-            step = self.get_next_step(step, steps, output_previous_step)
             if step is None:
                 break
-            previous_step = step
+            self.save_output_variable(step, output_previous_step)
+            self.previous_step = copy.deepcopy(step)
+            step = self.get_next_step(step, steps, output_previous_step)
+
+    def save_output_variable(self, step, output_previous_step):
+        """
+        Save output variable to list
+        :param step: The current step object
+        :param output_previous_step: The output of the previous step
+        """
+        if hasattr(step, "output_variable"):
+            if len(step.output_variable) > 0 and str(step.output_variable).startswith("%") and str(
+                    step.output_variable).endswith("%"):
+                self.variables.update(
+                    {f"{step.output_variable}": output_previous_step})  # Update the variables list
 
     def loop_items_check(self, loop_variable: str) -> bool:
         """
@@ -481,8 +509,8 @@ class SQL():
 
 
 # Test
-# engine = WorkflowEngine("c:\\python\\python.exe")
-# engine.db.orchestrator()
-# doc = engine.open(f"test.xml")  # c:\\temp\\test.xml
-# steps = engine.get_flow(doc)
-# engine.run_flow(steps)
+engine = WorkflowEngine("c:\\python\\python.exe")
+engine.db.orchestrator()
+doc = engine.open(fr"C:\Users\joost\Desktop\test.xml")  # c:\\temp\\test.xml
+steps = engine.get_flow(doc)
+engine.run_flow(steps)
