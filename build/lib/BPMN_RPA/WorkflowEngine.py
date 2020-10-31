@@ -5,6 +5,7 @@ import os
 import site
 import copy
 import sqlite3
+import sys
 import urllib
 import uuid
 import xml.etree.ElementTree as ET
@@ -24,6 +25,7 @@ class WorkflowEngine():
         """
         self.pythonPath = pythonpath
         self.db = SQL()
+        self.db.orchestrator() # Run the orchestrator database
         self.uid = uuid.uuid1()  # Generate a unique ID for our flow
         self.name = None
         self.loopvariables = []
@@ -292,7 +294,7 @@ class WorkflowEngine():
                         input = None
                         if hasattr(step, "module"):
                             if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(".py"):
-                                step.module = f"{os.getcwd()}\\Scripts\\{step.module}"
+                                step.module = f"{sys.path[0]}\\Scripts\\{step.module}"
                             if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(
                                     step.module).__contains__(".py"):
                                 step.module = f"{site.getsitepackages()[1]}\\{step.module}"
@@ -513,7 +515,6 @@ class SQL():
 
 # Test
 # engine = WorkflowEngine("c:\\python\\python.exe")
-# engine.db.orchestrator()
-# doc = engine.open(fr"c:\temp\test.xml")  # c:\\temp\\test.xml
+# doc = engine.open(fr"{sys.path[0]}\test.xml")  # c:\\temp\\test.xml
 # steps = engine.get_flow(doc)
 # engine.run_flow(steps)

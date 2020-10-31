@@ -294,7 +294,7 @@ class WorkflowEngine():
                         input = None
                         if hasattr(step, "module"):
                             if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(".py"):
-                                step.module = f"{sys.path[0]}\\Scripts\\{step.module}"
+                                step.module = f"{site.getsitepackages()[1]}\\\BPMN_RPA\\Scripts\\{step.module}"
                             if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(
                                     step.module).__contains__(".py"):
                                 step.module = f"{site.getsitepackages()[1]}\\{step.module}"

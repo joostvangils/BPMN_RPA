@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name="BPMN_RPA", # Replace with your own username
-    version="0.0.2",
+    version="0.0.3",
     author="Joost van Gils",
     author_email="joostvangils@1ic.nl",
     description="Robotic Process Automation in Windows by using Diagrams.net BPMN diagrams.",
