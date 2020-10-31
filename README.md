@@ -64,7 +64,9 @@ You can store any type of information into a variable, like:
 etc. etc.
 
 #### Loops
-You can create loops by using exclusive gateways. An exclusive gateway should always have two sequence flow arrows: one with the label "True" and the other with the label "False". The actual true/false decision isn't made in the exclusive gateway itself, but in the last Task before the exclusive gateway. An example:<br>
+You can create loops by using exclusive gateways. An exclusive gateway should always have two sequence flow arrows: one with the label "True" and the other with the label "False". The actual true/false decision isn't made in the exclusive gateway itself, but in the last Task before the exclusive gateway. A loop is started by a Task that is calling a Python script that returns a list. The task is recognized as the start of the loop by adding/using the attribute 'Loopcounter'. The loopcounter number is the starting point for the loop (for returning the n-th element of the list). The task before the Exclusive Gateway should be the 'More loop items?' Task. You can find this Task in the predefined Shapes. This Task should have two attributes: 'Function' with value 'loop_items_check' will call the loop_items_check() function in the WorkflowEngine object, and 'Loop_variable' with the variable name to loop as value.
+
+An example:<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/Loop_example.PNG" height="300" width="400" ></a>
 
 Explanation:
