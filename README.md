@@ -6,7 +6,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 
 ### Content:
 * [Quick Start](#Quick-start)
-* [Allowed Shapes](#Allowed-Shapes)
+* [Recognized Shapes](#Recognized-Shapes)
   * [Tasks](#Tasks)
   * [Gateways](#Gateways)
   * [Sequence flow arrow](#Sequence-flow-arrow)
@@ -22,8 +22,8 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 - Save your diagram as XML
 - Run your workflow by using the WorkflowEngine
 
-#### Allowed Shapes
-For the Workflow engine to recognize the flow, you are restricted to use the following Shapes:
+#### Recognized Shapes
+For the Workflow engine to recognize the flow, you must use the recommended shape attributes with the following Shapes:
 
 ##### Tasks<br>
 You can use Tasks to call Python scripts. For the WorkflowEngine to recognize the Tasks, each Task has to contain certain attributes to make this possible.<br>
