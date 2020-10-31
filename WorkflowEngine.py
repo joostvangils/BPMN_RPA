@@ -199,7 +199,12 @@ class WorkflowEngine():
                                 # Check if this is a loop-variable
                                 loopvars = [x for x in self.loopvariables if x.name == clean_textvar]
                                 if len(loopvars) > 0:
-                                    val = val.replace(tv, replace_value[loopvars[0].counter])
+                                    if tv.__contains__(".counter"):
+                                        val = loopvars[0].counter
+                                    elif tv.__contains__(".object"):
+                                        val = loopvars[0]
+                                    else:
+                                        val = val.replace(tv, replace_value[loopvars[0].counter])
                                 else:
                                     if tv.__contains__("[") and tv.__contains__("]"):
                                         if isinstance(replace_value, list):
@@ -471,8 +476,8 @@ class SQL():
 
 
 # Test
-engine = WorkflowEngine("c:\\python\\python.exe")
-engine.db.orchestrator()
-doc = engine.open(f"test_loop.xml")  # c:\\temp\\test.xml
-steps = engine.get_flow(doc)
-engine.run_flow(steps)
+# engine = WorkflowEngine("c:\\python\\python.exe")
+# engine.db.orchestrator()
+# doc = engine.open(f"test.xml")  # c:\\temp\\test.xml
+# steps = engine.get_flow(doc)
+# engine.run_flow(steps)
