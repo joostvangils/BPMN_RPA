@@ -199,9 +199,9 @@ class WorkflowEngine():
                                 # Check if this is a loop-variable
                                 loopvars = [x for x in self.loopvariables if x.name == clean_textvar]
                                 if len(loopvars) > 0:
-                                    if tv.__contains__(".counter"):
+                                    if tv.lower().__contains__(".counter"):
                                         val = loopvars[0].counter
-                                    elif tv.__contains__(".object"):
+                                    elif tv.lower().__contains__(".object"):
                                         val = loopvars[0]
                                     else:
                                         val = val.replace(tv, replace_value[loopvars[0].counter])
