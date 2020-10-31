@@ -1,0 +1,14 @@
+README.md
+setup.py
+BPMN_RPA.egg-info/PKG-INFO
+BPMN_RPA.egg-info/SOURCES.txt
+BPMN_RPA.egg-info/dependency_links.txt
+BPMN_RPA.egg-info/top_level.txt
+BPMN_RPA_pkg/WorkflowEngine.py
+BPMN_RPA_pkg/__init__.py
+BPMN_RPA_pkg/Scripts/Hello_World.py
+BPMN_RPA_pkg/Scripts/MessageBox.py
+BPMN_RPA_pkg/Scripts/RPA_Keyboard.py
+BPMN_RPA_pkg/Scripts/RPA_Mouse.py
+BPMN_RPA_pkg/Scripts/RPA_system.py
+BPMN_RPA_pkg/Scripts/__init__.py
