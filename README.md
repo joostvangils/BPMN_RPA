@@ -19,7 +19,6 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 - Open the diagram.net (or DrawIO desktop) app
 - Import one of the BPMN RPA Shape libraries ( file -> import from -> device)
 - Create your Diagram in https://app.diagrams.net/ or in the Desktop application by using the BPMN_RPA Shape-set
-- Set the right mappings for each shape
 - Save your diagram as XML
 - Run your workflow by using the WorkflowEngine
 
