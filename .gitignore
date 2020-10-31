@@ -1,0 +1,2 @@
+$ cat .gitignore
+/BPMN_RPA_pkg/.pypirc
