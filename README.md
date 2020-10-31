@@ -73,7 +73,7 @@ An example:<br>
 
 Explanation:
 1. The loop starts with the 'Loop list' Task. This The function 'returnlist' is called in the module 'hello_world.py'. There is no path specified for the module and the module name ends with '.py', so the path to the module will be '*current directory*\Scripts\hello_world.py'. This script returns a List with the elements ["this", "is", "a", "test"] and stores it in the variable named '%test%'. The attribute 'Loopcounter' is the important indication that this Task will be the start of a loop. The number in this field will be the start for the loop (p.e.: setting 'Loopcounter' to 1 results in loping the list from the second element in the list).<br>
-<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/Looplist_attributes.PNG" height="100" width="400" ></a>
+<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Looplist_attributes.PNG" height="100" width="400" ></a>
 2. The MessageBox function is called ('*current directory*\Scripts\MessageBox.py'). The title will be "test", and the message will be a word from the list in confirmity with the 'Loopcounter' number ('%test%').<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/MessageBox_attributes.PNG" height="100" width="400" ></a><br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/loop_firstexecution.PNG" height="200" width="400" ></a><br>
