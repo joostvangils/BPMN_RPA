@@ -79,12 +79,17 @@ class WorkflowEngine():
         # Find start shape
         for shape in shapes:
             incoming_connector = None
+            outgoing_connector = None
             for conn in connectors:
                 if hasattr(conn, "target"):
                     if conn.target == shape.id:
                         incoming_connector = conn
                         break
-            if incoming_connector is None:
+                    if hasattr(conn, "source"):
+                        if conn.source == shape.id:
+                            outgoing_connector = conn
+                            break
+            if incoming_connector is None and outgoing_connector is not None:
                 shape.IsStart = True
         for conn in connectors:
             val = connectorvalues.get(conn.id)
@@ -471,7 +476,7 @@ class SQL():
         """
         Create tables for the Orchestrator database
         """
-        sql = "CREATE TABLE IF NOT EXISTS Workflows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,uid TEXT NOT NULL,name TEXT NOT NULL,current_step TEXT,result TEXT,timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);"
+        sql = "CREATE TABLE IF NOT EXISTS Workflows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,uid TEXT NOT NULL, parent TEXT, name TEXT NOT NULL,current_step TEXT,result TEXT,timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);"
         self.run_sql(sql)
 
 
