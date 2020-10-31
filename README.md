@@ -90,7 +90,7 @@ If you would like to retreive an attribute of a stored object or dictionary in a
 ##### Example
 
 ```Python
-engine = WorkflowEngine("c:\\\python\\\python.exe")
+engine = WorkflowEngine(r"c:\Python\python.exe")
 doc = engine.open("test.xml")
 steps = engine.get_flow(doc)
 engine.run_flow(steps)
