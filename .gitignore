@@ -1,2 +1,6 @@
 $ cat .gitignore
 /BPMN_RPA/.pypirc
+/build/*
+/dist/*
+/tests/*
+BPMN_RPA.egg-info
