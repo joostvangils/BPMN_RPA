@@ -219,7 +219,10 @@ class WorkflowEngine():
                                     elif tv.lower().__contains__(".object"):
                                         val = loopvars[0]
                                     else:
-                                        val = val.replace(tv, replace_value[loopvars[0].counter])
+                                        if isinstance(replace_value, list):
+                                            val = val.replace(tv, replace_value[loopvars[0].counter])
+                                        else:
+                                            val = val.replace(tv, replace_value)
                                 else:
                                     if tv.__contains__("[") and tv.__contains__("]"):
                                         if isinstance(replace_value, list):
@@ -509,8 +512,8 @@ class SQL():
 
 
 # Test
-engine = WorkflowEngine("c:\\python\\python.exe")
-engine.db.orchestrator()
-doc = engine.open(fr"C:\Users\joost\Desktop\test.xml")  # c:\\temp\\test.xml
-steps = engine.get_flow(doc)
-engine.run_flow(steps)
+# engine = WorkflowEngine("c:\\python\\python.exe")
+# engine.db.orchestrator()
+# doc = engine.open(fr"c:\temp\test.xml")  # c:\\temp\\test.xml
+# steps = engine.get_flow(doc)
+# engine.run_flow(steps)
