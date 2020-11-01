@@ -45,7 +45,7 @@ You can use Tasks to call Python scripts. For the WorkflowEngine to recognize th
       os.system('Notepad')
       ```
       You look up the name of the input parameter(s) in the official documentation (or in the code). In this example, the input parameter is called 'command'. You then set the following attributes:<br><br>
-      <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/os_system.PNG" height="450" width="400" ></a>
+      <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/os_system.PNG" height="450" width="400" ></a>
     
 ##### GateWays
    * For now you can only use the Exclusive Gateway. This Gateway has to have a Data attribute named 'Type' with the value 'Exclusive Gateway'.
@@ -69,16 +69,16 @@ You can create loops by using exclusive gateways. An exclusive gateway should al
 You can get the value of the loopvariable counter by using the '.counter' attribute of the loopvariable (p.e.: %test.counter%). To get the whole list that is looped, use the '.object' attribute of the loopvariable (p.e.: '%test.object%').
 
 An example:<br>
-<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/Loop_example.PNG" height="300" width="400" ></a>
+<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Loop_example.PNG" height="300" width="400" ></a>
 
 Explanation:
 1. The loop starts with the 'Loop list' Task. This The function 'returnlist' is called in the module 'hello_world.py'. There is no path specified for the module and the module name ends with '.py', so the path to the module will be '*current directory*\Scripts\hello_world.py'. This script returns a List with the elements ["this", "is", "a", "test"] and stores it in the variable named '%test%'. The attribute 'Loopcounter' is the important indication that this Task will be the start of a loop. The number in this field will be the start for the loop (p.e.: setting 'Loopcounter' to 1 results in loping the list from the second element in the list).<br>
-<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/Looplist_attributes.PNG" height="100" width="400" ></a>
+<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Looplist_attributes.PNG" height="100" width="400" ></a>
 2. The MessageBox function is called ('*current directory*\Scripts\MessageBox.py'). The title will be "test", and the message will be a word from the list in confirmity with the 'Loopcounter' number ('%test%').<br>
-<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/MessageBox_attributes.PNG" height="100" width="400" ></a><br>
-<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/loop_firstexecution.PNG" height="200" width="400" ></a><br>
+<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/MessageBox_attributes.PNG" height="100" width="400" ></a><br>
+<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/loop_firstexecution.PNG" height="200" width="400" ></a><br>
 3. The 'More loop items?' Task checks if the List in the variable '%test%' has any items left to loop. If so, then it returns True, otherwise it will return False. If it returns True, the 'Loopcounter' is raised by 1. The function is called within the WorkflowEngine class (no 'Module'or 'Class' specified).<br>
-<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/Images/Looptest_attributes.PNG" height="100" width="400" ></a>
+<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Looptest_attributes.PNG" height="100" width="400" ></a>
 4. The Exclusive Gateway is deciding which Sequence Flow Arrow to follow. If the loop is still ongoing, the 'Loop List' Task will be called again and the next element in the list will be returned.
 
 ##### Retreiving information
