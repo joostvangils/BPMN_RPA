@@ -12,7 +12,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
   * [Sequence flow arrow](#Sequence-flow-arrow)
 * [Variables](#Variables)
 * [Loops](#Loops)
-
+* [Instantiate a Class and use in Flow](#Instantiate-a-Class-and-use-in-Flow)
 * [Example](#Example)
 
 
@@ -91,7 +91,7 @@ If you would like to retreive an attribute of a stored object or dictionary in a
 You can instantiate a Python class by using ony these attributes:<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Instantiate_class1.PNG" height="100" width="400" ></a><br>
 This instantiates the class and saves the instance in the variable %test%.
-You can call any function of the class object by use of these attributes in Tasks following the instantiation Task:<br>
+You can call any function of the class object by use of these attributes in Tasks following the instantiation Task (please notice to leave the 'Module' attribute blank):<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Instantiate_class2.PNG" height="100" width="400" ></a><br>
 
 ##### Example
