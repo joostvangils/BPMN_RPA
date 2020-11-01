@@ -12,6 +12,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
   * [Sequence flow arrow](#Sequence-flow-arrow)
 * [Variables](#Variables)
 * [Loops](#Loops)
+
 * [Example](#Example)
 
 
@@ -85,6 +86,13 @@ Explanation:
 In order to retrieve a specific item of a list, you must use the following format (notation): %VariableName[ItemNumber]%. The “ItemNumber” should be 0 for the first item of the list, 1 for the second and so on. For example, if you have a list that is stored in the variable %MyList% and contains 10 items, you can retrieve the first item with: %MyList[0]% and the last item with %MyList[9]%. For data tables, you must use the following notation: %VariableName[RowNumber][ColumnNumber]%.
 
 If you would like to retreive an attribute of a stored object or dictionary in a variable, then you must use the %VariableName.attributeName% notation. Just use the %VariableName% notation to retreive the full object or dictionary.
+
+##### Instantiate a Class and use in Flow
+You can instantiate a Python class by using ony these attributes:<br>
+<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Instantiate_class1.PNG" height="100" width="400" ></a><br>
+This instantiates the class and saves the instance in the variable %test%.
+You can call any function of the class object by use of these attributes in Tasks following the instantiation Task:<br>
+<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Instantiate_class2.PNG" height="100" width="400" ></a><br>
 
 ##### Example
 
