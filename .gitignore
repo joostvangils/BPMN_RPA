@@ -1,5 +1,6 @@
 $ cat .gitignore
 /BPMN_RPA/.pypirc
+/Upload.bat
 /build/*
 /dist/*
 /tests/*

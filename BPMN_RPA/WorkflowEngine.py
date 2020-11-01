@@ -313,7 +313,13 @@ class WorkflowEngine():
                                 if len(step.function) > 0:
                                     method_to_call = getattr(class_object, step.function)
                             else:
-                                method_to_call = getattr(module_object, step.function)
+                                if str(step.classname).startswith("%") and str(step.classname).endswith("%"):
+                                    class_object = self.variables.get(step.classname)
+                                    if len(step.function) > 0:
+                                        method_to_call = getattr(class_object, step.function)
+
+                                else:
+                                    method_to_call = getattr(module_object, step.function)
                         else:
                             method_to_call = getattr(module_object, step.function)
                 else:
@@ -342,9 +348,15 @@ class WorkflowEngine():
                         output_previous_step = class_object(**input)
                 else:
                     if hasattr(step, "function"):
+                        called = False
                         if len(step.function) > 0:
-                            output_previous_step = method_to_call()
-                        if output_previous_step is None:
+                            if method_to_call is not None:
+                                output_previous_step = method_to_call()
+                                called = True
+                            else:
+                                output_previous_step = class_object()
+                                called = True
+                        if output_previous_step is None and called == False:
                             output_previous_step = class_object()
                     else:
                         if class_object is not None:
@@ -373,20 +385,21 @@ class WorkflowEngine():
                     if hasattr(step, "classname"):
                         if len(step.classname) == 0:
                             if hasattr(step, "function"):
-                                print(f"{step.function} executed.")
+                                print(f"{method_to_call.__name__} executed.")
                         else:
                             if hasattr(step, "function"):
-                                print(f"{step.classname}.{step.function} executed.")
+                                print(f"{class_object.__class__.__name__}.{method_to_call.__name__} executed.")
                     else:
                         if hasattr(step, "function"):
-                            print(f"{step.function} executed.")
+                            print(f"{method_to_call.__name__} executed.")
             except Exception as e:
                 print(f"Error: {e}")
 
                 pass
             if step is None:
                 break
-            self.save_output_variable(step, output_previous_step)
+            if output_previous_step is not None:
+                self.save_output_variable(step, output_previous_step)
             self.previous_step = copy.deepcopy(step)
             step = self.get_next_step(step, steps, output_previous_step)
 
@@ -515,6 +528,6 @@ class SQL():
 
 # Test
 # engine = WorkflowEngine("c:\\python\\python.exe")
-# doc = engine.open(fr"{sys.path[0]}\test.xml")  # c:\\temp\\test.xml
+# doc = engine.open(fr"test_loop.xml")  # c:\\temp\\test.xml
 # steps = engine.get_flow(doc)
 # engine.run_flow(steps)

@@ -19,3 +19,12 @@ def returnobject():
     retn.third = "a"
     retn.fourth = "test"
     return retn
+
+
+class hello_world():
+
+    def __init__(self):
+        self.hello = "hello world"
+
+    def test(self):
+        print(self.hello)
