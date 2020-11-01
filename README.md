@@ -88,10 +88,10 @@ In order to retrieve a specific item of a list, you must use the following forma
 If you would like to retreive an attribute of a stored object or dictionary in a variable, then you must use the %VariableName.attributeName% notation. Just use the %VariableName% notation to retreive the full object or dictionary.
 
 #### Instantiate a Class and use in Flow
-You can instantiate a Python class by using ony these attributes:<br>
+You can instantiate a Python class by using ony these attributes (leave the 'Function' attribute blank):<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Instantiate_class1.PNG" height="100" width="400" ></a><br>
 This instantiates the class and saves the instance in the variable %test%.
-You can call any function of the class object by use of these attributes in Tasks following the instantiation Task (please notice to leave the 'Module' attribute blank):<br>
+You can call any function of the class object by use of these attributes in Tasks following the instantiation Task (leave the 'Module' attribute blank):<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Instantiate_class2.PNG" height="100" width="400" ></a><br>
 
 ##### Example
