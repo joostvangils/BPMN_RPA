@@ -399,6 +399,9 @@ class WorkflowEngine():
             if step is None:
                 break
             if output_previous_step is not None:
+                if str(output_previous_step).startswith("QuerySet"):
+                    # If this is Exchangelib output then turn it into list
+                    output_previous_step = list(output_previous_step)
                 self.save_output_variable(step, output_previous_step)
             self.previous_step = copy.deepcopy(step)
             step = self.get_next_step(step, steps, output_previous_step)
@@ -527,7 +530,7 @@ class SQL():
 
 
 # Test
-engine = WorkflowEngine("c:\\python\\python.exe")
-doc = engine.open(fr"test_loop.xml")  # c:\\temp\\test.xml
-steps = engine.get_flow(doc)
-engine.run_flow(steps)
+# engine = WorkflowEngine("c:\\python\\python.exe")
+# doc = engine.open(fr"test_loop.xml")  # c:\\temp\\test.xml
+# steps = engine.get_flow(doc)
+# engine.run_flow(steps)
