@@ -310,8 +310,9 @@ class WorkflowEngine():
                         if hasattr(step, "classname"):
                             if hasattr(module_object, step.classname):
                                 class_object = getattr(module_object, step.classname)
-                                if len(step.function) > 0:
-                                    method_to_call = getattr(class_object, step.function)
+                                if hasattr(step, "function"):
+                                    if len(step.function) > 0:
+                                        method_to_call = getattr(class_object, step.function)
                             else:
                                 if str(step.classname).startswith("%") and str(step.classname).endswith("%"):
                                     class_object = self.variables.get(step.classname)

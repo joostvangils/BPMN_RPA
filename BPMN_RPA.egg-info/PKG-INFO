@@ -1,12 +1,12 @@
 Metadata-Version: 2.1
 Name: BPMN-RPA
-Version: 0.0.54
+Version: 0.0.55
 Summary: Robotic Process Automation in Windows by using Diagrams.net BPMN diagrams.
 Home-page: https://github.com/joostvangils/BPMN_RPA
 Author: Joost van Gils
 Author-email: joostvangils@1ic.nl
 License: UNKNOWN
-Description: With this Framework you can draw Business Process Model Notation based Diagrams and run those diagrams with a WorkflowEngine. You can install BPMN RPA with an easy install script which you can download [here](https://github.com/joostvangils/BPMN_RPA/blob/main/Install.py).
+Description: With this Framework you can draw Business Process Model Notation based Diagrams and run those diagrams with a WorkflowEngine. You can also install BPMN RPA with an easy install script which you can download [here](https://github.com/joostvangils/BPMN_RPA/blob/main/Install.py).
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 Classifier: License :: OSI Approved :: Apache Software License
