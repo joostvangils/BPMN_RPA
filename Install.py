@@ -6,7 +6,7 @@ import requests
 
 print("The DPMN_RPA package will be installed in the Python site-packages directory.")
 os.system("pip install --upgrade --force-reinstal BPMN_RPA")
-installdir = input("\nEnter the directory to install additional files:")
+installdir = input("\nEnter the directory to install additional files: ")
 if not str(installdir).endswith("\\"):
     installdir += "\\"
 if not os.path.exists(installdir):

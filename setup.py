@@ -3,11 +3,11 @@ import setuptools
 
 setuptools.setup(
     name="BPMN_RPA", # Replace with your own username
-    version="0.0.52",
+    version="0.0.54",
     author="Joost van Gils",
     author_email="joostvangils@1ic.nl",
     description="Robotic Process Automation in Windows by using Diagrams.net BPMN diagrams.",
-    long_description="With this Framework you can draw Business Process Model Notation based Diagrams and run those diagrams with a WorkflowEngine.",
+    long_description="With this Framework you can draw Business Process Model Notation based Diagrams and run those diagrams with a WorkflowEngine. You can also install BPMN RPA with an easy install script which you can download [here](https://github.com/joostvangils/BPMN_RPA/blob/main/Install.py).",
     long_description_content_type="text/markdown",
     url="https://github.com/joostvangils/BPMN_RPA",
     packages=setuptools.find_packages(),
