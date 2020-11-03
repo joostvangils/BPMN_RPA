@@ -8,6 +8,7 @@ import sqlite3
 import sys
 import urllib
 import uuid
+import winreg
 import xml.etree.ElementTree as ET
 import zlib
 from inspect import signature
@@ -18,13 +19,30 @@ import xmltodict
 
 class WorkflowEngine():
 
-    def __init__(self, pythonpath: str):
+    def __init__(self, pythonpath: str, installation_directory: str=""):
         """
         Class for automating DrawIO diagrams
         :param pythonpath: The full path to the python.exe file
+        :param installation_directory: The folder where your BPMN_RPA files are installed. This folder will be used for the orchestrator database.
         """
+        if len(installation_directory) != 0:
+            self.set_dbPath(installation_directory)
+            dbFolder = installation_directory
+        else:
+            dbFolder = self.get_dbPath()
+        if dbFolder is None:
+            installdir = input("\nYour installation directory is unknown. Please enter the path of your installation directory: ")
+            if not str(installdir).endswith("\\"):
+                installdir += "\\"
+            if not os.path.exists(installdir):
+                os.mkdir(installdir)
+            if len(installdir) == 0:
+                return
+            else:
+                self.set_dbPath(installdir)
+                dbFolder = self.get_dbPath()
         self.pythonPath = pythonpath
-        self.db = SQL()
+        self.db = SQL(dbFolder)
         self.db.orchestrator() # Run the orchestrator database
         self.uid = uuid.uuid1()  # Generate a unique ID for our flow
         self.name = None
@@ -49,6 +67,38 @@ class WorkflowEngine():
         url_decode = urllib.parse.unquote(inflated_xml)
         retn = xmltodict.parse(url_decode)
         return retn
+
+    def set_dbPath(self, value: str):
+        """
+        Write the orchestrator database path to the registry.
+
+        :param value: The path of the orchestrator database that has to be written to the registry
+        """
+        try:
+            REG_PATH = r"SOFTWARE\BPMN_RPA"
+            winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH)
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0,
+                                          winreg.KEY_WRITE)
+            winreg.SetValueEx(registry_key, "dbPath", 0, winreg.REG_SZ, value)
+            winreg.CloseKey(registry_key)
+            return True
+        except WindowsError:
+            return False
+
+    def get_dbPath(self):
+        """
+        Get the path to the orchestrator database
+
+        :return: The path to the orchestrator database
+        """
+        try:
+            REG_PATH = r"SOFTWARE\BPMN_RPA"
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0, winreg.KEY_READ)
+            value, regtype = winreg.QueryValueEx(registry_key, 'dbPath')
+            winreg.CloseKey(registry_key)
+            return value
+        except WindowsError:
+            return None
 
     def get_flow(self, ordered_dict) -> Any:
         """
@@ -269,6 +319,9 @@ class WorkflowEngine():
 
         :params steps: The steps that must be executed in the flow
         """
+        if self.get_dbPath() == "\\":
+            raise Exception('Your installation directory is unknown.')
+            return
         self.previous_step = None
         output_previous_step = None
         shape_steps = [x for x in steps if x.type == "shape"]
@@ -496,11 +549,16 @@ class WorkflowEngine():
 
 class SQL():
 
-    def __init__(self):
+    def __init__(self, dbfolder: str):
         """
         Class for SQLite actions on the Orchestrator database.
+        :param dbfolder: The folder of the SQLite orchestrator database
         """
-        self.connection = sqlite3.connect('orchestrator.db')
+        if dbfolder == "\\":
+            return
+        if not dbfolder.endswith("\\"):
+            dbfolder += "\\"
+        self.connection = sqlite3.connect(f'{dbfolder}orchestrator.db')
 
     def run_sql(self, sql, tablename: str = ""):
         """
@@ -509,6 +567,8 @@ class SQL():
         :param tablename: Optional. The tablename of the table used in the SQL command, for returning the last id of the primary key column.
         :return: The last inserted id of the primary key column
         """
+        if not hasattr(self, "connection"):
+            return
         self.connection.execute(sql)
         self.connection.commit()
         if len(tablename) > 0:
@@ -540,3 +600,4 @@ class SQL():
 # engine = WorkflowEngine("c:\\python\\python.exe")
 # doc = engine.open(fr"test_loop.xml")  # c:\\temp\\test.xml
 # steps = engine.get_flow(doc)
+# engine.run_flow(steps)

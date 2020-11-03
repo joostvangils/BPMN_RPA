@@ -222,7 +222,11 @@ class WorkflowEngine():
                                         val = loopvars[0]
                                     else:
                                         if isinstance(replace_value, list):
-                                            val = val.replace(tv, replace_value[loopvars[0].counter])
+                                            if not tv.__contains__("."):
+                                                val = val.replace(tv, replace_value[loopvars[0].counter])
+                                            else:
+                                                attr = str(lst[0].split(".")[1]).replace(".", "")
+                                                val = val.replace(tv,getattr(replace_value[loopvars[0].counter], attr))
                                         else:
                                             val = val.replace(tv, replace_value)
                                 else:
@@ -250,7 +254,7 @@ class WorkflowEngine():
         Check if a step uses any variables as input for any of the Shapevalue fields
         :param step: The step to check
         :return: True or Flase
-        """
+       """
         attrs = vars(step)
         col = [key for key, val in attrs.items() if
                str(val).startswith("%") and str(val).endswith("%") and str(key) != "output_variable"]
@@ -475,6 +479,8 @@ class WorkflowEngine():
             if len(check_loopvar) == 0:
                 try:
                     loopvar = self.dynamic_object()
+                    if hasattr(retn, "output_variable"):
+                        loopvar.name = str(retn.output_variable)
                     loopvar.id = retn.id
                     loopvar.start = int(retn.loopcounter)
                     loopvar.counter = loopvar.start
@@ -534,4 +540,3 @@ class SQL():
 # engine = WorkflowEngine("c:\\python\\python.exe")
 # doc = engine.open(fr"test_loop.xml")  # c:\\temp\\test.xml
 # steps = engine.get_flow(doc)
-# engine.run_flow(steps)
