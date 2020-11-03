@@ -44,7 +44,8 @@ class WorkflowEngine():
         self.pythonPath = pythonpath
         self.db = SQL(dbFolder)
         self.db.orchestrator() # Run the orchestrator database
-        self.uid = uuid.uuid1()  # Generate a unique ID for our flow
+        self.id = -1  # Holds the ID for our flow
+        self.error = False  # Indicator if the flow has any errors in its execution
         self.name = None
         self.loopvariables = []
         self.previous_step = None
@@ -313,6 +314,15 @@ class WorkflowEngine():
         else:
             return False
 
+    def log_error(self, msg: str):
+        """
+        Log an error message in the orchestrator database
+        :param msg: The error message to log
+        :return:
+        """
+        sql = f"INSERT INTO Steps (name, step, result) VALUES ('{self.name}', f'Error', f{msg})"
+        self.db.run_sql(sql=sql, tablename="Steps")
+
     def run_flow(self, steps):
         """
         Execute a Workflow.
@@ -321,11 +331,17 @@ class WorkflowEngine():
         """
         if self.get_dbPath() == "\\":
             raise Exception('Your installation directory is unknown.')
+            self.error = True
             return
         self.previous_step = None
         output_previous_step = None
         shape_steps = [x for x in steps if x.type == "shape"]
         step = [x for x in shape_steps if x.IsStart == True][0]
+        # Log the start in the orchestrator database
+        sql = f"INSERT INTO Workflows (name) VALUES ('{self.name}')"
+        self.id = self.db.run_sql(sql=sql, tablename="Workflows")
+        sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'Workflow started', '', 'Started')"
+        self.db.run_sql(sql=sql, tablename="Steps")
         while True:
             try:
                 # to fetch module
@@ -336,8 +352,8 @@ class WorkflowEngine():
                 input = None
                 if hasattr(step, "module"):
                     # Create a record in the orchestrator database
-                    sql = f"INSERT INTO Workflows (uid, name, current_step) VALUES ('{self.uid}', '{self.name}', '{step.name}')"
-                    id = self.db.run_sql(sql=sql, tablename="Workflows")  # execute, commit and return the inserted id
+                    sql = f"INSERT INTO Steps (Workflow, name, step) VALUES ('{self.id}', '{self.name}', '{step.name}')"
+                    id = self.db.run_sql(sql=sql, tablename="Steps")  # execute, commit and return the inserted id
 
                     # region get function call
                     method_to_call = None
@@ -438,7 +454,7 @@ class WorkflowEngine():
                     # Update the result
                     sql_out = str(output_previous_step).replace("\'", "\'\'")
                     if sql_out != 'None':
-                        sql = f"UPDATE Workflows SET result ='{sql_out}' WHERE id={id};"
+                        sql = f"UPDATE Steps SET result ='{sql_out}' WHERE id={id};"
                         self.db.run_sql(sql)
                     if hasattr(step, "classname"):
                         if len(step.classname) == 0:
@@ -455,6 +471,9 @@ class WorkflowEngine():
 
                 pass
             if step is None:
+                # Log the end in the orchestrator database
+                sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '', 'Workflow ended', 'Ended')"
+                self.db.run_sql(sql=sql, tablename="Steps")
                 break
             if output_previous_step is not None:
                 if str(output_previous_step).startswith("QuerySet"):
@@ -559,6 +578,7 @@ class SQL():
         if not dbfolder.endswith("\\"):
             dbfolder += "\\"
         self.connection = sqlite3.connect(f'{dbfolder}orchestrator.db')
+        self.connection.execute("PRAGMA foreign_keys = 1")
 
     def run_sql(self, sql, tablename: str = ""):
         """
@@ -572,7 +592,7 @@ class SQL():
         self.connection.execute(sql)
         self.connection.commit()
         if len(tablename) > 0:
-            return self.get_inserted_id("Workflows")
+            return self.get_inserted_id(tablename)
         else:
             return None
 
@@ -592,12 +612,14 @@ class SQL():
         """
         Create tables for the Orchestrator database
         """
-        sql = "CREATE TABLE IF NOT EXISTS Workflows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,uid TEXT NOT NULL, parent TEXT, name TEXT NOT NULL,current_step TEXT,result TEXT,timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);"
+        sql = "CREATE TABLE IF NOT EXISTS Workflows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, result TEXT, started TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, finished TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);"
+        self.run_sql(sql)
+        sql = "CREATE TABLE IF NOT EXISTS Steps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Workflow INTEGER NOT NULL, parent TEXT, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT fk_Workflow FOREIGN KEY (Workflow) REFERENCES Workflows (id) ON DELETE CASCADE);"
         self.run_sql(sql)
 
 
 # Test
-# engine = WorkflowEngine("c:\\python\\python.exe")
-# doc = engine.open(fr"test_loop.xml")  # c:\\temp\\test.xml
-# steps = engine.get_flow(doc)
-# engine.run_flow(steps)
+engine = WorkflowEngine("c:\\python\\python.exe")
+doc = engine.open(fr"test_loop.xml")  # c:\\temp\\test.xml
+steps = engine.get_flow(doc)
+engine.run_flow(steps)

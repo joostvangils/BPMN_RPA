@@ -31,14 +31,17 @@ app = dash.Dash(__name__)
 server = app.server
 dbpath = get_reg('dbPath')
 connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
-sql = f"SELECT * FROM Workflows;"
+sql = f"SELECT id, name, status, step, result, timestamp as executed FROM Steps;"
 df = pd.read_sql_query(sql, connection)
 t = 0
 for row in df.iterrows():
-    df.at[t, "parent"] = "![image description](https://www.iconsdb.com/icons/preview/green/ok-xxl.png){height=40px width=50px}"
+    # if df.at[t, "step"] == "MessageBox":
+    #     df.at[t, "parent"] = "•"
+    # else:
+    df.at[t, "status"] = "![ok](https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/ok.png)"
     t += 1
 columns = [{"name": i, "id": i} for i in df.columns]
-imagecolumn = [element for element in columns if element['name'] == "parent"][0]
+imagecolumn = [element for element in columns if element['name'] == "status"][0]
 imagecolumn["presentation"] = "markdown"
 imagecolumn["editable"] = False
 app = dash.Dash(name="BPMN RPA", title="BPMN RPA")
@@ -53,9 +56,13 @@ app.layout = html.Div([
         data=df.to_dict('records'),
         sort_action='native',
         filter_action='native',
+        style_table={'height': '100px'},
+        style_cell={'textAlign': 'left', 'overflow': 'visible', 'textOverflow': 'ellipsis', 'height': '40px' },
         style_header={'backgroundColor': 'rgb(0, 0, 153)', 'font-family': 'Verdana', 'fontWeight': 'bold',
-                      'color': 'white', 'overflow': 'hidden', 'textOverflow': 'ellipsis', 'maxHeight': 0},
-        style_data_conditional=[{'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(248, 248, 248)'}],
+                      'color': 'white', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
+        style_data_conditional=[{'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(248, 248, 248)'}],  #  {'if': {'column_id': 'status', 'filter_query': '{result} eq "True"'}, 'width': '50%'}],
+        style_cell_conditional=[{'if': {'column_id': 'status'}}],
+        # style_header_conditional=[{'if': {'column_id': 'status'}, 'fontSize': '15px'}],
         page_action="native",
         page_current= 0,
         page_size= 10,
@@ -67,16 +74,16 @@ app.layout = html.Div([
 ])
 
 
-@app.callback(
-    [Output("progress", "value"), Output("progress", "children")],
-    [Input("progress-interval", "n_intervals")],
-)
-def update_progress(n):
-    # check progress of some background process, in this example we'll just
-    # use n_intervals constrained to be in 0-100
-    progress = min(n % 110, 100)
-    # only add text after 5% progress to ensure text isn't squashed too much
-    return progress, f"{progress} %" if progress >= 5 else ""
+# @app.callback(
+#     [Output("progress", "value"), Output("progress", "children")],
+#     [Input("progress-interval", "n_intervals")],
+# )
+# def update_progress(n):
+#     # check progress of some background process, in this example we'll just
+#     # use n_intervals constrained to be in 0-100
+#     progress = min(n % 110, 100)
+#     # only add text after 5% progress to ensure text isn't squashed too much
+#     return progress, f"{progress} %" if progress >= 5 else ""
 
 
 @app.callback(
