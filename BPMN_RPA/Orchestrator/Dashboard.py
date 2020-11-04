@@ -49,14 +49,13 @@ app = dash.Dash(name="BPMN RPA", title="BPMN RPA")
 app.layout = html.Div([
 
     html.H1("BPMN RPA Orchestrator", style={'font-family': 'Verdana'}),
-
+    html.Img(src =""),
     dash_table.DataTable(
         id='table',
         columns=columns,
         data=df.to_dict('records'),
         sort_action='native',
         filter_action='native',
-        style_table={'height': '100px'},
         style_cell={'textAlign': 'left', 'overflow': 'visible', 'textOverflow': 'ellipsis', 'height': '40px' },
         style_header={'backgroundColor': 'rgb(0, 0, 153)', 'font-family': 'Verdana', 'fontWeight': 'bold',
                       'color': 'white', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},

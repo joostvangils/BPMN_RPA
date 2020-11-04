@@ -472,7 +472,7 @@ class WorkflowEngine():
                 pass
             if step is None:
                 # Log the end in the orchestrator database
-                sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '', 'Workflow ended', 'Ended')"
+                sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'Workflow ended', '', 'Ended')"
                 self.db.run_sql(sql=sql, tablename="Steps")
                 break
             if output_previous_step is not None:
