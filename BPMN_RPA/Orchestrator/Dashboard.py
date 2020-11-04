@@ -48,8 +48,12 @@ app = dash.Dash(name="BPMN RPA", title="BPMN RPA")
 
 app.layout = html.Div([
 
-    html.H1("BPMN RPA Orchestrator", style={'font-family': 'Verdana'}),
-    html.Img(src =""),
+    html.Span([
+        html.Img(src ="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/BPMN_RPA_logo.PNG", width="250px", height="80px", style={'float': 'left'}),
+        html.Br(),
+        html.H2("Orchestrator", style={'font-family': 'Verdana', 'text-indent': '15px'}),
+        ], style={'white-space': 'nowrap'}),
+
     dash_table.DataTable(
         id='table',
         columns=columns,
