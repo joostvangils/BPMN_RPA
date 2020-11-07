@@ -47,6 +47,7 @@ class WorkflowEngine():
         self.id = -1  # Holds the ID for our flow
         self.error = False  # Indicator if the flow has any errors in its execution
         self.name = None
+        self.flowpath = None
         self.loopvariables = []
         self.previous_step = None
         self.variables = {}  # Dictionary to hold WorkflowEngine variables
@@ -59,6 +60,8 @@ class WorkflowEngine():
         :returns: A DrawIO dictionary object
         """
         # Open an existing document.
+        if filepath is not None:
+            self.flowpath = filepath
         xml_file = open(filepath, "r")
         self.name = filepath.split("\\")[-1].lower().replace(".xml", "")
         xml_root = ET.fromstring(xml_file.read())
@@ -337,10 +340,16 @@ class WorkflowEngine():
         output_previous_step = None
         shape_steps = [x for x in steps if x.type == "shape"]
         step = [x for x in shape_steps if x.IsStart == True][0]
+        # Register the flow if not already registered
+        sql = f"SELECT id FROM Registered WHERE name ='{self.name}' AND location='{self.flowpath}'"
+        registered_id = self.db.run_sql(sql=sql, tablename="Registered")
+        if registered_id is None:
+            sql = f"INSERT INTO Registered (name, location) VALUES ('{self.name}','{self.flowpath}');"
+            registered_id = self.db.run_sql(sql=sql, tablename="Registered")
         # Log the start in the orchestrator database
-        sql = f"INSERT INTO Workflows (name) VALUES ('{self.name}')"
+        sql = f"INSERT INTO Workflows (name, registered_id) VALUES ('{self.name}', {registered_id});"
         self.id = self.db.run_sql(sql=sql, tablename="Workflows")
-        sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'Workflow started', '', 'Started')"
+        sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'Workflow started', '', 'Started');"
         self.db.run_sql(sql=sql, tablename="Steps")
         while True:
             try:
@@ -352,7 +361,7 @@ class WorkflowEngine():
                 input = None
                 if hasattr(step, "module"):
                     # Create a record in the orchestrator database
-                    sql = f"INSERT INTO Steps (Workflow, name, step) VALUES ('{self.id}', '{self.name}', '{step.name}')"
+                    sql = f"INSERT INTO Steps (Workflow, name, step) VALUES ('{self.id}', '{self.name}', '{step.name}');"
                     id = self.db.run_sql(sql=sql, tablename="Steps")  # execute, commit and return the inserted id
 
                     # region get function call
@@ -404,6 +413,8 @@ class WorkflowEngine():
                     try:
                         sig = signature(method_to_call)
                     except Exception as e:
+                        # sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'OK. Note: {e}');"
+                        # self.db.run_sql(sql=sql, tablename="Steps")
                         print(e)
                     if str(sig) != "()":
                         input = self.get_parameters_from_shapevalues(step=step, signature=sig)
@@ -416,7 +427,9 @@ class WorkflowEngine():
                         else:
                             try:
                                 output_previous_step = method_to_call(input)
-                            except:
+                            except Exception as e:
+                                # sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'OK. Note: {e}');"
+                                # self.db.run_sql(sql=sql, tablename="Steps")
                                 pass
                     else:
                         output_previous_step = class_object(**input)
@@ -447,6 +460,9 @@ class WorkflowEngine():
                                 loopvar.total_listitems = len(output_previous_step) - 2
                                 loopvar.name = step.output_variable
                         except Exception as e:
+                            sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'Error: {e}');"
+                            self.db.run_sql(sql=sql, tablename="Steps")
+                            self.error = True
                             print(f"Error: {e}")
                     if hasattr(step, "loopcounter") and loopvar is not None:
                         # It's a loop! Overwrite the output_previous_step with the right element
@@ -468,12 +484,20 @@ class WorkflowEngine():
                             print(f"{method_to_call.__name__} executed.")
             except Exception as e:
                 print(f"Error: {e}")
-
+                sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'Error: {e}');"
+                self.db.run_sql(sql=sql, tablename="Steps")
+                self.error = True
                 pass
             if step is None:
-                # Log the end in the orchestrator database
-                sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'Workflow ended', '', 'Ended')"
+                # Flow has ended. Log the end in the orchestrator database.
+                ok = "OK"
+                if self.error:
+                    ok = "Error"
+                sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'Ended', '', '{ok}');"
                 self.db.run_sql(sql=sql, tablename="Steps")
+                # Update the result of the flow
+                sql = f"UPDATE Workflows SET result= '{ok}' where id = {self.id};"
+                self.db.run_sql(sql=sql, tablename="Workflows")
                 break
             if output_previous_step is not None:
                 if str(output_previous_step).startswith("QuerySet"):
@@ -481,6 +505,8 @@ class WorkflowEngine():
                     output_previous_step = list(output_previous_step)
                 self.save_output_variable(step, output_previous_step)
             self.previous_step = copy.deepcopy(step)
+            if self.error:
+                break
             step = self.get_next_step(step, steps, output_previous_step)
 
     def save_output_variable(self, step, output_previous_step):
@@ -592,7 +618,10 @@ class SQL():
         self.connection.execute(sql)
         self.connection.commit()
         if len(tablename) > 0:
-            return self.get_inserted_id(tablename)
+            try:
+                return self.get_inserted_id(tablename)
+            except:
+                return None
         else:
             return None
 
@@ -612,9 +641,11 @@ class SQL():
         """
         Create tables for the Orchestrator database
         """
-        sql = "CREATE TABLE IF NOT EXISTS Workflows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, result TEXT, started TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, finished TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);"
+        sql = "CREATE TABLE IF NOT EXISTS Registered (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, location TEXT NOT NULL, description TEXT, timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);"
         self.run_sql(sql)
-        sql = "CREATE TABLE IF NOT EXISTS Steps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Workflow INTEGER NOT NULL, parent TEXT, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT fk_Workflow FOREIGN KEY (Workflow) REFERENCES Workflows (id) ON DELETE CASCADE);"
+        sql = "CREATE TABLE IF NOT EXISTS Workflows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, registered_id INTEGER NOT NULL, name TEXT NOT NULL, result TEXT, started TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, finished TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT fk_Registered FOREIGN KEY (registered_id) REFERENCES Registered (id) ON DELETE CASCADE);"
+        self.run_sql(sql)
+        sql = "CREATE TABLE IF NOT EXISTS Steps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, workflow INTEGER NOT NULL, parent TEXT, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT fk_Workflow FOREIGN KEY (Workflow) REFERENCES Workflows (id) ON DELETE CASCADE);"
         self.run_sql(sql)
 
 
