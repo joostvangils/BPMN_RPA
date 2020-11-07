@@ -291,6 +291,9 @@ runpage_layout = html.Div([
                                 style={'backgroundColor': 'rgb(0, 0, 153)', 'font-family': 'Verdana',
                                        'font-size': '15px', 'height': '38px', 'width': '300px', 'fontWeight': 'bold',
                                        'color': 'white', 'overflow': 'hidden', 'textOverflow': 'ellipsis'})
+                    ]),
+                    html.Tr(children=[
+                        html.Img(src='https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/run.png', style={'width': '50%'})
                     ])
                 ])
             ], style={'vertical-align': 'top'}),
