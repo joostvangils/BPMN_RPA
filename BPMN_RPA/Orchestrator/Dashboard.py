@@ -1,5 +1,6 @@
 import base64
 import copy
+import json
 import os
 import sqlite3
 import winreg
@@ -10,12 +11,15 @@ import PIL
 import dash_table
 import pandas as pd
 import dash
+import pyautogui
 from PIL.Image import Image
 from dash.dependencies import Input, Output, State
 import dash_html_components as html
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
+from lxml import etree
 import dash_core_components as dcc
+
 
 # region Functions and globals
 def get_reg(name):
@@ -76,26 +80,26 @@ buttonstyle = {'box-shadow': 'inset 0px 1px 0px 0px #54a3f7',
                'padding': '6px 24px',
                'text-decoration': 'none',
                'text-shadow': '0px 1px 0px #154682',
-            }
+               }
 # region Universal header
 universal_header = html.Table(id="header", style={'margin': '0', 'padding': '0', 'width': '100%'}, children=[
-            html.Tr(children=[
-                html.Td(children=[
-                    html.Img(
-                        src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/BPMN_RPA_logo.PNG",
-                        width="280px", height="55px", style={'float': 'left'}),
+    html.Tr(children=[
+        html.Td(children=[
+            html.Img(
+                src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/BPMN_RPA_logo.PNG",
+                width="280px", height="55px", style={'float': 'left'}),
 
-                ]),
-                html.Td(children=[
-                    html.H2("Orchestrator", style={'font-family': 'Verdana', 'margin': '4px'}),
+        ]),
+        html.Td(children=[
+            html.H2("Orchestrator", style={'font-family': 'Verdana', 'margin': '4px'}),
 
-                ], style={'text-align': 'left'}),
-                html.Td(children=[
-                    html.A(html.Button('Overview', className='menu_main', style=buttonstyle), href='/main_page'),
-                    html.A(html.Button('Run', className='menu_main', style=buttonstyle), href='/run_page'),
-                ]),
-            ]),
-        ])
+        ], style={'text-align': 'left'}),
+        html.Td(children=[
+            html.A(html.Button('Overview', className='menu_main', style=buttonstyle), href='/main_page'),
+            html.A(html.Button('Run', className='menu_main', style=buttonstyle), href='/run_page'),
+        ]),
+    ]),
+])
 # endregion
 
 # endregion
@@ -118,7 +122,6 @@ flows = pd.read_sql_query(sql, connection)
 flows = add_images_to_dataframe(flows, "result")
 flows_columns = get_columns_with_image_from_dataframe(flows, "result")
 
-
 sql = f"SELECT id, workflow, name, status, step, result, timestamp as executed FROM Steps;"
 steps = pd.read_sql_query(sql, connection)
 steps = add_images_to_dataframe(steps)
@@ -129,6 +132,7 @@ workflow_column.update({'hideable': True})
 
 app = dash.Dash(name="BPMN RPA", title="BPMN RPA")
 app.config.suppress_callback_exceptions = True
+
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     html.Div(id='page-content')
@@ -153,7 +157,8 @@ mainpage_layout = html.Div([
         data=flows.to_dict('records'),
         sort_action='native',
         filter_action='native',
-        style_cell={'textAlign': 'left', 'overflow': 'visible', 'textOverflow': 'ellipsis', 'height': '40px', 'font-family': 'Verdana', 'font-size': '12px',
+        style_cell={'textAlign': 'left', 'overflow': 'visible', 'textOverflow': 'ellipsis', 'height': '40px',
+                    'font-family': 'Verdana', 'font-size': '12px',
                     'selector': 'td.cell--selected, td.focused', 'rule': 'background-color: #FF4136;'},
         style_header={'backgroundColor': 'rgb(0, 0, 153)', 'font-family': 'Verdana', 'fontWeight': 'bold',
                       'color': 'white', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
@@ -178,7 +183,8 @@ mainpage_layout = html.Div([
         data=steps.to_dict('records'),
         sort_action='native',
         filter_action='native',
-        style_cell={'textAlign': 'left', 'overflow': 'visible', 'textOverflow': 'ellipsis', 'height': '40px', 'font-family': 'Verdana', 'font-size': '12px'},
+        style_cell={'textAlign': 'left', 'overflow': 'visible', 'textOverflow': 'ellipsis', 'height': '40px',
+                    'font-family': 'Verdana', 'font-size': '12px'},
         style_header={'backgroundColor': 'rgb(0, 0, 153)', 'font-family': 'Verdana', 'fontWeight': 'bold',
                       'color': 'white', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
         style_data_conditional=[{'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(248, 248, 248)'},
@@ -195,6 +201,8 @@ mainpage_layout = html.Div([
     ),
     # endregion
 ])
+
+
 # endregion
 
 # region CallBack functions main page
@@ -220,6 +228,8 @@ def select_row_filter_data(active_cell):
         steps = pd.read_sql_query(sql, connection)
         steps = add_images_to_dataframe(steps)
     return style, steps.to_dict('records')
+
+
 # endregion
 
 # region Run page
@@ -237,72 +247,114 @@ runpage_layout = html.Div([
         html.Tr([
             html.Td(children=[
                 dash_table.DataTable(
-                        id='registered',
-                        columns=registered_flows_columns,
-                        editable=False,
-                        data=registered_flows.to_dict('records'),
-                        sort_action='native',
-                        filter_action='native',
-                        style_table={'min-width': '300px'},
-                        style_cell={'textAlign': 'left', 'overflow': 'visible', 'textOverflow': 'ellipsis', 'height': '40px', 'font-family': 'Verdana', 'font-size': '12px'},
-                        style_header={'backgroundColor': 'rgb(0, 0, 153)', 'font-family': 'Verdana', 'fontWeight': 'bold',
-                                      'color': 'white', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
-                        style_data_conditional=[{'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(248, 248, 248)'},
-                                                {'if': {'state': 'selected'}, 'backgroundColor': 'rgba(0, 116, 217, 0.3)',
-                                                 'border': '1px rgba(0, 116, 217, 0.3)'},
-                                                ],
-                        # {'if': {'column_id': 'status', 'filter_query': '{result} eq "True"'}, 'width': '50%'}],
-                        # style_cell_conditional=[{'if': {'column_id': 'description'}, 'editable': True}],
-                        # style_header_conditional=[{'if': {'column_id': 'status'}, 'fontSize': '15px'}],
-                        page_action="native",
-                        page_current=0,
-                        page_size=10,
+                    id='registered',
+                    columns=registered_flows_columns,
+                    editable=False,
+                    data=registered_flows.to_dict('records'),
+                    sort_action='native',
+                    filter_action='native',
+                    style_table={'min-width': '300px'},
+                    style_cell={'textAlign': 'left', 'overflow': 'visible', 'textOverflow': 'ellipsis',
+                                'height': '40px', 'font-family': 'Verdana', 'font-size': '12px'},
+                    style_header={'backgroundColor': 'rgb(0, 0, 153)', 'font-family': 'Verdana', 'fontWeight': 'bold',
+                                  'color': 'white', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
+                    style_data_conditional=[{'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(248, 248, 248)'},
+                                            {'if': {'state': 'selected'}, 'backgroundColor': 'rgba(0, 116, 217, 0.3)',
+                                             'border': '1px rgba(0, 116, 217, 0.3)'},
+                                            ],
+                    # {'if': {'column_id': 'status', 'filter_query': '{result} eq "True"'}, 'width': '50%'}],
+                    # style_cell_conditional=[{'if': {'column_id': 'description'}, 'editable': True}],
+                    # style_header_conditional=[{'if': {'column_id': 'status'}, 'fontSize': '15px'}],
+                    page_action="native",
+                    page_current=0,
+                    page_size=10,
 
                 )
-            ]),  # style={'border-collapse': 'collapse', 'border-spacing': 0, 'border-top': '2em solid transparent'}),
+            ], style={'vertical-align': 'top'}),
+            # style={'border-collapse': 'collapse', 'border-spacing': 0, 'border-top': '2em solid transparent'}),
             html.Td([
                 html.Table(children=[
                     html.Tr(children=[
-                       html.Th(children=["Register Flows"], style={'backgroundColor': 'rgb(0, 0, 153)', 'font-family': 'Verdana', 'font-size': '15px', 'height': '38px', 'width': '300px', 'fontWeight': 'bold',
-                                      'color': 'white', 'overflow': 'hidden', 'textOverflow': 'ellipsis'})
+                        html.Th(children=["Register Flows"],
+                                style={'backgroundColor': 'rgb(0, 0, 153)', 'font-family': 'Verdana',
+                                       'font-size': '15px', 'height': '38px', 'width': '300px', 'fontWeight': 'bold',
+                                       'color': 'white', 'overflow': 'hidden', 'textOverflow': 'ellipsis'})
                     ]),
                     html.Tr(children=[
                         html.Td([
                             html.Div([
-                            dcc.Upload(
-                                id='datatable-upload',
-                                children=html.Div([
-                                    'Drag and Drop or ',
-                                    html.A('Select Flow-files to register')
-                                ]),
-                                style={
-                                    'width': '100%', 'height': '60px', 'lineHeight': '60px',
-                                    'borderWidth': '1px', 'borderStyle': 'dashed', 'font-size': '12px', 'font-family': 'Verdana',
-                                    'borderRadius': '5px', 'textAlign': 'center'},
-                            ),
-                            dash_table.DataTable(id='datatable-upload-container'),
+                                dcc.Upload(
+                                    id='datatable-upload',
+                                    children=html.Div([
+                                        'Drag and Drop or ',
+                                        html.A('Select Flow-files to register')
+                                    ]),
+                                    style={
+                                        'width': '100%', 'height': '60px', 'lineHeight': '60px',
+                                        'borderWidth': '1px', 'borderStyle': 'dashed', 'font-size': '12px',
+                                        'font-family': 'Verdana',
+                                        'borderRadius': '5px', 'textAlign': 'center'},
+                                ),
+                                dash_table.DataTable(id='datatable-upload-container'),
                             ])
                         ]),
                     ]),
                 ], style={'margin-top': '-1px'}),
                 html.Table(children=[
                     html.Tr(children=[
-                        html.Th(children=["Run Flows"],
+                        html.Th(children=["Flow operations"],
                                 style={'backgroundColor': 'rgb(0, 0, 153)', 'font-family': 'Verdana',
                                        'font-size': '15px', 'height': '38px', 'width': '300px', 'fontWeight': 'bold',
                                        'color': 'white', 'overflow': 'hidden', 'textOverflow': 'ellipsis'})
                     ]),
                     html.Tr(children=[
-                        html.Img(src='https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/run.png', style={'width': '50%'})
-                    ])
+                        html.Td(children=[
+                            html.Button(id='delete_button', children=[
+                                html.Span([
+                                    html.Img(
+                                        src='https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/delete.png',
+                                        style={'width': '20%'})
+                                ], style={'display': 'inline-block', 'width': 'auto'})
+                            ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer'}),
+                            html.Button(id='run_button', children=[
+                                html.Span([
+                                    html.Img(
+                                        src='https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/run.png',
+                                        style={'width': '25%'})
+                                ], style={'display': 'inline-block', 'width': 'auto'})
+                            ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer'}),
+                            html.Div(id='selected_row', children=[], style={'display': 'none'}),
+                        ], style={'text-align': 'center', 'border': '1px solid #d9d9d9', 'vertical-align': 'center'}),
+                    ]),
                 ])
             ], style={'vertical-align': 'top'}),
         ]),
     ]),
+    html.Div(id='empty', children=[], style={'display': 'none'}),
 ])
 # endregion
 
 # Callback functions Run page
+
+# Global variables
+selected_row = None
+
+
+@app.callback(
+    Output('empty', 'children'),
+    [Input('run_button', 'n_clicks'), Input('selected_row', 'children'), Input('registered', 'data')]
+)
+def run_a_flow(n_clicks, selected_row, data):
+    connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
+    selected = json.loads(selected_row)
+    item_id = data[selected.get('row')]['id']
+    cur = connection.cursor()
+    cur.execute(f"SELECT * FROM Registered where id={item_id}")
+    reg = cur.fetchone()
+    flow = f"{dbpath}\\Registered Flows\\{reg[1]}.xml"
+    return ""
+
+
 @app.callback(dash.dependencies.Output('page-content', 'children'),
               [dash.dependencies.Input('url', 'pathname')])
 def display_page(pathname):
@@ -314,20 +366,22 @@ def display_page(pathname):
 
 
 @app.callback(
-    Output('registered', 'style_data_conditional'),
+    [Output('registered', 'style_data_conditional'), Output('selected_row', 'children')],
     Input('registered', 'active_cell')
 )
-def select_registered_row_filter_data(active_cell):
+def select_registered_row(active_cell):
     if active_cell is not None:
         style = [{'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(248, 248, 248)'},
                  {'if': {'row_index': active_cell["row"]}, 'backgroundColor': 'rgba(0, 116, 217, 0.3)'},
                  {'if': {'state': 'selected'}, 'backgroundColor': 'rgba(0, 116, 217, 0.3)',
                   'border': '1px rgba(0, 116, 217, 0.3)'}, ]
+        active_cell = json.dumps(active_cell)
     else:
         style = [{'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(248, 248, 248)'},
                  {'if': {'state': 'selected'}, 'backgroundColor': 'rgba(0, 116, 217, 0.3)',
                   'border': '1px rgba(0, 116, 217, 0.3)'}, ]
-    return style
+        active_cell = ''
+    return style, active_cell
 
 
 @app.callback([Output('registered', 'data'),
@@ -339,6 +393,11 @@ def update_output(contents, filename):
 
     if contents is not None and str(filename).endswith(".xml"):
         name = filename.lower().split("\\")[-1].replace(".xml", "")
+        path = rf"{dbpath}\Registered Flows\{name}.xml"
+        xml = base64.b64decode(contents.split(",")[1])
+        f = open(path, 'w', encoding="utf-8")
+        f.write(xml.decode("utf-8"))
+        f.close()
         sql = f"INSERT INTO Registered (name, location) SELECT '{name}','{filename}' WHERE NOT EXISTS (SELECT id FROM Registered WHERE name='{name}' and location='{filename}');"
         connection.cursor().execute(sql)
         connection.commit()
@@ -351,8 +410,8 @@ def update_output(contents, filename):
     # df = parse_contents(contents, filename)
     # return df.to_dict('records'), [{"name": i, "id": i} for i in df.columns]
 
-# endregion
 
+# endregion
 
 
 if __name__ == '__main__':

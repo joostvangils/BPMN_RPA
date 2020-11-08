@@ -12,6 +12,7 @@ import winreg
 import xml.etree.ElementTree as ET
 import zlib
 from inspect import signature
+from shutil import copyfile
 from typing import List, Any
 
 import xmltodict
@@ -41,6 +42,8 @@ class WorkflowEngine():
             else:
                 self.set_dbPath(installdir)
                 dbFolder = self.get_dbPath()
+        if not os.path.exists(f'{dbFolder}\\Registered Flows'):
+            os.mkdir(f'{dbFolder}\\Registered Flows')
         self.pythonPath = pythonpath
         self.db = SQL(dbFolder)
         self.db.orchestrator() # Run the orchestrator database
@@ -332,20 +335,26 @@ class WorkflowEngine():
 
         :params steps: The steps that must be executed in the flow
         """
-        if self.get_dbPath() == "\\":
+        dbPath = self.get_dbPath()
+        if dbPath == "\\":
             raise Exception('Your installation directory is unknown.')
             self.error = True
             return
-        self.previous_step = None
-        output_previous_step = None
-        shape_steps = [x for x in steps if x.type == "shape"]
-        step = [x for x in shape_steps if x.IsStart == True][0]
         # Register the flow if not already registered
+        if not os.path.exists(f'{self.db}\\Registered Flows\\{self.name}.xml'):
+            # Move the file to the registered directory if not exists
+            copyfile(self.flowpath, f'{dbPath}\\Registered Flows\\{self.name}.xml')
+        self.flowpath = f'{dbPath}\\Registered Flows\\{self.name}.xml'
         sql = f"SELECT id FROM Registered WHERE name ='{self.name}' AND location='{self.flowpath}'"
         registered_id = self.db.run_sql(sql=sql, tablename="Registered")
         if registered_id is None:
             sql = f"INSERT INTO Registered (name, location) VALUES ('{self.name}','{self.flowpath}');"
             registered_id = self.db.run_sql(sql=sql, tablename="Registered")
+        self.previous_step = None
+        output_previous_step = None
+        shape_steps = [x for x in steps if x.type == "shape"]
+        step = [x for x in shape_steps if x.IsStart == True][0]
+
         # Log the start in the orchestrator database
         sql = f"INSERT INTO Workflows (name, registered_id) VALUES ('{self.name}', {registered_id});"
         self.id = self.db.run_sql(sql=sql, tablename="Workflows")

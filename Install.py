@@ -26,6 +26,8 @@ if not str(installdir).endswith("\\"):
     installdir += "\\"
 if not os.path.exists(installdir):
     os.mkdir(installdir)
+if not os.path.exists(f'{installdir}Registered Flows'):
+    os.mkdir(f'{installdir}Registered Flows')
 set_reg("dbPath", installdir)
 print(f"\nThe Drawio desktop program will be downloaded to {installdir}...")
 print("Please wait until the file is downloaded...")
