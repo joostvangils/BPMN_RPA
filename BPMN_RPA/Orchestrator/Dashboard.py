@@ -316,7 +316,7 @@ runpage_layout = html.Div([
                                         style={'width': '25px'})
                                 ])
                             ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer'}),
-
+                            html.Div(id='empty_delete', children=[], style={'display': 'none'}),
                             html.Button(id='run_button', children=[
                                 html.Span([
                                     html.Img(
@@ -325,15 +325,18 @@ runpage_layout = html.Div([
                                 ])
                             ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer'}),
                             html.Div(id='selected_row', children=[], style={'display': 'none'}),
-
+                            html.Div(id='empty_run', children=[], style={'display': 'none'}),
+                            html.Div(id='to_do', children=[], style={'display': 'none'}),
+                            html.Div(id='yes_no', children=[], style={'display': 'none'}),
                         ], style={'border': '1px solid #d9d9d9'}),
                     ]),
                 ])
             ]),
         ], style={'vertical-align': 'top'}),
     ], style={'vertical-align': 'top'}),
-    html.Div(id='empty', children=[], style={'display': 'none'}),
-], style={'vertical-align': 'top'})
+    dcc.ConfirmDialog(id='confirm', message='Danger danger! Are you sure you want to continue?'),
+], style={'vertical-align': 'top'}),
+
 # endregion
 
 # Callback functions Run page
@@ -343,17 +346,18 @@ selected_row = None
 
 
 @app.callback(
-    Output('empty', 'children'),
+    Output('empty_run', 'children'),
     [Input('run_button', 'n_clicks'), Input('selected_row', 'children'), Input('registered', 'data')]
 )
 def run_a_flow(n_clicks, selected_row, data):
-    connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
-    selected = json.loads(selected_row)
-    item_id = data[selected.get('row')]['id']
-    cur = connection.cursor()
-    cur.execute(f"SELECT * FROM Registered where id={item_id}")
-    reg = cur.fetchone()
-    flow = f"{dbpath}\\Registered Flows\\{reg[1]}.xml"
+    if n_clicks is not None:
+        connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
+        selected = json.loads(selected_row)
+        item_id = data[selected.get('row')]['id']
+        cur = connection.cursor()
+        cur.execute(f"SELECT * FROM Registered where id={item_id}")
+        reg = cur.fetchone()
+        flow = f"{dbpath}\\Registered Flows\\{reg[1]}.xml"
     return ""
 
 
@@ -386,32 +390,64 @@ def select_registered_row(active_cell):
     return style, active_cell
 
 
+# This callback is for Registering and deleting Flows
 @app.callback([Output('registered', 'data'),
                Output('registered', 'columns')],
-              [Input('datatable-upload', 'contents')],
-              [State('datatable-upload', 'filename')])
-def update_output(contents, filename):
+              [Input('datatable-upload', 'contents'), Input('selected_row', 'children'), Input('to_do', 'children'), Input('confirm', 'submit_n_clicks')],
+              [State('datatable-upload', 'filename')],
+)
+def update_output(contents, selected_row, to_do, submit_n_clicks, filename):
     connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
-
-    if contents is not None and str(filename).endswith(".xml"):
-        name = filename.lower().split("\\")[-1].replace(".xml", "")
-        path = rf"{dbpath}\Registered Flows\{name}.xml"
-        xml = base64.b64decode(contents.split(",")[1])
-        f = open(path, 'w', encoding="utf-8")
-        f.write(xml.decode("utf-8"))
-        f.close()
-        sql = f"INSERT INTO Registered (name, location) SELECT '{name}','{filename}' WHERE NOT EXISTS (SELECT id FROM Registered WHERE name='{name}' and location='{filename}');"
-        connection.cursor().execute(sql)
+    if submit_n_clicks is not None and to_do == "delete_from_registered":
+        selected = json.loads(selected_row)
+        item_id = selected.get('row_id')
+        sql = f"SELECT name FROM Registered WHERE id={item_id}"
+        cur = connection.cursor()
+        cur.execute(sql)
+        name = cur.fetchone()[0]
+        cur.execute(f"DELETE FROM Registered where id={item_id};")
         connection.commit()
+        flow = f"{dbpath}\\Registered Flows\\{name}.xml"
+        os.remove(flow)
+    else:
+        if contents is not None and str(filename).endswith(".xml"):
+            name = filename.lower().split("\\")[-1].replace(".xml", "")
+            path = rf"{dbpath}\Registered Flows\{name}.xml"
+            xml = base64.b64decode(contents.split(",")[1])
+            f = open(path, 'w', encoding="utf-8")
+            f.write(xml.decode("utf-8"))
+            f.close()
+            sql = f"INSERT INTO Registered (name, location) SELECT '{name}','{filename}' WHERE NOT EXISTS (SELECT id FROM Registered WHERE name='{name}' and location='{filename}');"
+            connection.cursor().execute(sql)
+            connection.commit()
     sql = "Select id, name, description from Registered;"
     registered_flows = pd.read_sql_query(sql, connection)
     registered_flows_columns = [{"name": i, "id": i} for i in registered_flows.columns]
     decsription_column = [x for x in registered_flows_columns if x["id"] == "description"][0]
     decsription_column.update({'editable': True})
     return registered_flows.to_dict('records'), registered_flows_columns
-    # df = parse_contents(contents, filename)
-    # return df.to_dict('records'), [{"name": i, "id": i} for i in df.columns]
 
+
+@app.callback([Output('confirm', 'displayed'), Output('confirm', 'message'), Output('to_do', 'children')],
+              [Input('delete_button', 'n_clicks'), Input('selected_row', 'children')])
+def ask_question_and_execute(n_clicks, selected_row):
+    ctx = dash.callback_context
+    triggered = ctx.triggered[0]["prop_id"]
+    to_do = ""
+    message = ""
+    show_question = False
+    if str(triggered).lower().startswith("delete_button"):
+        connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
+        selected = json.loads(selected_row)
+        item_id = selected.get('row_id')
+        sql = f"SELECT name FROM Registered WHERE id={item_id}"
+        cur = connection.cursor()
+        cur.execute(sql)
+        name = cur.fetchone()[0]
+        to_do = "delete_from_registered"
+        message = f"Do you really want to delete flow '{name}'?"
+        show_question = True
+    return show_question, message, to_do
 
 # endregion
 
