@@ -313,25 +313,27 @@ runpage_layout = html.Div([
                                 html.Span([
                                     html.Img(
                                         src='https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/delete.png',
-                                        style={'width': '20%'})
-                                ], style={'display': 'inline-block', 'width': 'auto'})
+                                        style={'width': '25px'})
+                                ])
                             ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer'}),
+
                             html.Button(id='run_button', children=[
                                 html.Span([
                                     html.Img(
                                         src='https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/run.png',
-                                        style={'width': '25%'})
-                                ], style={'display': 'inline-block', 'width': 'auto'})
+                                        style={'width': '25px'})
+                                ])
                             ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer'}),
                             html.Div(id='selected_row', children=[], style={'display': 'none'}),
-                        ], style={'text-align': 'center', 'border': '1px solid #d9d9d9', 'vertical-align': 'center'}),
+
+                        ], style={'border': '1px solid #d9d9d9'}),
                     ]),
                 ])
-            ], style={'vertical-align': 'top'}),
-        ]),
-    ]),
+            ]),
+        ], style={'vertical-align': 'top'}),
+    ], style={'vertical-align': 'top'}),
     html.Div(id='empty', children=[], style={'display': 'none'}),
-])
+], style={'vertical-align': 'top'})
 # endregion
 
 # Callback functions Run page
