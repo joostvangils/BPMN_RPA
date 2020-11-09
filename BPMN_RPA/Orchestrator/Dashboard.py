@@ -3,6 +3,7 @@ import copy
 import json
 import os
 import sqlite3
+import subprocess
 import winreg
 from io import BytesIO
 from typing import Any
@@ -245,6 +246,7 @@ runpage_layout = html.Div([
     ]),
     html.Table([
         html.Tr([
+            # Registered datatable
             html.Td(children=[
                 dash_table.DataTable(
                     id='registered',
@@ -271,7 +273,7 @@ runpage_layout = html.Div([
 
                 )
             ], style={'vertical-align': 'top'}),
-            # style={'border-collapse': 'collapse', 'border-spacing': 0, 'border-top': '2em solid transparent'}),
+            # Register flow and flow operations
             html.Td([
                 html.Table(children=[
                     html.Tr(children=[
@@ -317,6 +319,14 @@ runpage_layout = html.Div([
                                 ])
                             ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer'}),
                             html.Div(id='empty_delete', children=[], style={'display': 'none'}),
+                            html.Button(id='edit_button', children=[
+                                html.Span([
+                                    html.Img(
+                                        src='https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/edit.png',
+                                        style={'width': '25px'})
+                                ])
+                            ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer'}),
+                            html.Div(id='empty_edit', children=[], style={'display': 'none'}),
                             html.Button(id='run_button', children=[
                                 html.Span([
                                     html.Img(
@@ -332,6 +342,213 @@ runpage_layout = html.Div([
                     ]),
                 ])
             ]),
+            # Scheduler
+            html.Td([
+                html.Table(children=[
+                    # Header Scheduler
+                    html.Tr(children=[
+                        html.Th(children=["Schedule"],
+                                style={'backgroundColor': 'rgb(0, 0, 153)', 'font-family': 'Verdana',
+                                       'font-size': '15px', 'height': '36px', 'width': '300px', 'fontWeight': 'bold',
+                                       'color': 'white', 'overflow': 'hidden', 'textOverflow': 'ellipsis'})
+                    ]),
+                    # Fire trigger
+                    html.Tr(children=[
+                        html.Td(children=[
+                            html.Label("Fire trigger", style={'font-family': 'Verdana'})
+                        ]),
+                    ]),
+                    html.Tr(children=[
+                        html.Td(children=[
+                            dcc.Dropdown(
+                                id='fire_trigger', style={'font-family': 'Verdana', 'font-size': '12px'},
+                                options=[
+                                    {'label': 'Daily', 'value': 'daily'},
+                                    {'label': 'On specific dates', 'value': 'specific_dates'},
+                                    {'label': 'Weekly', 'value': 'weekly'},
+                                    {'label': 'Monthly', 'value': 'Monthly'}
+                                ],
+                                value='Daily'
+                            ),
+                        ])
+                    ]),
+                    # Add time
+                    html.Tr(id="daily", children=[
+                        html.Td(children=[
+                            html.Label("Add time", style={'font-family': 'Verdana'}),
+                            html.Br(),
+                            # time setter
+                            html.Label("Hour", style={'font-family': 'Verdana'}),
+                            dcc.Dropdown(
+                                id='hour', style={'font-family': 'Verdana', 'font-size': '12px'},
+                                options=[
+                                    {'label': '01', 'value': '01'},
+                                    {'label': '02', 'value': '02'},
+                                    {'label': '03', 'value': '03'},
+                                    {'label': '04', 'value': '04'},
+                                    {'label': '05', 'value': '05'},
+                                    {'label': '06', 'value': '06'},
+                                    {'label': '07', 'value': '07'},
+                                    {'label': '08', 'value': '08'},
+                                    {'label': '09', 'value': '09'},
+                                    {'label': '10', 'value': '10'},
+                                    {'label': '11', 'value': '11'},
+                                    {'label': '12', 'value': '12'},
+                                    {'label': '13', 'value': '13'},
+                                    {'label': '14', 'value': '14'},
+                                    {'label': '15', 'value': '15'},
+                                    {'label': '16', 'value': '16'},
+                                    {'label': '17', 'value': '17'},
+                                    {'label': '18', 'value': '18'},
+                                    {'label': '19', 'value': '19'},
+                                    {'label': '20', 'value': '20'},
+                                    {'label': '21', 'value': '21'},
+                                    {'label': '22', 'value': '22'},
+                                    {'label': '23', 'value': '23'},
+                                    {'label': '24', 'value': '24'},
+                                ]),
+                            html.Label("Minute", style={'font-family': 'Verdana'}),
+                            dcc.Dropdown(
+                                id='minute', style={'font-family': 'Verdana', 'font-size': '12px'},
+                                options=[
+                                    {'label': '01', 'value': '01'},
+                                    {'label': '02', 'value': '02'},
+                                    {'label': '03', 'value': '03'},
+                                    {'label': '04', 'value': '04'},
+                                    {'label': '05', 'value': '05'},
+                                    {'label': '06', 'value': '06'},
+                                    {'label': '07', 'value': '07'},
+                                    {'label': '08', 'value': '08'},
+                                    {'label': '09', 'value': '09'},
+                                    {'label': '10', 'value': '10'},
+                                    {'label': '11', 'value': '11'},
+                                    {'label': '12', 'value': '12'},
+                                    {'label': '13', 'value': '13'},
+                                    {'label': '14', 'value': '14'},
+                                    {'label': '15', 'value': '15'},
+                                    {'label': '16', 'value': '16'},
+                                    {'label': '17', 'value': '17'},
+                                    {'label': '18', 'value': '18'},
+                                    {'label': '19', 'value': '19'},
+                                    {'label': '20', 'value': '20'},
+                                    {'label': '21', 'value': '21'},
+                                    {'label': '22', 'value': '22'},
+                                    {'label': '23', 'value': '23'},
+                                    {'label': '24', 'value': '24'},
+                                    {'label': '25', 'value': '25'},
+                                    {'label': '26', 'value': '26'},
+                                    {'label': '27', 'value': '27'},
+                                    {'label': '28', 'value': '28'},
+                                    {'label': '29', 'value': '29'},
+                                    {'label': '30', 'value': '30'},
+                                    {'label': '31', 'value': '31'},
+                                    {'label': '32', 'value': '32'},
+                                    {'label': '33', 'value': '33'},
+                                    {'label': '34', 'value': '34'},
+                                    {'label': '35', 'value': '35'},
+                                    {'label': '36', 'value': '36'},
+                                    {'label': '37', 'value': '37'},
+                                    {'label': '38', 'value': '38'},
+                                    {'label': '39', 'value': '39'},
+                                    {'label': '40', 'value': '40'},
+                                    {'label': '41', 'value': '41'},
+                                    {'label': '42', 'value': '42'},
+                                    {'label': '43', 'value': '43'},
+                                    {'label': '44', 'value': '44'},
+                                    {'label': '45', 'value': '45'},
+                                    {'label': '46', 'value': '46'},
+                                    {'label': '47', 'value': '47'},
+                                    {'label': '48', 'value': '48'},
+                                    {'label': '49', 'value': '49'},
+                                    {'label': '50', 'value': '50'},
+                                    {'label': '51', 'value': '51'},
+                                    {'label': '52', 'value': '52'},
+                                    {'label': '53', 'value': '53'},
+                                    {'label': '54', 'value': '54'},
+                                    {'label': '55', 'value': '55'},
+                                    {'label': '56', 'value': '56'},
+                                    {'label': '57', 'value': '57'},
+                                    {'label': '58', 'value': '58'},
+                                    {'label': '59', 'value': '59'},
+                                    {'label': '60', 'value': '60'},
+                                ]),
+                            html.Label("Second", style={'font-family': 'Verdana'}),
+                            dcc.Dropdown(
+                                id='second', style={'font-family': 'Verdana', 'font-size': '12px'},
+                                options=[
+                                    {'label': '01', 'value': '01'},
+                                    {'label': '02', 'value': '02'},
+                                    {'label': '03', 'value': '03'},
+                                    {'label': '04', 'value': '04'},
+                                    {'label': '05', 'value': '05'},
+                                    {'label': '06', 'value': '06'},
+                                    {'label': '07', 'value': '07'},
+                                    {'label': '08', 'value': '08'},
+                                    {'label': '09', 'value': '09'},
+                                    {'label': '10', 'value': '10'},
+                                    {'label': '11', 'value': '11'},
+                                    {'label': '12', 'value': '12'},
+                                    {'label': '13', 'value': '13'},
+                                    {'label': '14', 'value': '14'},
+                                    {'label': '15', 'value': '15'},
+                                    {'label': '16', 'value': '16'},
+                                    {'label': '17', 'value': '17'},
+                                    {'label': '18', 'value': '18'},
+                                    {'label': '19', 'value': '19'},
+                                    {'label': '20', 'value': '20'},
+                                    {'label': '21', 'value': '21'},
+                                    {'label': '22', 'value': '22'},
+                                    {'label': '23', 'value': '23'},
+                                    {'label': '24', 'value': '24'},
+                                    {'label': '25', 'value': '25'},
+                                    {'label': '26', 'value': '26'},
+                                    {'label': '27', 'value': '27'},
+                                    {'label': '28', 'value': '28'},
+                                    {'label': '29', 'value': '29'},
+                                    {'label': '30', 'value': '30'},
+                                    {'label': '31', 'value': '31'},
+                                    {'label': '32', 'value': '32'},
+                                    {'label': '33', 'value': '33'},
+                                    {'label': '34', 'value': '34'},
+                                    {'label': '35', 'value': '35'},
+                                    {'label': '36', 'value': '36'},
+                                    {'label': '37', 'value': '37'},
+                                    {'label': '38', 'value': '38'},
+                                    {'label': '39', 'value': '39'},
+                                    {'label': '40', 'value': '40'},
+                                    {'label': '41', 'value': '41'},
+                                    {'label': '42', 'value': '42'},
+                                    {'label': '43', 'value': '43'},
+                                    {'label': '44', 'value': '44'},
+                                    {'label': '45', 'value': '45'},
+                                    {'label': '46', 'value': '46'},
+                                    {'label': '47', 'value': '47'},
+                                    {'label': '48', 'value': '48'},
+                                    {'label': '49', 'value': '49'},
+                                    {'label': '50', 'value': '50'},
+                                    {'label': '51', 'value': '51'},
+                                    {'label': '52', 'value': '52'},
+                                    {'label': '53', 'value': '53'},
+                                    {'label': '54', 'value': '54'},
+                                    {'label': '55', 'value': '55'},
+                                    {'label': '56', 'value': '56'},
+                                    {'label': '57', 'value': '57'},
+                                    {'label': '58', 'value': '58'},
+                                    {'label': '59', 'value': '59'},
+                                    {'label': '60', 'value': '60'},
+                                ]),
+                            html.Button(id='add_trigger_button', children=[
+                                html.Span([
+                                    html.Img(
+                                        src='https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/add.png',
+                                        style={'width': '25px'})
+                                ])
+                            ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer', 'margin': '5px', 'float': 'right'}),
+                        ]),
+
+                    ]),
+                ], style={'border': '1px solid #d9d9d9'}),
+            ]),
         ], style={'vertical-align': 'top'}),
     ], style={'vertical-align': 'top'}),
     dcc.ConfirmDialog(id='confirm', message='Danger danger! Are you sure you want to continue?'),
@@ -343,6 +560,17 @@ runpage_layout = html.Div([
 
 # Global variables
 selected_row = None
+
+
+@app.callback(
+    Output('daily', 'style'),
+    Input('fire_trigger', 'value')
+)
+def trigger_select(value):
+    if value is not None:
+        if value == "daily":
+            return {'display': 'table-row'}
+    return {'display': 'none'}
 
 
 @app.callback(
@@ -358,6 +586,23 @@ def run_a_flow(n_clicks, selected_row, data):
         cur.execute(f"SELECT * FROM Registered where id={item_id}")
         reg = cur.fetchone()
         flow = f"{dbpath}\\Registered Flows\\{reg[1]}.xml"
+    return ""
+
+
+@app.callback(
+    Output('empty_edit', 'children'),
+    [Input('edit_button', 'n_clicks'), Input('selected_row', 'children'), Input('registered', 'data')]
+)
+def edit_a_flow(n_clicks, selected_row, data):
+    if n_clicks is not None:
+        connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
+        selected = json.loads(selected_row)
+        item_id = data[selected.get('row')]['id']
+        cur = connection.cursor()
+        cur.execute(f"SELECT * FROM Registered where id={item_id}")
+        reg = cur.fetchone()
+        flow = f"{dbpath}\\Registered Flows\\{reg[1]}.xml"
+        subprocess.Popen(f"{dbpath}\\drawio.exe -open {flow}")
     return ""
 
 
@@ -393,9 +638,10 @@ def select_registered_row(active_cell):
 # This callback is for Registering and deleting Flows
 @app.callback([Output('registered', 'data'),
                Output('registered', 'columns')],
-              [Input('datatable-upload', 'contents'), Input('selected_row', 'children'), Input('to_do', 'children'), Input('confirm', 'submit_n_clicks')],
+              [Input('datatable-upload', 'contents'), Input('selected_row', 'children'), Input('to_do', 'children'),
+               Input('confirm', 'submit_n_clicks')],
               [State('datatable-upload', 'filename')],
-)
+              )
 def update_output(contents, selected_row, to_do, submit_n_clicks, filename):
     connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
     if submit_n_clicks is not None and to_do == "delete_from_registered":
@@ -448,6 +694,7 @@ def ask_question_and_execute(n_clicks, selected_row):
         message = f"Do you really want to delete flow '{name}'?"
         show_question = True
     return show_question, message, to_do
+
 
 # endregion
 
