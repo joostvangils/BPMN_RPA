@@ -1,13 +1,15 @@
 import base64
 import copy
+import datetime
 import json
 import os
 import sqlite3
 import subprocess
 import winreg
+from datetime import date
 from io import BytesIO
 from typing import Any
-
+from datetime import datetime
 import PIL
 import dash_table
 import pandas as pd
@@ -18,6 +20,7 @@ from dash.dependencies import Input, Output, State
 import dash_html_components as html
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
+from dateutil.utils import today
 from lxml import etree
 import dash_core_components as dcc
 
@@ -372,13 +375,26 @@ runpage_layout = html.Div([
                             ),
                         ])
                     ]),
+                    #Specific dates datepicker
+                    html.Tr(id="specific_dates", style={'text-align': 'center', 'display': 'table-row'}, children=[
+                        html.Label("Trigger date", style={'font-family': 'Verdana'}),
+                        html.Br(),
+                        dcc.DatePickerSingle(
+                                id='datepicker',
+                                initial_visible_month=date(today().year, today().month, today().day),
+                                display_format='DD-MM-YYYY',
+                                date=date(today().year, today().month, today().day),
+                                style={'font-family': 'Verdana', 'font-size': '12px'}
+                            ),
+                        html.Br(),
+                    ]),
                     # Add time
                     html.Tr(id="daily", children=[
                         html.Td(children=[
-                            html.Label("Add time", style={'font-family': 'Verdana'}),
+                            html.Label("Trigger time", style={'font-family': 'Verdana'}),
                             html.Br(),
                             # time setter
-                            html.Label("Hour", style={'font-family': 'Verdana'}),
+                            html.Label("Hour", style={'font-family': 'Verdana', 'font-size': '12px'}),
                             dcc.Dropdown(
                                 id='hour', style={'font-family': 'Verdana', 'font-size': '12px'},
                                 options=[
@@ -407,7 +423,7 @@ runpage_layout = html.Div([
                                     {'label': '23', 'value': '23'},
                                     {'label': '24', 'value': '24'},
                                 ]),
-                            html.Label("Minute", style={'font-family': 'Verdana'}),
+                            html.Label("Minute", style={'font-family': 'Verdana','font-size': '12px'}),
                             dcc.Dropdown(
                                 id='minute', style={'font-family': 'Verdana', 'font-size': '12px'},
                                 options=[
@@ -472,7 +488,7 @@ runpage_layout = html.Div([
                                     {'label': '59', 'value': '59'},
                                     {'label': '60', 'value': '60'},
                                 ]),
-                            html.Label("Second", style={'font-family': 'Verdana'}),
+                            html.Label("Second", style={'font-family': 'Verdana', 'font-size': '12px'}),
                             dcc.Dropdown(
                                 id='second', style={'font-family': 'Verdana', 'font-size': '12px'},
                                 options=[
@@ -563,14 +579,17 @@ selected_row = None
 
 
 @app.callback(
-    Output('daily', 'style'),
+    [Output('daily', 'style'), Output('specific_dates', 'style'), Output('hour', 'value'), Output('minute', 'value'), Output('second', 'value')],
     Input('fire_trigger', 'value')
 )
 def trigger_select(value):
     if value is not None:
+        now = datetime.now()
         if value == "daily":
-            return {'display': 'table-row'}
-    return {'display': 'none'}
+            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
+        if value == "specific_dates":
+            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'table-row'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
+    return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
 
 
 @app.callback(
