@@ -369,13 +369,13 @@ runpage_layout = html.Div([
                                     {'label': 'Daily', 'value': 'daily'},
                                     {'label': 'On specific dates', 'value': 'specific_dates'},
                                     {'label': 'Weekly', 'value': 'weekly'},
-                                    {'label': 'Monthly', 'value': 'Monthly'}
+                                    {'label': 'Monthly', 'value': 'monthly'}
                                 ],
                                 value='Daily'
                             ),
-                        ])
+                        ]),
                     ]),
-                    #Specific dates datepicker
+                    # Specific dates datepicker
                     html.Tr(id="specific_dates", style={'text-align': 'center', 'display': 'table-row'}, children=[
                         html.Label("Trigger date", style={'font-family': 'Verdana'}),
                         html.Br(),
@@ -386,6 +386,88 @@ runpage_layout = html.Div([
                                 date=date(today().year, today().month, today().day),
                                 style={'font-family': 'Verdana', 'font-size': '12px'}
                             ),
+                        html.Br(),
+                    ]),
+                    # Weekly
+                    html.Tr(id="weekly", style={'text-align': 'center', 'display': 'table-row'}, children=[
+                        html.Br(),
+                        html.Label("Weekly on", style={'font-family': 'Verdana'}),
+                        html.Br(),
+                        dcc.Checklist(id='checklist',
+                            options=[
+                                {'label': 'Monday', 'value': 'monday'},
+                                {'label': 'Tuesday', 'value': 'tuesday'},
+                                {'label': 'Wednesday', 'value': 'wednesday'},
+                                {'label': 'Thursday', 'value': 'thursday'},
+                                {'label': 'Friday', 'value': 'friday'},
+                                {'label': 'Saturday', 'value': 'saturday'},
+                                {'label': 'Sunday', 'value': 'sunday'},
+                            ]
+                        ),
+                        html.Br(),
+                    ]),
+                    # Monthly
+                    html.Tr(id="monthly", style={'text-align': 'center', 'display': 'none'}, children=[
+                        html.Br(),
+                        html.Label("Days", style={'font-family': 'Verdana'}),
+                        html.Br(),
+                        dcc.Checklist(id='Days',
+                            options=[
+                                {'label': '1', 'value': '1'},
+                                {'label': '2', 'value': '2'},
+                                {'label': '3', 'value': '3'},
+                                {'label': '4', 'value': '4'},
+                                {'label': '5', 'value': '5'},
+                                {'label': '6', 'value': '6'},
+                                {'label': '7', 'value': '7'},
+                                {'label': '8', 'value': '8'},
+                                {'label': '9', 'value': '9'},
+                                {'label': '10', 'value': '10'},
+                                {'label': '11', 'value': '11'},
+                                {'label': '12', 'value': '12'},
+                                {'label': '13', 'value': '13'},
+                                {'label': '14', 'value': '14'},
+                                {'label': '15', 'value': '15'},
+                                {'label': '16', 'value': '16'},
+                                {'label': '17', 'value': '17'},
+                                {'label': '18', 'value': '18'},
+                                {'label': '19', 'value': '19'},
+                                {'label': '20', 'value': '20'},
+                                {'label': '21', 'value': '21'},
+                                {'label': '22', 'value': '22'},
+                                {'label': '23', 'value': '23'},
+                                {'label': '24', 'value': '24'},
+                                {'label': '25', 'value': '25'},
+                                {'label': '26', 'value': '26'},
+                                {'label': '27', 'value': '27'},
+                                {'label': '28', 'value': '28'},
+                                {'label': '29', 'value': '29'},
+                                {'label': '30', 'value': '30'},
+                                {'label': '31', 'value': '31'},
+                                {'label': 'Last day of month', 'value': 'last_day'},
+                                {'label': 'Last working day of month', 'value': 'last_working_day'},
+                            ],
+                        ),
+                        html.Br(),
+                        html.Label("Months", style={'font-family': 'Verdana'}),
+                        html.Br(),
+                        dcc.Checklist(id='months',
+                            options=[
+                                {'label': 'January', 'value': 'january'},
+                                {'label': 'February', 'value': 'february'},
+                                {'label': 'March', 'value': 'march'},
+                                {'label': 'April', 'value': 'april'},
+                                {'label': 'May', 'value': 'may'},
+                                {'label': 'June', 'value': 'june'},
+                                {'label': 'July', 'value': 'july'},
+                                {'label': 'August', 'value': 'august'},
+                                {'label': 'September', 'value': 'september'},
+                                {'label': 'October', 'value': 'october'},
+                                {'label': 'November', 'value': 'november'},
+                                {'label': 'December', 'value': 'december'},
+
+                            ], value=['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'],
+                        ),
                         html.Br(),
                     ]),
                     # Add time
@@ -553,15 +635,38 @@ runpage_layout = html.Div([
                                     {'label': '59', 'value': '59'},
                                     {'label': '60', 'value': '60'},
                                 ]),
-                            html.Button(id='add_trigger_button', children=[
-                                html.Span([
-                                    html.Img(
-                                        src='https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/add.png',
-                                        style={'width': '25px'})
-                                ])
-                            ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer', 'margin': '5px', 'float': 'right'}),
                         ]),
-
+                    ]),
+                    # Expire date
+                    html.Tr(id="expires", style={'text-align': 'center', 'display': 'none'}, children=[
+                        html.Label("Schedule expires on", style={'font-family': 'Verdana'}),
+                        html.Br(),
+                        dcc.DatePickerSingle(
+                                id='schedule_expires',
+                                initial_visible_month=date(today().year, today().month, today().day),
+                                display_format='DD-MM-YYYY',
+                                date=date(today().year, today().month, today().day),
+                                style={'font-family': 'Verdana', 'font-size': '12px'}
+                            ),
+                        html.Br(),
+                    ]),
+                    html.Tr(id='never', style={'text-align': 'center', 'display': 'table-row'}, children=[
+                        dcc.Checklist(id='never_check',
+                            options=[
+                                {'label': 'Schedule never expires', 'value': 'never'},
+                            ], value=['never'],
+                        ),
+                        html.Br(),
+                    ]),
+                    # Add button
+                    html.Tr(id='add', children=[
+                        html.Button(id='add_trigger_button', children=[
+                            html.Span([
+                                html.Img(
+                                    src='https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/add.png',
+                                    style={'width': '25px'})
+                            ])
+                        ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer', 'margin': '5px', 'float': 'right'}),
                     ]),
                 ], style={'border': '1px solid #d9d9d9'}),
             ]),
@@ -579,18 +684,34 @@ selected_row = None
 
 
 @app.callback(
-    [Output('daily', 'style'), Output('specific_dates', 'style'), Output('hour', 'value'), Output('minute', 'value'), Output('second', 'value')],
+    [Output('daily', 'style'), Output('monthly', 'style'), Output('specific_dates', 'style'), Output('weekly', 'style'), Output('hour', 'value'), Output('minute', 'value'), Output('second', 'value')],
     Input('fire_trigger', 'value')
 )
 def trigger_select(value):
+    now = datetime.now()
     if value is not None:
-        now = datetime.now()
         if value == "daily":
-            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
+            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'text-align': 'center', 'display': 'none'}, {'display': 'none'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
         if value == "specific_dates":
-            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'table-row'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
-    return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
+            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'text-align': 'center', 'display': 'table-row'}, {'display': 'none'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
+        if value == "weekly":
+            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'text-align': 'center', 'display': 'none'}, {'display': 'table-row'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
+        if value == "monthly":
+            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'display': 'none'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
+    return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'text-align': 'center', 'display': 'none'}, {'display': 'none'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
 
+
+# region Show Schedule Expires
+@app.callback(
+    Output('expires', 'style'),
+    Input('never_check', 'value')
+)
+def trigger_select(value):
+    if value is not None:
+        if len(value) == 0:
+            return {'text-align': 'center', 'display': 'table-row'}
+    return {'text-align': 'center', 'display': 'none'}
+# endregion
 
 @app.callback(
     Output('empty_run', 'children'),
