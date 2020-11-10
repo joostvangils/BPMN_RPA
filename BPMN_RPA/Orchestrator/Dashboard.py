@@ -380,7 +380,7 @@ runpage_layout = html.Div([
                         html.Label("Trigger date", style={'font-family': 'Verdana'}),
                         html.Br(),
                         dcc.DatePickerSingle(
-                                id='datepicker',
+                                id='specific_date',
                                 initial_visible_month=date(today().year, today().month, today().day),
                                 display_format='DD-MM-YYYY',
                                 date=date(today().year, today().month, today().day),
@@ -393,7 +393,7 @@ runpage_layout = html.Div([
                         html.Br(),
                         html.Label("Weekly on", style={'font-family': 'Verdana'}),
                         html.Br(),
-                        dcc.Checklist(id='checklist',
+                        dcc.Checklist(id='weekly_checklist',
                             options=[
                                 {'label': 'Monday', 'value': 'monday'},
                                 {'label': 'Tuesday', 'value': 'tuesday'},
@@ -411,7 +411,7 @@ runpage_layout = html.Div([
                         html.Br(),
                         html.Label("Days", style={'font-family': 'Verdana'}),
                         html.Br(),
-                        dcc.Checklist(id='Days',
+                        dcc.Checklist(id='monthly_days',
                             options=[
                                 {'label': '1', 'value': '1'},
                                 {'label': '2', 'value': '2'},
@@ -451,7 +451,7 @@ runpage_layout = html.Div([
                         html.Br(),
                         html.Label("Months", style={'font-family': 'Verdana'}),
                         html.Br(),
-                        dcc.Checklist(id='months',
+                        dcc.Checklist(id='monthly_months',
                             options=[
                                 {'label': 'January', 'value': 'january'},
                                 {'label': 'February', 'value': 'february'},
@@ -650,6 +650,7 @@ runpage_layout = html.Div([
                             ),
                         html.Br(),
                     ]),
+                    # Never expires
                     html.Tr(id='never', style={'text-align': 'center', 'display': 'table-row'}, children=[
                         dcc.Checklist(id='never_check',
                             options=[
@@ -667,6 +668,7 @@ runpage_layout = html.Div([
                                     style={'width': '25px'})
                             ])
                         ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer', 'margin': '5px', 'float': 'right'}),
+                        html.Div(id='empty_add', children=[], style={'display': 'none'}),
                     ]),
                 ], style={'border': '1px solid #d9d9d9'}),
             ]),
@@ -677,12 +679,39 @@ runpage_layout = html.Div([
 
 # endregion
 
-# Callback functions Run page
+# region Callback functions Run page
 
 # Global variables
 selected_row = None
 
+# region Add trigger to database
+@app.callback(
+    Output('empty_add', 'children'),
+    [Input('add_trigger_button', 'n_clicks'), Input('selected_row', 'children'), Input('fire_trigger', 'value'), Input('specific_date', 'value'), Input('hour', 'value'),
+     Input('minute', 'value'), Input('second', 'value'), Input('weekly_checklist', 'value'),
+     Input('monthly_days', 'value'), Input('monthly_months', 'value'), Input('never_check', 'value'), Input('schedule_expires', 'value')]
+)
+def add_trigger(n_clicks, selectedrow, fire_trigger, specific_date, hour, minute, second, weekly_days, monthly_days, monthly_months, never_check, schedule_expires):
+    if n_clicks is not None:
+        connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
+        selected = json.loads(selected_row)
+        item_id = selected.get('row_id')
+        time = f"{hour}:{minute}:{second}"
+        expires = False
+        if never_check == "never":
+            expires = True
+        days = ",".join(weekly_days)
+        days_of_month = ",".join(monthly_days)
+        months = ",".join(monthly_months)
+        sql = f"INSERT INTO Triggers (registered_id, fire_trigger, time, expires, expires_on, date, days, days_of_month, months) VALUES ({item_id}, '{fire_trigger}', '{time}', {expires}, '{schedule_expires}', '{specific_date}', '{days}', '{days_of_month}', '{months}') WHERE NOT EXISTS (SELECT id FROM Triggers WHERE registered_id = {item_id} AND fire_trigger='{fire_trigger}' AND time='{time}' AND expires={expires} AND expires_on='{schedule_expires}' AND date='{specific_date}' AND days='{days}' AND days_of_month='{days_of_month}' AND months='{months}' )"
+        curs = connection.cursor()
+        curs.execute(sql)
+        connection.commit()
+        return ""
+    return ""
+# endregion
 
+# region Show selected trigger fields
 @app.callback(
     [Output('daily', 'style'), Output('monthly', 'style'), Output('specific_dates', 'style'), Output('weekly', 'style'), Output('hour', 'value'), Output('minute', 'value'), Output('second', 'value')],
     Input('fire_trigger', 'value')
@@ -699,7 +728,7 @@ def trigger_select(value):
         if value == "monthly":
             return {'display': 'table-row'}, {'text-align': 'center', 'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'display': 'none'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
     return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'text-align': 'center', 'display': 'none'}, {'display': 'none'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
-
+# endregion
 
 # region Show Schedule Expires
 @app.callback(
@@ -713,6 +742,7 @@ def trigger_select(value):
     return {'text-align': 'center', 'display': 'none'}
 # endregion
 
+# region Run a flow
 @app.callback(
     Output('empty_run', 'children'),
     [Input('run_button', 'n_clicks'), Input('selected_row', 'children'), Input('registered', 'data')]
@@ -727,8 +757,9 @@ def run_a_flow(n_clicks, selected_row, data):
         reg = cur.fetchone()
         flow = f"{dbpath}\\Registered Flows\\{reg[1]}.xml"
     return ""
+# endregion
 
-
+# region Edit a flow
 @app.callback(
     Output('empty_edit', 'children'),
     [Input('edit_button', 'n_clicks'), Input('selected_row', 'children'), Input('registered', 'data')]
@@ -744,8 +775,9 @@ def edit_a_flow(n_clicks, selected_row, data):
         flow = f"{dbpath}\\Registered Flows\\{reg[1]}.xml"
         subprocess.Popen(f"{dbpath}\\drawio.exe -open {flow}")
     return ""
+# endregion
 
-
+# region Switch pages
 @app.callback(dash.dependencies.Output('page-content', 'children'),
               [dash.dependencies.Input('url', 'pathname')])
 def display_page(pathname):
@@ -754,8 +786,9 @@ def display_page(pathname):
     else:
         return mainpage_layout
     # You could also return a 404 "URL not found" page here
+# endregion
 
-
+# region Highlight selected row in Registered table
 @app.callback(
     [Output('registered', 'style_data_conditional'), Output('selected_row', 'children')],
     Input('registered', 'active_cell')
@@ -773,8 +806,9 @@ def select_registered_row(active_cell):
                   'border': '1px rgba(0, 116, 217, 0.3)'}, ]
         active_cell = ''
     return style, active_cell
+# endregion
 
-
+# region Update registered table data
 # This callback is for Registering and deleting Flows
 @app.callback([Output('registered', 'data'),
                Output('registered', 'columns')],
@@ -812,8 +846,9 @@ def update_output(contents, selected_row, to_do, submit_n_clicks, filename):
     decsription_column = [x for x in registered_flows_columns if x["id"] == "description"][0]
     decsription_column.update({'editable': True})
     return registered_flows.to_dict('records'), registered_flows_columns
+# endregion
 
-
+# region Ask question "are you sure?"
 @app.callback([Output('confirm', 'displayed'), Output('confirm', 'message'), Output('to_do', 'children')],
               [Input('delete_button', 'n_clicks'), Input('selected_row', 'children')])
 def ask_question_and_execute(n_clicks, selected_row):
@@ -834,10 +869,9 @@ def ask_question_and_execute(n_clicks, selected_row):
         message = f"Do you really want to delete flow '{name}'?"
         show_question = True
     return show_question, message, to_do
-
-
 # endregion
 
+# endregion
 
 if __name__ == '__main__':
     app.run_server(debug=True)
