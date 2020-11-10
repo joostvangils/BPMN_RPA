@@ -121,6 +121,10 @@ registered_flows_columns = [{"name": i, "id": i} for i in registered_flows.colum
 decsription_column = [x for x in registered_flows_columns if x["id"] == "description"][0]
 decsription_column.update({'editable': True})
 
+sql = "Select * from Triggers"
+triggers = pd.read_sql_query(sql, connection)
+triggers_columns = [{"name": i, "id": i} for i in triggers.columns]
+
 sql = f"SELECT id, name, result, started, finished FROM Workflows;"
 flows = pd.read_sql_query(sql, connection)
 flows = add_images_to_dataframe(flows, "result")
@@ -232,8 +236,6 @@ def select_row_filter_data(active_cell):
         steps = pd.read_sql_query(sql, connection)
         steps = add_images_to_dataframe(steps)
     return style, steps.to_dict('records')
-
-
 # endregion
 
 # region Run page
@@ -272,7 +274,7 @@ runpage_layout = html.Div([
                     # style_header_conditional=[{'if': {'column_id': 'status'}, 'fontSize': '15px'}],
                     page_action="native",
                     page_current=0,
-                    page_size=10,
+                    page_size=7,
 
                 )
             ], style={'vertical-align': 'top'}),
@@ -674,7 +676,56 @@ runpage_layout = html.Div([
             ]),
         ], style={'vertical-align': 'top'}),
     ], style={'vertical-align': 'top'}),
-    dcc.ConfirmDialog(id='confirm', message='Danger danger! Are you sure you want to continue?'),
+    # Trigger table
+    html.Tr(children=[
+            html.Td(children=[
+                html.H4("Installed flow triggers", style={'font-family': 'Verdana', 'margin': '4px'}),
+            ]),
+        ]),
+    html.Tr(children=[
+        # Registered datatable
+        html.Td(children=[
+            dash_table.DataTable(
+                id='triggers',
+                columns=triggers_columns,
+                editable=False,
+                data=triggers.to_dict('records'),
+                sort_action='native',
+                filter_action='native',
+                style_table={'min-width': '300px'},
+                style_cell={'textAlign': 'left', 'overflow': 'visible', 'textOverflow': 'ellipsis',
+                            'height': '40px', 'font-family': 'Verdana', 'font-size': '12px'},
+                style_header={'backgroundColor': 'rgb(0, 0, 153)', 'font-family': 'Verdana', 'fontWeight': 'bold',
+                              'color': 'white', 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
+                style_data_conditional=[{'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(248, 248, 248)'},
+                                        {'if': {'state': 'selected'}, 'backgroundColor': 'rgba(0, 116, 217, 0.3)',
+                                         'border': '1px rgba(0, 116, 217, 0.3)'},
+                                        ],
+                # {'if': {'column_id': 'status', 'filter_query': '{result} eq "True"'}, 'width': '50%'}],
+                # style_cell_conditional=[{'if': {'column_id': 'description'}, 'editable': True}],
+                # style_header_conditional=[{'if': {'column_id': 'status'}, 'fontSize': '15px'}],
+                page_action="native",
+                page_current=0,
+                page_size=10,
+
+            )
+        ], style={'vertical-align': 'top'}),
+    ]),
+    # Trigger delete button
+    html.Tr(id='trigger_delete', children=[
+        html.Td(children=[
+            html.Button(id='delete_trigger_button', children=[
+                html.Span([
+                    html.Img(
+                        src='https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/delete.png',
+                        style={'width': '25px'})
+                ])
+            ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer', 'margin': '5px', 'float': 'right'}),
+            html.Div(id='empty_add', style={'display': 'none'}),
+        ], style={'border': '1px solid #d9d9d9'}),
+    ]),
+    dcc.ConfirmDialog(id='confirm', message='Are you sure you want to continue?'),
+
 ], style={'vertical-align': 'top'}),
 
 # endregion
@@ -692,7 +743,7 @@ selected_row = None
      Input('monthly_days', 'value'), Input('monthly_months', 'value'), Input('never_check', 'value'), Input('schedule_expires', 'value')]
 )
 def add_trigger(n_clicks, selectedrow, fire_trigger, specific_date, hour, minute, second, weekly_days, monthly_days, monthly_months, never_check, schedule_expires):
-    if n_clicks is not None:
+    if n_clicks is not None and selectedrow is not None:
         connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
         selected = json.loads(selected_row)
         item_id = selected.get('row_id')
@@ -703,7 +754,11 @@ def add_trigger(n_clicks, selectedrow, fire_trigger, specific_date, hour, minute
         days = ",".join(weekly_days)
         days_of_month = ",".join(monthly_days)
         months = ",".join(monthly_months)
-        sql = f"INSERT INTO Triggers (registered_id, fire_trigger, time, expires, expires_on, date, days, days_of_month, months) VALUES ({item_id}, '{fire_trigger}', '{time}', {expires}, '{schedule_expires}', '{specific_date}', '{days}', '{days_of_month}', '{months}') WHERE NOT EXISTS (SELECT id FROM Triggers WHERE registered_id = {item_id} AND fire_trigger='{fire_trigger}' AND time='{time}' AND expires={expires} AND expires_on='{schedule_expires}' AND date='{specific_date}' AND days='{days}' AND days_of_month='{days_of_month}' AND months='{months}' )"
+        sql = f"SELECT name FROM Registered WHERE id={item_id}"
+        cur = connection.cursor()
+        cur.execute(sql)
+        name = cur.fetchone()[0]
+        sql = f"INSERT INTO Triggers (registered_id, name, fire_trigger, time, expires, expires_on, date, days, days_of_month, months) VALUES ({item_id}, '{name}', '{fire_trigger}', '{time}', {expires}, '{schedule_expires}', '{specific_date}', '{days}', '{days_of_month}', '{months}') WHERE NOT EXISTS (SELECT id FROM Triggers WHERE registered_id = {item_id} AND fire_trigger='{fire_trigger}' AND time='{time}' AND expires={expires} AND expires_on='{schedule_expires}' AND date='{specific_date}' AND days='{days}' AND days_of_month='{days_of_month}' AND months='{months}' )"
         curs = connection.cursor()
         curs.execute(sql)
         connection.commit()
