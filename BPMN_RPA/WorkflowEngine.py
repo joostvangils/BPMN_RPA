@@ -1,6 +1,7 @@
 import base64
 import importlib
 import inspect
+import multiprocessing
 import os
 import site
 import copy
@@ -20,12 +21,16 @@ import xmltodict
 
 class WorkflowEngine():
 
-    def __init__(self, pythonpath: str, installation_directory: str=""):
+    def __init__(self, pythonpath: str="", installation_directory: str=""):
         """
         Class for automating DrawIO diagrams
         :param pythonpath: The full path to the python.exe file
         :param installation_directory: The folder where your BPMN_RPA files are installed. This folder will be used for the orchestrator database.
         """
+        if len(pythonpath) != 0:
+            self.set_PythonPath(pythonpath)
+        else:
+            pythonpath = self.get_pythonPath()
         if len(installation_directory) != 0:
             self.set_dbPath(installation_directory)
             dbFolder = installation_directory
@@ -42,6 +47,14 @@ class WorkflowEngine():
             else:
                 self.set_dbPath(installdir)
                 dbFolder = self.get_dbPath()
+        if pythonpath is None:
+            pythonpath = input("\nThe path to your Python.exe file is unknown. Please enter the path to your Python.exe file: ")
+            if not os.path.exists(pythonpath):
+                self.set_PythonPath(pythonpath)
+            if len(pythonpath) == 0:
+                return
+            else:
+                self.set_PythonPath(pythonpath)
         if not os.path.exists(f'{dbFolder}\\Registered Flows'):
             os.mkdir(f'{dbFolder}\\Registered Flows')
         self.pythonPath = pythonpath
@@ -106,6 +119,38 @@ class WorkflowEngine():
             return value
         except WindowsError:
             return None
+
+    def get_pythonPath(self):
+        """
+        Get the path to the Python.exe file
+
+        :return: The path to the Python.exe file
+        """
+        try:
+            REG_PATH = r"SOFTWARE\BPMN_RPA"
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0, winreg.KEY_READ)
+            value, regtype = winreg.QueryValueEx(registry_key, 'PythonPath')
+            winreg.CloseKey(registry_key)
+            return value
+        except WindowsError:
+            return None
+
+    def set_PythonPath(self, value: str):
+        """
+        Write the oPython path to the registry.
+
+        :param value: The path of the Python.exe file that has to be written to the registry
+        """
+        try:
+            REG_PATH = r"SOFTWARE\BPMN_RPA"
+            winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH)
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0,
+                                          winreg.KEY_WRITE)
+            winreg.SetValueEx(registry_key, "PythonPath", 0, winreg.REG_SZ, value)
+            winreg.CloseKey(registry_key)
+            return True
+        except WindowsError:
+            return False
 
     def get_flow(self, ordered_dict) -> Any:
         """
@@ -324,7 +369,6 @@ class WorkflowEngine():
         """
         Log an error message in the orchestrator database
         :param msg: The error message to log
-        :return:
         """
         sql = f"INSERT INTO Steps (name, step, result) VALUES ('{self.name}', f'Error', f{msg})"
         self.db.run_sql(sql=sql, tablename="Steps")
@@ -341,7 +385,7 @@ class WorkflowEngine():
             self.error = True
             return
         # Register the flow if not already registered
-        if not os.path.exists(f'{self.db}\\Registered Flows\\{self.name}.xml'):
+        if not os.path.exists(f'{self.db}\\Registered Flows\\{self.name}.xml') and not os.path.exists(self.flowpath):
             # Move the file to the registered directory if not exists
             copyfile(self.flowpath, f'{dbPath}\\Registered Flows\\{self.name}.xml')
         self.flowpath = f'{dbPath}\\Registered Flows\\{self.name}.xml'
@@ -607,19 +651,23 @@ class SQL():
         """
         Class for SQLite actions on the Orchestrator database.
         :param dbfolder: The folder of the SQLite orchestrator database
+        :param connection: Optional. The sqlite3.connect connection.
         """
+        queue = multiprocessing.JoinableQueue()
         if dbfolder == "\\":
             return
         if not dbfolder.endswith("\\"):
             dbfolder += "\\"
         self.connection = sqlite3.connect(f'{dbfolder}orchestrator.db')
         self.connection.execute("PRAGMA foreign_keys = 1")
+        self.connection.execute("PRAGMA JOURNAL_MODE = 'WAL'")
 
     def run_sql(self, sql, tablename: str = ""):
         """
         Run SQL command and commit.
         :param sql: The SQL command to execute.
         :param tablename: Optional. The tablename of the table used in the SQL command, for returning the last id of the primary key column.
+
         :return: The last inserted id of the primary key column
         """
         if not hasattr(self, "connection"):
@@ -638,6 +686,7 @@ class SQL():
         """
         Get the last inserted id of the primary key column of the table
         :param tablename: The name of the table to get the last id of
+
         :return: The last inserted id of the primary key column
         """
         sql = f"SELECT MAX(id) FROM {tablename};"
@@ -646,22 +695,54 @@ class SQL():
         row = curs.fetchone()
         return int(row[0])
 
+    def commit(self):
+        """
+        Commit any sql statement
+        """
+        self.connection.commit()
+
+    def get_registered_flows(self):
+        """
+        Get a list from all registered flows in the orchestrator database.
+
+        :return: A list of flow names that are registered in the orchestrator database.
+        """
+        sql = "SELECT name FROM Registered;"
+        curs = self.connection.cursor()
+        curs.execute(sql)
+        rows = curs.fetchall()
+        ret = []
+        for rw in rows:
+            ret.append(f"{rw[0]}.xml")
+        return ret
+
+    def remove_registered_flows(self, lst: List=[]):
+        """
+        Removes registered flows from the orchestrator database by maching on the given list of flow-names
+        :param lst: The list with flow names to remove from the database
+        """
+        names ="'" +  "', '".join(lst) + "'"
+        sql = f"DELETE FROM Registered WHERE name IN ({names});"
+        curs = self.connection.cursor()
+        curs.execute(sql)
+        self.connection.commit()
+
     def orchestrator(self):
         """
         Create tables for the Orchestrator database
         """
-        sql = "CREATE TABLE IF NOT EXISTS Registered (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, location TEXT NOT NULL, description TEXT, timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);"
+        sql = "CREATE TABLE IF NOT EXISTS Registered (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, location TEXT NOT NULL, description TEXT, timestamp DATE DEFAULT (datetime('now','localtime')));"
         self.run_sql(sql)
-        sql = "CREATE TABLE IF NOT EXISTS Workflows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, registered_id INTEGER NOT NULL, name TEXT NOT NULL, result TEXT, started TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, finished TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT fk_Registered FOREIGN KEY (registered_id) REFERENCES Registered (id) ON DELETE CASCADE);"
+        sql = "CREATE TABLE IF NOT EXISTS Workflows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, registered_id INTEGER NOT NULL, name TEXT NOT NULL, result TEXT, started DATE DEFAULT (datetime('now','localtime')), finished DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_Registered FOREIGN KEY (registered_id) REFERENCES Registered (id) ON DELETE CASCADE);"
         self.run_sql(sql)
-        sql = "CREATE TABLE IF NOT EXISTS Steps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, workflow INTEGER NOT NULL, parent TEXT, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT fk_Workflow FOREIGN KEY (Workflow) REFERENCES Workflows (id) ON DELETE CASCADE);"
+        sql = "CREATE TABLE IF NOT EXISTS Steps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, workflow INTEGER NOT NULL, parent TEXT, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_Workflow FOREIGN KEY (Workflow) REFERENCES Workflows (id) ON DELETE CASCADE);"
         self.run_sql(sql)
         sql = "CREATE TABLE IF NOT EXISTS Triggers (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, registered_id INTEGER NOT NULL, name TEXT NOT NULL, fire_trigger TEXT NOT NULL, time TEXT NOT NULL, expires BOOL, expires_on TEXT, date TEXT, days TEXT, days_of_month TEXT, months TEXT, CONSTRAINT fk_Registered_trigger FOREIGN KEY (registered_id) REFERENCES Registered (id) ON DELETE CASCADE);"
         self.run_sql(sql)
 
 
 # Test
-engine = WorkflowEngine("c:\\python\\python.exe")
-doc = engine.open(fr"test_loop.xml")  # c:\\temp\\test.xml
-steps = engine.get_flow(doc)
-engine.run_flow(steps)
+# engine = WorkflowEngine()
+# doc = engine.open(fr"test_loop.xml")  # c:\\temp\\test.xml
+# steps = engine.get_flow(doc)
+# engine.run_flow(steps)

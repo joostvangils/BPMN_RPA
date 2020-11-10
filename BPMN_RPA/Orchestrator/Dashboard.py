@@ -1,31 +1,42 @@
 import base64
-import copy
 import datetime
 import json
+import multiprocessing
 import os
 import sqlite3
 import subprocess
 import winreg
 from datetime import date
-from io import BytesIO
-from typing import Any
 from datetime import datetime
-import PIL
+from os import listdir
+from os.path import isfile, join
+from typing import Any
+
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
 import dash_table
 import pandas as pd
-import dash
-import pyautogui
-from PIL.Image import Image
 from dash.dependencies import Input, Output, State
-import dash_html_components as html
-from dash.exceptions import PreventUpdate
-import dash_bootstrap_components as dbc
 from dateutil.utils import today
-from lxml import etree
-import dash_core_components as dcc
-
 
 # region Functions and globals
+from BPMN_RPA.WorkflowEngine import WorkflowEngine, SQL
+
+
+# region Global functions and style
+
+def flow_runner(flowfile):
+    """
+    Run a flow from file
+    :param flowfile: The full path to the floe file.
+    """
+    engine = WorkflowEngine()
+    doc = engine.open(flowfile)
+    steps = engine.get_flow(doc)
+    engine.run_flow(steps)
+
+
 def get_reg(name):
     try:
         REG_PATH = r"SOFTWARE\BPMN_RPA"
@@ -85,6 +96,7 @@ buttonstyle = {'box-shadow': 'inset 0px 1px 0px 0px #54a3f7',
                'text-decoration': 'none',
                'text-shadow': '0px 1px 0px #154682',
                }
+
 # region Universal header
 universal_header = html.Table(id="header", style={'margin': '0', 'padding': '0', 'width': '100%'}, children=[
     html.Tr(children=[
@@ -115,6 +127,24 @@ server = app.server
 dbpath = get_reg('dbPath')
 connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
 
+# Check if tables exist, otherwise create them
+sql = SQL(dbpath)
+sql.orchestrator()
+
+# Check registered flows and remove from directory if not in database
+registered_in_db = sql.get_registered_flows()
+files_in_dir = [f for f in listdir(f"{dbpath}\\Registered Flows") if isfile(join(f"{dbpath}\\Registered Flows", f))]
+for file_in_dir in files_in_dir:
+    if file_in_dir not in registered_in_db:
+        os.remove(f"{dbpath}\\Registered Flows\\{file_in_dir}")
+rm = []
+for file_in_db in registered_in_db:
+    if file_in_db not in files_in_dir:
+        rm.append(file_in_db)
+if len(rm) > 0:
+    sql.remove_registered_flows(rm)
+
+# Prepare datatable queries
 sql = "Select id, name, description from Registered"
 registered_flows = pd.read_sql_query(sql, connection)
 registered_flows_columns = [{"name": i, "id": i} for i in registered_flows.columns]
@@ -125,7 +155,7 @@ sql = "Select * from Triggers"
 triggers = pd.read_sql_query(sql, connection)
 triggers_columns = [{"name": i, "id": i} for i in triggers.columns]
 
-sql = f"SELECT id, name, result, started, finished FROM Workflows;"
+sql = f"SELECT id, name, result, started, finished FROM Workflows ORDER BY finished DESC;"
 flows = pd.read_sql_query(sql, connection)
 flows = add_images_to_dataframe(flows, "result")
 flows_columns = get_columns_with_image_from_dataframe(flows, "result")
@@ -236,6 +266,8 @@ def select_row_filter_data(active_cell):
         steps = pd.read_sql_query(sql, connection)
         steps = add_images_to_dataframe(steps)
     return style, steps.to_dict('records')
+
+
 # endregion
 
 # region Run page
@@ -382,12 +414,12 @@ runpage_layout = html.Div([
                         html.Label("Trigger date", style={'font-family': 'Verdana'}),
                         html.Br(),
                         dcc.DatePickerSingle(
-                                id='specific_date',
-                                initial_visible_month=date(today().year, today().month, today().day),
-                                display_format='DD-MM-YYYY',
-                                date=date(today().year, today().month, today().day),
-                                style={'font-family': 'Verdana', 'font-size': '12px'}
-                            ),
+                            id='specific_date',
+                            initial_visible_month=date(today().year, today().month, today().day),
+                            display_format='DD-MM-YYYY',
+                            date=date(today().year, today().month, today().day),
+                            style={'font-family': 'Verdana', 'font-size': '12px'}
+                        ),
                         html.Br(),
                     ]),
                     # Weekly
@@ -396,16 +428,16 @@ runpage_layout = html.Div([
                         html.Label("Weekly on", style={'font-family': 'Verdana'}),
                         html.Br(),
                         dcc.Checklist(id='weekly_checklist',
-                            options=[
-                                {'label': 'Monday', 'value': 'monday'},
-                                {'label': 'Tuesday', 'value': 'tuesday'},
-                                {'label': 'Wednesday', 'value': 'wednesday'},
-                                {'label': 'Thursday', 'value': 'thursday'},
-                                {'label': 'Friday', 'value': 'friday'},
-                                {'label': 'Saturday', 'value': 'saturday'},
-                                {'label': 'Sunday', 'value': 'sunday'},
-                            ]
-                        ),
+                                      options=[
+                                          {'label': 'Monday', 'value': 'monday'},
+                                          {'label': 'Tuesday', 'value': 'tuesday'},
+                                          {'label': 'Wednesday', 'value': 'wednesday'},
+                                          {'label': 'Thursday', 'value': 'thursday'},
+                                          {'label': 'Friday', 'value': 'friday'},
+                                          {'label': 'Saturday', 'value': 'saturday'},
+                                          {'label': 'Sunday', 'value': 'sunday'},
+                                      ]
+                                      ),
                         html.Br(),
                     ]),
                     # Monthly
@@ -414,62 +446,64 @@ runpage_layout = html.Div([
                         html.Label("Days", style={'font-family': 'Verdana'}),
                         html.Br(),
                         dcc.Checklist(id='monthly_days',
-                            options=[
-                                {'label': '1', 'value': '1'},
-                                {'label': '2', 'value': '2'},
-                                {'label': '3', 'value': '3'},
-                                {'label': '4', 'value': '4'},
-                                {'label': '5', 'value': '5'},
-                                {'label': '6', 'value': '6'},
-                                {'label': '7', 'value': '7'},
-                                {'label': '8', 'value': '8'},
-                                {'label': '9', 'value': '9'},
-                                {'label': '10', 'value': '10'},
-                                {'label': '11', 'value': '11'},
-                                {'label': '12', 'value': '12'},
-                                {'label': '13', 'value': '13'},
-                                {'label': '14', 'value': '14'},
-                                {'label': '15', 'value': '15'},
-                                {'label': '16', 'value': '16'},
-                                {'label': '17', 'value': '17'},
-                                {'label': '18', 'value': '18'},
-                                {'label': '19', 'value': '19'},
-                                {'label': '20', 'value': '20'},
-                                {'label': '21', 'value': '21'},
-                                {'label': '22', 'value': '22'},
-                                {'label': '23', 'value': '23'},
-                                {'label': '24', 'value': '24'},
-                                {'label': '25', 'value': '25'},
-                                {'label': '26', 'value': '26'},
-                                {'label': '27', 'value': '27'},
-                                {'label': '28', 'value': '28'},
-                                {'label': '29', 'value': '29'},
-                                {'label': '30', 'value': '30'},
-                                {'label': '31', 'value': '31'},
-                                {'label': 'Last day of month', 'value': 'last_day'},
-                                {'label': 'Last working day of month', 'value': 'last_working_day'},
-                            ],
-                        ),
+                                      options=[
+                                          {'label': '1', 'value': '1'},
+                                          {'label': '2', 'value': '2'},
+                                          {'label': '3', 'value': '3'},
+                                          {'label': '4', 'value': '4'},
+                                          {'label': '5', 'value': '5'},
+                                          {'label': '6', 'value': '6'},
+                                          {'label': '7', 'value': '7'},
+                                          {'label': '8', 'value': '8'},
+                                          {'label': '9', 'value': '9'},
+                                          {'label': '10', 'value': '10'},
+                                          {'label': '11', 'value': '11'},
+                                          {'label': '12', 'value': '12'},
+                                          {'label': '13', 'value': '13'},
+                                          {'label': '14', 'value': '14'},
+                                          {'label': '15', 'value': '15'},
+                                          {'label': '16', 'value': '16'},
+                                          {'label': '17', 'value': '17'},
+                                          {'label': '18', 'value': '18'},
+                                          {'label': '19', 'value': '19'},
+                                          {'label': '20', 'value': '20'},
+                                          {'label': '21', 'value': '21'},
+                                          {'label': '22', 'value': '22'},
+                                          {'label': '23', 'value': '23'},
+                                          {'label': '24', 'value': '24'},
+                                          {'label': '25', 'value': '25'},
+                                          {'label': '26', 'value': '26'},
+                                          {'label': '27', 'value': '27'},
+                                          {'label': '28', 'value': '28'},
+                                          {'label': '29', 'value': '29'},
+                                          {'label': '30', 'value': '30'},
+                                          {'label': '31', 'value': '31'},
+                                          {'label': 'Last day of month', 'value': 'last_day'},
+                                          {'label': 'Last working day of month', 'value': 'last_working_day'},
+                                      ],
+                                      ),
                         html.Br(),
                         html.Label("Months", style={'font-family': 'Verdana'}),
                         html.Br(),
                         dcc.Checklist(id='monthly_months',
-                            options=[
-                                {'label': 'January', 'value': 'january'},
-                                {'label': 'February', 'value': 'february'},
-                                {'label': 'March', 'value': 'march'},
-                                {'label': 'April', 'value': 'april'},
-                                {'label': 'May', 'value': 'may'},
-                                {'label': 'June', 'value': 'june'},
-                                {'label': 'July', 'value': 'july'},
-                                {'label': 'August', 'value': 'august'},
-                                {'label': 'September', 'value': 'september'},
-                                {'label': 'October', 'value': 'october'},
-                                {'label': 'November', 'value': 'november'},
-                                {'label': 'December', 'value': 'december'},
+                                      options=[
+                                          {'label': 'January', 'value': 'january'},
+                                          {'label': 'February', 'value': 'february'},
+                                          {'label': 'March', 'value': 'march'},
+                                          {'label': 'April', 'value': 'april'},
+                                          {'label': 'May', 'value': 'may'},
+                                          {'label': 'June', 'value': 'june'},
+                                          {'label': 'July', 'value': 'july'},
+                                          {'label': 'August', 'value': 'august'},
+                                          {'label': 'September', 'value': 'september'},
+                                          {'label': 'October', 'value': 'october'},
+                                          {'label': 'November', 'value': 'november'},
+                                          {'label': 'December', 'value': 'december'},
 
-                            ], value=['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'],
-                        ),
+                                      ],
+                                      value=['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august',
+                                             'september', 'october', 'november', 'december'],
+                                      ),
                         html.Br(),
                     ]),
                     # Add time
@@ -507,7 +541,7 @@ runpage_layout = html.Div([
                                     {'label': '23', 'value': '23'},
                                     {'label': '24', 'value': '24'},
                                 ]),
-                            html.Label("Minute", style={'font-family': 'Verdana','font-size': '12px'}),
+                            html.Label("Minute", style={'font-family': 'Verdana', 'font-size': '12px'}),
                             dcc.Dropdown(
                                 id='minute', style={'font-family': 'Verdana', 'font-size': '12px'},
                                 options=[
@@ -644,21 +678,21 @@ runpage_layout = html.Div([
                         html.Label("Schedule expires on", style={'font-family': 'Verdana'}),
                         html.Br(),
                         dcc.DatePickerSingle(
-                                id='schedule_expires',
-                                initial_visible_month=date(today().year, today().month, today().day),
-                                display_format='DD-MM-YYYY',
-                                date=date(today().year, today().month, today().day),
-                                style={'font-family': 'Verdana', 'font-size': '12px'}
-                            ),
+                            id='schedule_expires',
+                            initial_visible_month=date(today().year, today().month, today().day),
+                            display_format='DD-MM-YYYY',
+                            date=date(today().year, today().month, today().day),
+                            style={'font-family': 'Verdana', 'font-size': '12px'}
+                        ),
                         html.Br(),
                     ]),
                     # Never expires
                     html.Tr(id='never', style={'text-align': 'center', 'display': 'table-row'}, children=[
                         dcc.Checklist(id='never_check',
-                            options=[
-                                {'label': 'Schedule never expires', 'value': 'never'},
-                            ], value=['never'],
-                        ),
+                                      options=[
+                                          {'label': 'Schedule never expires', 'value': 'never'},
+                                      ], value=['never'],
+                                      ),
                         html.Br(),
                     ]),
                     # Add button
@@ -669,7 +703,8 @@ runpage_layout = html.Div([
                                     src='https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/add.png',
                                     style={'width': '25px'})
                             ])
-                        ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer', 'margin': '5px', 'float': 'right'}),
+                        ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer',
+                                  'margin': '5px', 'float': 'right'}),
                         html.Div(id='empty_add', children=[], style={'display': 'none'}),
                     ]),
                 ], style={'border': '1px solid #d9d9d9'}),
@@ -678,10 +713,10 @@ runpage_layout = html.Div([
     ], style={'vertical-align': 'top'}),
     # Trigger table
     html.Tr(children=[
-            html.Td(children=[
-                html.H4("Installed flow triggers", style={'font-family': 'Verdana', 'margin': '4px'}),
-            ]),
+        html.Td(children=[
+            html.H4("Installed flow triggers", style={'font-family': 'Verdana', 'margin': '4px'}),
         ]),
+    ]),
     html.Tr(children=[
         # Registered datatable
         html.Td(children=[
@@ -720,7 +755,8 @@ runpage_layout = html.Div([
                         src='https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/delete.png',
                         style={'width': '25px'})
                 ])
-            ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer', 'margin': '5px', 'float': 'right'}),
+            ], style={'background-color': 'Transparent', 'border': 'none', 'cursor': 'pointer', 'margin': '5px',
+                      'float': 'right'}),
             html.Div(id='empty_add', style={'display': 'none'}),
         ], style={'border': '1px solid #d9d9d9'}),
     ]),
@@ -735,14 +771,18 @@ runpage_layout = html.Div([
 # Global variables
 selected_row = None
 
+
 # region Add trigger to database
 @app.callback(
     Output('empty_add', 'children'),
-    [Input('add_trigger_button', 'n_clicks'), Input('selected_row', 'children'), Input('fire_trigger', 'value'), Input('specific_date', 'value'), Input('hour', 'value'),
+    [Input('add_trigger_button', 'n_clicks'), Input('selected_row', 'children'), Input('fire_trigger', 'value'),
+     Input('specific_date', 'value'), Input('hour', 'value'),
      Input('minute', 'value'), Input('second', 'value'), Input('weekly_checklist', 'value'),
-     Input('monthly_days', 'value'), Input('monthly_months', 'value'), Input('never_check', 'value'), Input('schedule_expires', 'value')]
+     Input('monthly_days', 'value'), Input('monthly_months', 'value'), Input('never_check', 'value'),
+     Input('schedule_expires', 'value')]
 )
-def add_trigger(n_clicks, selectedrow, fire_trigger, specific_date, hour, minute, second, weekly_days, monthly_days, monthly_months, never_check, schedule_expires):
+def add_trigger(n_clicks, selectedrow, fire_trigger, specific_date, hour, minute, second, weekly_days, monthly_days,
+                monthly_months, never_check, schedule_expires):
     if n_clicks is not None and selectedrow is not None:
         connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
         selected = json.loads(selected_row)
@@ -764,25 +804,40 @@ def add_trigger(n_clicks, selectedrow, fire_trigger, specific_date, hour, minute
         connection.commit()
         return ""
     return ""
+
+
 # endregion
 
 # region Show selected trigger fields
 @app.callback(
-    [Output('daily', 'style'), Output('monthly', 'style'), Output('specific_dates', 'style'), Output('weekly', 'style'), Output('hour', 'value'), Output('minute', 'value'), Output('second', 'value')],
+    [Output('daily', 'style'), Output('monthly', 'style'), Output('specific_dates', 'style'), Output('weekly', 'style'),
+     Output('hour', 'value'), Output('minute', 'value'), Output('second', 'value')],
     Input('fire_trigger', 'value')
 )
 def trigger_select(value):
     now = datetime.now()
     if value is not None:
         if value == "daily":
-            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'text-align': 'center', 'display': 'none'}, {'display': 'none'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
+            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'text-align': 'center',
+                                                                                           'display': 'none'}, {
+                       'display': 'none'}, now.strftime("%H"), now.strftime("%M"), now.strftime("%S")
         if value == "specific_dates":
-            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'text-align': 'center', 'display': 'table-row'}, {'display': 'none'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
+            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'text-align': 'center',
+                                                                                           'display': 'table-row'}, {
+                       'display': 'none'}, now.strftime("%H"), now.strftime("%M"), now.strftime("%S")
         if value == "weekly":
-            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'text-align': 'center', 'display': 'none'}, {'display': 'table-row'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
+            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'text-align': 'center',
+                                                                                           'display': 'none'}, {
+                       'display': 'table-row'}, now.strftime("%H"), now.strftime("%M"), now.strftime("%S")
         if value == "monthly":
-            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'display': 'none'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
-    return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'text-align': 'center', 'display': 'none'}, {'display': 'none'}, now.strftime ("%H"), now.strftime ("%M"), now.strftime ("%S")
+            return {'display': 'table-row'}, {'text-align': 'center', 'display': 'table-row'}, {'text-align': 'center',
+                                                                                                'display': 'none'}, {
+                       'display': 'none'}, now.strftime("%H"), now.strftime("%M"), now.strftime("%S")
+    return {'display': 'table-row'}, {'text-align': 'center', 'display': 'none'}, {'text-align': 'center',
+                                                                                   'display': 'none'}, {
+               'display': 'none'}, now.strftime("%H"), now.strftime("%M"), now.strftime("%S")
+
+
 # endregion
 
 # region Show Schedule Expires
@@ -795,6 +850,8 @@ def trigger_select(value):
         if len(value) == 0:
             return {'text-align': 'center', 'display': 'table-row'}
     return {'text-align': 'center', 'display': 'none'}
+
+
 # endregion
 
 # region Run a flow
@@ -803,7 +860,9 @@ def trigger_select(value):
     [Input('run_button', 'n_clicks'), Input('selected_row', 'children'), Input('registered', 'data')]
 )
 def run_a_flow(n_clicks, selected_row, data):
-    if n_clicks is not None:
+    ctx = dash.callback_context
+    triggered = ctx.triggered[0]["prop_id"]
+    if n_clicks is not None and str(triggered).lower().startswith("run_button"):
         connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
         selected = json.loads(selected_row)
         item_id = data[selected.get('row')]['id']
@@ -811,7 +870,12 @@ def run_a_flow(n_clicks, selected_row, data):
         cur.execute(f"SELECT * FROM Registered where id={item_id}")
         reg = cur.fetchone()
         flow = f"{dbpath}\\Registered Flows\\{reg[1]}.xml"
+        # Start separate thread
+        proc = multiprocessing.Process(target=flow_runner, args=(flow,))
+        proc.start()
     return ""
+
+
 # endregion
 
 # region Edit a flow
@@ -830,6 +894,8 @@ def edit_a_flow(n_clicks, selected_row, data):
         flow = f"{dbpath}\\Registered Flows\\{reg[1]}.xml"
         subprocess.Popen(f"{dbpath}\\drawio.exe -open {flow}")
     return ""
+
+
 # endregion
 
 # region Switch pages
@@ -841,6 +907,8 @@ def display_page(pathname):
     else:
         return mainpage_layout
     # You could also return a 404 "URL not found" page here
+
+
 # endregion
 
 # region Highlight selected row in Registered table
@@ -861,6 +929,8 @@ def select_registered_row(active_cell):
                   'border': '1px rgba(0, 116, 217, 0.3)'}, ]
         active_cell = ''
     return style, active_cell
+
+
 # endregion
 
 # region Update registered table data
@@ -901,6 +971,8 @@ def update_output(contents, selected_row, to_do, submit_n_clicks, filename):
     decsription_column = [x for x in registered_flows_columns if x["id"] == "description"][0]
     decsription_column.update({'editable': True})
     return registered_flows.to_dict('records'), registered_flows_columns
+
+
 # endregion
 
 # region Ask question "are you sure?"
@@ -924,9 +996,13 @@ def ask_question_and_execute(n_clicks, selected_row):
         message = f"Do you really want to delete flow '{name}'?"
         show_question = True
     return show_question, message, to_do
-# endregion
+
 
 # endregion
+
+
+# endregion
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
