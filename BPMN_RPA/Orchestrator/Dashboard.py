@@ -160,7 +160,7 @@ flows = pd.read_sql_query(sql, connection)
 flows = add_images_to_dataframe(flows, "result")
 flows_columns = get_columns_with_image_from_dataframe(flows, "result")
 
-sql = f"SELECT id, workflow, name, status, step, result, timestamp as executed FROM Steps;"
+sql = f"SELECT id, workflow, name, status, step, result, timestamp as executed FROM Steps ORDER BY id DESC;"
 steps = pd.read_sql_query(sql, connection)
 steps = add_images_to_dataframe(steps)
 step_columns = get_columns_with_image_from_dataframe(steps)
@@ -180,6 +180,11 @@ app.layout = html.Div([
 mainpage_layout = html.Div([
     # Header
     html.Span([
+        dcc.Interval(
+            id='interval-component',
+            interval=1*5000,  # in milliseconds
+            n_intervals=0
+        ),
         universal_header,
         html.Tr(children=[
             html.Td(children=[
@@ -237,6 +242,7 @@ mainpage_layout = html.Div([
         page_size=10,
 
     ),
+    dcc.Input(id='empty_refresh', value='0', type='text', style={'display': 'none'}),
     # endregion
 ])
 
@@ -244,25 +250,38 @@ mainpage_layout = html.Div([
 # endregion
 
 # region CallBack functions main page
+
+@app.callback(
+    [Output('flows', 'data'), Output('empty_refresh', 'value')],
+    Input('interval-component', 'n_intervals')
+)
+def refreshdata(n_intervals):
+    connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
+    sql_ = f"SELECT id, name, result, started, finished FROM Workflows ORDER BY finished DESC;"
+    flows_ = pd.read_sql_query(sql_, connection)
+    flows_ = add_images_to_dataframe(flows_, "result")
+    return flows_.to_dict('records'), n_intervals
+
+
 @app.callback(
     [Output('flows', 'style_data_conditional'), Output('steps', 'data')],
-    Input('flows', 'active_cell')
+    [Input('flows', 'active_cell'), Input('empty_refresh', 'value')]
 )
-def select_row_filter_data(active_cell):
+def select_row_filter_data(active_cell, empty_refresh):
     connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
     if active_cell is not None:
         style = [{'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(248, 248, 248)'},
                  {'if': {'row_index': active_cell["row"]}, 'backgroundColor': 'rgba(0, 116, 217, 0.3)'},
                  {'if': {'state': 'selected'}, 'backgroundColor': 'rgba(0, 116, 217, 0.3)',
                   'border': '1px rgba(0, 116, 217, 0.3)'}, ]
-        sql = f"SELECT id, workflow, name, status, step, result, timestamp as executed FROM Steps WHERE workflow = {active_cell['row_id']} ;"
+        sql = f"SELECT id, workflow, name, status, step, result, timestamp as executed FROM Steps WHERE workflow = {active_cell['row_id']} ORDER BY id DESC ;"
         steps = pd.read_sql_query(sql, connection)
         steps = add_images_to_dataframe(steps)
     else:
         style = [{'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(248, 248, 248)'},
                  {'if': {'state': 'selected'}, 'backgroundColor': 'rgba(0, 116, 217, 0.3)',
                   'border': '1px rgba(0, 116, 217, 0.3)'}, ]
-        sql = f"SELECT id, workflow, name, status, step, result, timestamp as executed FROM Steps;"
+        sql = f"SELECT id, workflow, name, status, step, result, timestamp as executed FROM Steps ORDER BY id DESC;"
         steps = pd.read_sql_query(sql, connection)
         steps = add_images_to_dataframe(steps)
     return style, steps.to_dict('records')

@@ -7,6 +7,11 @@ import requests
 
 
 def set_reg(name, value):
+    """
+    Write BPMN RPA values to the registry
+    :param name: The key name of the value to write
+    :param value: The value to write
+    """
     try:
         REG_PATH = r"SOFTWARE\BPMN_RPA"
         winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH)
@@ -37,7 +42,7 @@ if not str(pythonpath).lower().endswith("python.exe"):
         pythonpath += "Python.exe"
 set_reg("PythonPath", pythonpath)
 print(f"\nThe Drawio desktop program will be downloaded to {installdir}...")
-print("Please wait until the file is downloaded...")
+print("Please wait until the file is downloaded. This may take a while...")
 urllib.request.urlretrieve("https://github.com/jgraph/drawio-desktop/releases/download/v13.7.9/draw.io-13.7.9-windows-no-installer.exe", f'{installdir}drawio.exe')
 print("Download complete.")
 print("Downloading Dashboard...")
@@ -49,4 +54,9 @@ urllib.request.urlretrieve("https://github.com/joostvangils/BPMN_RPA/blob/main/B
 urllib.request.urlretrieve("https://github.com/joostvangils/BPMN_RPA/blob/main/BPMN_RPA/BPMN%20RPA%20System.xml", f'{installdir}BPMN RPA System.xml')
 urllib.request.urlretrieve("https://github.com/joostvangils/BPMN_RPA/blob/main/BPMN_RPA/BPMN%20RPA%20Window.xml", f'{installdir}BPMN RPA Window.xml')
 urllib.request.urlretrieve("https://github.com/joostvangils/BPMN_RPA/blob/main/BPMN_RPA/BPMN%20RPA%20Keyboard.xml", f'{installdir}BPMN RPA Keyboard.xml')
+print("Installing BPMN RPA trigger listener batch file in your personal Windows StartUp directory...")
+username = os.environ['USERNAME']
+startupfolder = f"C:\\Users\\{username}\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"
+bat = open(f"{startupfolder}\\BPMN_RPA_Trigger_Listener.bat", "w")
+bat.write(f"SETCONSOLE /minimize\nSet oShell = CreateObject (\"WScript.Shell\")\noShell.run \"pythonw {installdir}Scripts\\BPMN_RPA_Trigger_Listener.py\"")
 print("Download and install complete.")
