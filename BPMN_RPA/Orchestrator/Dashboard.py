@@ -393,6 +393,7 @@ runpage_layout = html.Div([
                             html.Div(id='selected_row', children=[], style={'display': 'none'}),
                             html.Div(id='empty_run', children=[], style={'display': 'none'}),
                             html.Div(id='to_do', children=[], style={'display': 'none'}),
+                            html.Div(id='to_do_trigger', children=[], style={'display': 'none'}),
                             html.Div(id='yes_no', children=[], style={'display': 'none'}),
                         ], style={'border': '1px solid #d9d9d9'}),
                     ]),
@@ -780,8 +781,11 @@ runpage_layout = html.Div([
         ], style={'border': '1px solid #d9d9d9'}),
     ]),
     dcc.ConfirmDialog(id='confirm', message='Are you sure you want to continue?'),
-
+    dcc.ConfirmDialog(id='confirm_trigger', message='Are you sure you want to continue?'),
+    html.Div(id='selected_trigger_row', children=[], style={'display': 'none'}),
+    dcc.Input(id='empty_trigger_refresh', value='0', type='text', style={'display': 'none'}),
 ], style={'vertical-align': 'top'}),
+
 
 # endregion
 
@@ -793,7 +797,7 @@ selected_row = None
 
 # region Add trigger to database
 @app.callback(
-    Output('empty_add', 'children'),
+    Output('empty_trigger_refresh', 'value'),
     [Input('add_trigger_button', 'n_clicks'), Input('selected_row', 'children'), Input('fire_trigger', 'value'),
      Input('specific_date', 'value'), Input('hour', 'value'),
      Input('minute', 'value'), Input('second', 'value'), Input('weekly_checklist', 'value'),
@@ -802,27 +806,41 @@ selected_row = None
 )
 def add_trigger(n_clicks, selectedrow, fire_trigger, specific_date, hour, minute, second, weekly_days, monthly_days,
                 monthly_months, never_check, schedule_expires):
-    if n_clicks is not None and selectedrow is not None:
-        connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
-        selected = json.loads(selected_row)
+    connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
+    ctx = dash.callback_context
+    triggered = ctx.triggered[0]["prop_id"]
+    if n_clicks is not None and selectedrow !="" and str(triggered).lower()!= "selected_row.children" and str(triggered).lower().split(".")[1] != "value":
+        selected = json.loads(selectedrow)
         item_id = selected.get('row_id')
         time = f"{hour}:{minute}:{second}"
         expires = False
         if never_check == "never":
             expires = True
-        days = ",".join(weekly_days)
-        days_of_month = ",".join(monthly_days)
-        months = ",".join(monthly_months)
-        sql = f"SELECT name FROM Registered WHERE id={item_id}"
+        if weekly_days is not None:
+            days = ",".join(weekly_days)
+        else:
+            days = ""
+        if monthly_days is not None:
+            days_of_month = ",".join(monthly_days)
+        else:
+            days_of_month = ""
+        if monthly_months is not None:
+            months = ",".join(monthly_months)
+        else:
+            months = ""
+        sql = f"SELECT name FROM Registered WHERE id={item_id};"
         cur = connection.cursor()
         cur.execute(sql)
         name = cur.fetchone()[0]
-        sql = f"INSERT INTO Triggers (registered_id, name, fire_trigger, time, expires, expires_on, date, days, days_of_month, months) VALUES ({item_id}, '{name}', '{fire_trigger}', '{time}', {expires}, '{schedule_expires}', '{specific_date}', '{days}', '{days_of_month}', '{months}') WHERE NOT EXISTS (SELECT id FROM Triggers WHERE registered_id = {item_id} AND fire_trigger='{fire_trigger}' AND time='{time}' AND expires={expires} AND expires_on='{schedule_expires}' AND date='{specific_date}' AND days='{days}' AND days_of_month='{days_of_month}' AND months='{months}' )"
-        curs = connection.cursor()
-        curs.execute(sql)
-        connection.commit()
-        return ""
-    return ""
+        sql = f"SELECT id FROM Triggers WHERE registered_id = {item_id} AND fire_trigger='{fire_trigger}' AND time='{time}' AND expires={expires} AND expires_on='{schedule_expires}' AND date='{specific_date}' AND days='{days}' AND days_of_month='{days_of_month}' AND months='{months}' "
+        cur.execute(sql)
+        exists = cur.fetchone()
+        if exists is None:
+            sql = f"INSERT INTO Triggers (registered_id, name, fire_trigger, time, expires, expires_on, date, days, days_of_month, months) VALUES ({item_id}, '{name}', '{fire_trigger}', '{time}', {expires}, '{schedule_expires}', '{specific_date}', '{days}', '{days_of_month}', '{months}')"
+            curs = connection.cursor()
+            curs.execute(sql)
+            connection.commit()
+    return n_clicks
 
 
 # endregion
@@ -894,7 +912,6 @@ def run_a_flow(n_clicks, selected_row, data):
         proc.start()
     return ""
 
-
 # endregion
 
 # region Edit a flow
@@ -948,8 +965,6 @@ def select_registered_row(active_cell):
                   'border': '1px rgba(0, 116, 217, 0.3)'}, ]
         active_cell = ''
     return style, active_cell
-
-
 # endregion
 
 # region Update registered table data
@@ -990,13 +1005,32 @@ def update_output(contents, selected_row, to_do, submit_n_clicks, filename):
     decsription_column = [x for x in registered_flows_columns if x["id"] == "description"][0]
     decsription_column.update({'editable': True})
     return registered_flows.to_dict('records'), registered_flows_columns
+# endregion
 
+# region Update Triggers table data
+@app.callback([Output('triggers', 'data'),
+               Output('triggers', 'columns')],
+              [Input('selected_trigger_row', 'children'), Input('to_do_trigger', 'children'),
+               Input('confirm_trigger', 'submit_n_clicks'), Input('empty_trigger_refresh', 'value')]
+              )
+def update_trigger_output(selected_row, to_do, submit_n_clicks, trigger_refresh):
+    connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
+    if submit_n_clicks is not None and to_do == "delete_from_triggers":
+        selected = json.loads(selected_row)
+        item_id = selected.get('row_id')
+        cur = connection.cursor()
+        cur.execute(f"DELETE FROM Triggers where id={item_id};")
+        connection.commit()
+    sql = "Select * from triggers;"
+    triggers = pd.read_sql_query(sql, connection)
+    triggers_columns = [{"name": i, "id": i} for i in triggers.columns]
+    return triggers.to_dict('records'), triggers_columns
 
 # endregion
 
 # region Ask question "are you sure?"
 @app.callback([Output('confirm', 'displayed'), Output('confirm', 'message'), Output('to_do', 'children')],
-              [Input('delete_button', 'n_clicks'), Input('selected_row', 'children')])
+              [Input('delete_button', 'n_clicks'),  Input('selected_row', 'children')])
 def ask_question_and_execute(n_clicks, selected_row):
     ctx = dash.callback_context
     triggered = ctx.triggered[0]["prop_id"]
@@ -1015,10 +1049,58 @@ def ask_question_and_execute(n_clicks, selected_row):
         message = f"Do you really want to delete flow '{name}'?"
         show_question = True
     return show_question, message, to_do
+# endregion
 
+# region Triggers: Ask question "are you sure?"
+@app.callback([Output('confirm_trigger', 'displayed'), Output('confirm_trigger', 'message'), Output('to_do_trigger', 'children')],
+              [Input('delete_trigger_button', 'n_clicks'),  Input('selected_trigger_row', 'children')])
+def ask_trigger_question_and_execute(n_clicks, selected_row):
+    ctx = dash.callback_context
+    triggered = ctx.triggered[0]["prop_id"]
+    to_do = ""
+    message = ""
+    show_question = False
+    if str(triggered).lower().startswith("delete_trigger_button"):
+        if selected_row !="":
+            connection = sqlite3.connect(rf'{dbpath}\orchestrator.db')
+            selected = json.loads(selected_row)
+            item_id = selected.get('row_id')
+            sql = f"SELECT name FROM Triggers WHERE id={item_id}"
+            cur = connection.cursor()
+            cur.execute(sql)
+            name = cur.fetchone()[0]
+            to_do = "delete_from_triggers"
+            message = f"Do you really want to delete the selected trigger for flow '{name}'?"
+            show_question = True
+        else:
+            to_do = ""
+            message = ""
+            show_question = False
+    return show_question, message, to_do
 
 # endregion
 
+# region Highlight selected row in Triggers table
+@app.callback(
+    [Output('triggers', 'style_data_conditional'), Output('selected_trigger_row', 'children')],
+    [Input('triggers', 'active_cell'), Input('add_trigger_button', 'n_clicks'), Input('triggers', 'data')]
+)
+def select_trigger_row(active_cell, add_clicks, data):
+    ctx = dash.callback_context
+    triggered = ctx.triggered[0]["prop_id"]
+    if active_cell is not None and not str(triggered).lower().startswith("add_trigger_button") and str(triggered).lower() != "triggers.data":
+        style = [{'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(248, 248, 248)'},
+                 {'if': {'row_index': active_cell["row"]}, 'backgroundColor': 'rgba(0, 116, 217, 0.3)'},
+                 {'if': {'state': 'selected'}, 'backgroundColor': 'rgba(0, 116, 217, 0.3)',
+                  'border': '1px rgba(0, 116, 217, 0.3)'}, ]
+        active_cell = json.dumps(active_cell)
+    else:
+        style = [{'if': {'row_index': 'odd'}, 'backgroundColor': 'rgb(248, 248, 248)'},
+                 {'if': {'state': 'selected'}, 'backgroundColor': 'white', 'border': '1px black'}]
+        active_cell = ''
+    return style, active_cell
+
+# endregion
 
 # endregion
 
