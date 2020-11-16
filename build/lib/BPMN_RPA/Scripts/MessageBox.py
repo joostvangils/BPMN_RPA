@@ -33,3 +33,7 @@ def main(title: any, message: any, option ="ok") -> int:
         retn = None
     root.destroy()
     return retn
+
+
+def test():
+    main("Test", "This is a test")

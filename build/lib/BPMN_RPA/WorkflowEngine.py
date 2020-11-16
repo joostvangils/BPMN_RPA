@@ -1,6 +1,7 @@
 import base64
 import importlib
 import inspect
+import multiprocessing
 import os
 import site
 import copy
@@ -8,9 +9,11 @@ import sqlite3
 import sys
 import urllib
 import uuid
+import winreg
 import xml.etree.ElementTree as ET
 import zlib
 from inspect import signature
+from shutil import copyfile
 from typing import List, Any
 
 import xmltodict
@@ -18,16 +21,49 @@ import xmltodict
 
 class WorkflowEngine():
 
-    def __init__(self, pythonpath: str):
+    def __init__(self, pythonpath: str="", installation_directory: str=""):
         """
         Class for automating DrawIO diagrams
         :param pythonpath: The full path to the python.exe file
+        :param installation_directory: The folder where your BPMN_RPA files are installed. This folder will be used for the orchestrator database.
         """
+        if len(pythonpath) != 0:
+            self.set_PythonPath(pythonpath)
+        else:
+            pythonpath = self.get_pythonPath()
+        if len(installation_directory) != 0:
+            self.set_dbPath(installation_directory)
+            dbFolder = installation_directory
+        else:
+            dbFolder = self.get_dbPath()
+        if dbFolder is None:
+            installdir = input("\nYour installation directory is unknown. Please enter the path of your installation directory: ")
+            if not str(installdir).endswith("\\"):
+                installdir += "\\"
+            if not os.path.exists(installdir):
+                os.mkdir(installdir)
+            if len(installdir) == 0:
+                return
+            else:
+                self.set_dbPath(installdir)
+                dbFolder = self.get_dbPath()
+        if pythonpath is None:
+            pythonpath = input("\nThe path to your Python.exe file is unknown. Please enter the path to your Python.exe file: ")
+            if not os.path.exists(pythonpath):
+                self.set_PythonPath(pythonpath)
+            if len(pythonpath) == 0:
+                return
+            else:
+                self.set_PythonPath(pythonpath)
+        if not os.path.exists(f'{dbFolder}\\Registered Flows'):
+            os.mkdir(f'{dbFolder}\\Registered Flows')
         self.pythonPath = pythonpath
-        self.db = SQL()
+        self.db = SQL(dbFolder)
         self.db.orchestrator() # Run the orchestrator database
-        self.uid = uuid.uuid1()  # Generate a unique ID for our flow
+        self.id = -1  # Holds the ID for our flow
+        self.error = False  # Indicator if the flow has any errors in its execution
         self.name = None
+        self.flowpath = None
         self.loopvariables = []
         self.previous_step = None
         self.variables = {}  # Dictionary to hold WorkflowEngine variables
@@ -40,6 +76,8 @@ class WorkflowEngine():
         :returns: A DrawIO dictionary object
         """
         # Open an existing document.
+        if filepath is not None:
+            self.flowpath = filepath
         xml_file = open(filepath, "r")
         self.name = filepath.split("\\")[-1].lower().replace(".xml", "")
         xml_root = ET.fromstring(xml_file.read())
@@ -49,6 +87,70 @@ class WorkflowEngine():
         url_decode = urllib.parse.unquote(inflated_xml)
         retn = xmltodict.parse(url_decode)
         return retn
+
+    def set_dbPath(self, value: str):
+        """
+        Write the orchestrator database path to the registry.
+
+        :param value: The path of the orchestrator database that has to be written to the registry
+        """
+        try:
+            REG_PATH = r"SOFTWARE\BPMN_RPA"
+            winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH)
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0,
+                                          winreg.KEY_WRITE)
+            winreg.SetValueEx(registry_key, "dbPath", 0, winreg.REG_SZ, value)
+            winreg.CloseKey(registry_key)
+            return True
+        except WindowsError:
+            return False
+
+    def get_dbPath(self):
+        """
+        Get the path to the orchestrator database
+
+        :return: The path to the orchestrator database
+        """
+        try:
+            REG_PATH = r"SOFTWARE\BPMN_RPA"
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0, winreg.KEY_READ)
+            value, regtype = winreg.QueryValueEx(registry_key, 'dbPath')
+            winreg.CloseKey(registry_key)
+            return value
+        except WindowsError:
+            return None
+
+    def get_pythonPath(self):
+        """
+        Get the path to the Python.exe file
+
+        :return: The path to the Python.exe file
+        """
+        try:
+            REG_PATH = r"SOFTWARE\BPMN_RPA"
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0, winreg.KEY_READ)
+            value, regtype = winreg.QueryValueEx(registry_key, 'PythonPath')
+            winreg.CloseKey(registry_key)
+            return value
+        except WindowsError:
+            return None
+
+    def set_PythonPath(self, value: str):
+        """
+        Write the oPython path to the registry.
+
+        :param value: The path of the Python.exe file that has to be written to the registry
+        """
+        try:
+            REG_PATH = r"SOFTWARE\BPMN_RPA"
+            winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH)
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0,
+                                          winreg.KEY_WRITE)
+            winreg.SetValueEx(registry_key, "PythonPath", 0, winreg.REG_SZ, value)
+            winreg.CloseKey(registry_key)
+            return True
+        except WindowsError:
+            return False
 
     def get_flow(self, ordered_dict) -> Any:
         """
@@ -263,16 +365,45 @@ class WorkflowEngine():
         else:
             return False
 
+    def log_error(self, msg: str):
+        """
+        Log an error message in the orchestrator database
+        :param msg: The error message to log
+        """
+        sql = f"INSERT INTO Steps (name, step, result) VALUES ('{self.name}', f'Error', f{msg})"
+        self.db.run_sql(sql=sql, tablename="Steps")
+
     def run_flow(self, steps):
         """
         Execute a Workflow.
 
         :params steps: The steps that must be executed in the flow
         """
+        dbPath = self.get_dbPath()
+        if dbPath == "\\":
+            raise Exception('Your installation directory is unknown.')
+            self.error = True
+            return
+        # Register the flow if not already registered
+        if not os.path.exists(f'{self.db}\\Registered Flows\\{self.name}.xml') and not os.path.exists(self.flowpath):
+            # Move the file to the registered directory if not exists
+            copyfile(self.flowpath, f'{dbPath}\\Registered Flows\\{self.name}.xml')
+        self.flowpath = f'{dbPath}\\Registered Flows\\{self.name}.xml'
+        sql = f"SELECT id FROM Registered WHERE name ='{self.name}' AND location='{self.flowpath}'"
+        registered_id = self.db.run_sql(sql=sql, tablename="Registered")
+        if registered_id is None:
+            sql = f"INSERT INTO Registered (name, location) VALUES ('{self.name}','{self.flowpath}');"
+            registered_id = self.db.run_sql(sql=sql, tablename="Registered")
         self.previous_step = None
         output_previous_step = None
         shape_steps = [x for x in steps if x.type == "shape"]
         step = [x for x in shape_steps if x.IsStart == True][0]
+
+        # Log the start in the orchestrator database
+        sql = f"INSERT INTO Workflows (name, registered_id) VALUES ('{self.name}', {registered_id});"
+        self.id = self.db.run_sql(sql=sql, tablename="Workflows")
+        sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'Workflow started', '', 'Started');"
+        self.db.run_sql(sql=sql, tablename="Steps")
         while True:
             try:
                 # to fetch module
@@ -283,8 +414,8 @@ class WorkflowEngine():
                 input = None
                 if hasattr(step, "module"):
                     # Create a record in the orchestrator database
-                    sql = f"INSERT INTO Workflows (uid, name, current_step) VALUES ('{self.uid}', '{self.name}', '{step.name}')"
-                    id = self.db.run_sql(sql=sql, tablename="Workflows")  # execute, commit and return the inserted id
+                    sql = f"INSERT INTO Steps (Workflow, name, step) VALUES ('{self.id}', '{self.name}', '{step.name}');"
+                    id = self.db.run_sql(sql=sql, tablename="Steps")  # execute, commit and return the inserted id
 
                     # region get function call
                     method_to_call = None
@@ -335,6 +466,8 @@ class WorkflowEngine():
                     try:
                         sig = signature(method_to_call)
                     except Exception as e:
+                        # sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'OK. Note: {e}');"
+                        # self.db.run_sql(sql=sql, tablename="Steps")
                         print(e)
                     if str(sig) != "()":
                         input = self.get_parameters_from_shapevalues(step=step, signature=sig)
@@ -347,7 +480,9 @@ class WorkflowEngine():
                         else:
                             try:
                                 output_previous_step = method_to_call(input)
-                            except:
+                            except Exception as e:
+                                # sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'OK. Note: {e}');"
+                                # self.db.run_sql(sql=sql, tablename="Steps")
                                 pass
                     else:
                         output_previous_step = class_object(**input)
@@ -378,6 +513,9 @@ class WorkflowEngine():
                                 loopvar.total_listitems = len(output_previous_step) - 2
                                 loopvar.name = step.output_variable
                         except Exception as e:
+                            sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'Error: {e}');"
+                            self.db.run_sql(sql=sql, tablename="Steps")
+                            self.error = True
                             print(f"Error: {e}")
                     if hasattr(step, "loopcounter") and loopvar is not None:
                         # It's a loop! Overwrite the output_previous_step with the right element
@@ -385,7 +523,7 @@ class WorkflowEngine():
                     # Update the result
                     sql_out = str(output_previous_step).replace("\'", "\'\'")
                     if sql_out != 'None':
-                        sql = f"UPDATE Workflows SET result ='{sql_out}' WHERE id={id};"
+                        sql = f"UPDATE Steps SET result ='{sql_out}' WHERE id={id};"
                         self.db.run_sql(sql)
                     if hasattr(step, "classname"):
                         if len(step.classname) == 0:
@@ -399,9 +537,20 @@ class WorkflowEngine():
                             print(f"{method_to_call.__name__} executed.")
             except Exception as e:
                 print(f"Error: {e}")
-
+                sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'Error: {e}');"
+                self.db.run_sql(sql=sql, tablename="Steps")
+                self.error = True
                 pass
             if step is None:
+                # Flow has ended. Log the end in the orchestrator database.
+                ok = "OK"
+                if self.error:
+                    ok = "Error"
+                sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'Ended', '', '{ok}');"
+                self.db.run_sql(sql=sql, tablename="Steps")
+                # Update the result of the flow
+                sql = f"UPDATE Workflows SET result= '{ok}' where id = {self.id};"
+                self.db.run_sql(sql=sql, tablename="Workflows")
                 break
             if output_previous_step is not None:
                 if str(output_previous_step).startswith("QuerySet"):
@@ -409,6 +558,8 @@ class WorkflowEngine():
                     output_previous_step = list(output_previous_step)
                 self.save_output_variable(step, output_previous_step)
             self.previous_step = copy.deepcopy(step)
+            if self.error:
+                break
             step = self.get_next_step(step, steps, output_previous_step)
 
     def save_output_variable(self, step, output_previous_step):
@@ -496,23 +647,38 @@ class WorkflowEngine():
 
 class SQL():
 
-    def __init__(self):
+    def __init__(self, dbfolder: str):
         """
         Class for SQLite actions on the Orchestrator database.
+        :param dbfolder: The folder of the SQLite orchestrator database
+        :param connection: Optional. The sqlite3.connect connection.
         """
-        self.connection = sqlite3.connect('orchestrator.db')
+        queue = multiprocessing.JoinableQueue()
+        if dbfolder == "\\":
+            return
+        if not dbfolder.endswith("\\"):
+            dbfolder += "\\"
+        self.connection = sqlite3.connect(f'{dbfolder}orchestrator.db')
+        self.connection.execute("PRAGMA foreign_keys = 1")
+        self.connection.execute("PRAGMA JOURNAL_MODE = 'WAL'")
 
     def run_sql(self, sql, tablename: str = ""):
         """
         Run SQL command and commit.
         :param sql: The SQL command to execute.
         :param tablename: Optional. The tablename of the table used in the SQL command, for returning the last id of the primary key column.
+
         :return: The last inserted id of the primary key column
         """
+        if not hasattr(self, "connection"):
+            return
         self.connection.execute(sql)
         self.connection.commit()
         if len(tablename) > 0:
-            return self.get_inserted_id("Workflows")
+            try:
+                return self.get_inserted_id(tablename)
+            except:
+                return None
         else:
             return None
 
@@ -520,6 +686,7 @@ class SQL():
         """
         Get the last inserted id of the primary key column of the table
         :param tablename: The name of the table to get the last id of
+
         :return: The last inserted id of the primary key column
         """
         sql = f"SELECT MAX(id) FROM {tablename};"
@@ -528,15 +695,54 @@ class SQL():
         row = curs.fetchone()
         return int(row[0])
 
+    def commit(self):
+        """
+        Commit any sql statement
+        """
+        self.connection.commit()
+
+    def get_registered_flows(self):
+        """
+        Get a list from all registered flows in the orchestrator database.
+
+        :return: A list of flow names that are registered in the orchestrator database.
+        """
+        sql = "SELECT name FROM Registered;"
+        curs = self.connection.cursor()
+        curs.execute(sql)
+        rows = curs.fetchall()
+        ret = []
+        for rw in rows:
+            ret.append(f"{rw[0]}.xml")
+        return ret
+
+    def remove_registered_flows(self, lst: List=[]):
+        """
+        Removes registered flows from the orchestrator database by maching on the given list of flow-names
+        :param lst: The list with flow names to remove from the database
+        """
+        names ="'" +  "', '".join(lst) + "'"
+        sql = f"DELETE FROM Registered WHERE name IN ({names});"
+        curs = self.connection.cursor()
+        curs.execute(sql)
+        self.connection.commit()
+
     def orchestrator(self):
         """
         Create tables for the Orchestrator database
         """
-        sql = "CREATE TABLE IF NOT EXISTS Workflows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,uid TEXT NOT NULL, parent TEXT, name TEXT NOT NULL,current_step TEXT,result TEXT,timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);"
+        sql = "CREATE TABLE IF NOT EXISTS Registered (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, location TEXT NOT NULL, description TEXT, timestamp DATE DEFAULT (datetime('now','localtime')));"
+        self.run_sql(sql)
+        sql = "CREATE TABLE IF NOT EXISTS Workflows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, registered_id INTEGER NOT NULL, name TEXT NOT NULL, result TEXT, started DATE DEFAULT (datetime('now','localtime')), finished DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_Registered FOREIGN KEY (registered_id) REFERENCES Registered (id) ON DELETE CASCADE);"
+        self.run_sql(sql)
+        sql = "CREATE TABLE IF NOT EXISTS Steps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, workflow INTEGER NOT NULL, parent TEXT, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_Workflow FOREIGN KEY (Workflow) REFERENCES Workflows (id) ON DELETE CASCADE);"
+        self.run_sql(sql)
+        sql = "CREATE TABLE IF NOT EXISTS Triggers (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, registered_id INTEGER NOT NULL, name TEXT NOT NULL, fire_trigger TEXT NOT NULL, time TEXT NOT NULL, expires BOOL, expires_on TEXT, date TEXT, days TEXT, days_of_month TEXT, months TEXT, CONSTRAINT fk_Registered_trigger FOREIGN KEY (registered_id) REFERENCES Registered (id) ON DELETE CASCADE);"
         self.run_sql(sql)
 
 
 # Test
-# engine = WorkflowEngine("c:\\python\\python.exe")
+# engine = WorkflowEngine()
 # doc = engine.open(fr"test_loop.xml")  # c:\\temp\\test.xml
 # steps = engine.get_flow(doc)
+# engine.run_flow(steps)
