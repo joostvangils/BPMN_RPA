@@ -280,6 +280,7 @@ class WorkflowEngine():
                     return None
             return None
         for key, value in signature.parameters.items():
+            attr = None
             if str(key).lower() != "self":
                 try:
                     val = str(getattr(step, str(key).lower()))
@@ -323,7 +324,7 @@ class WorkflowEngine():
                                     elif tv.lower().__contains__(".object"):
                                         val = loopvars[0]
                                     else:
-                                        if isinstance(replace_value, list):
+                                        if isinstance(replace_value, list) and not str(replace_value).__contains__("Message(mime_content="):
                                             if not tv.__contains__("."):
                                                 val = val.replace(tv, replace_value[loopvars[0].counter])
                                             else:
@@ -331,12 +332,17 @@ class WorkflowEngine():
                                                 val = val.replace(tv,getattr(replace_value[loopvars[0].counter], attr))
                                         else:
                                             if str(replace_value).__contains__("Message(mime_content="):
-                                                attr = str(lst[0].split(".")[1]).replace(".", "")
                                                 if isinstance(replace_value, list):
-                                                    val = replace_value[loopvars[0].counter]
+                                                    if tv.__contains__("."):
+                                                        attr = str(lst[0].split(".")[1]).replace(".", "")
+                                                    if loopvars[0].counter <= len(replace_value)-1:
+                                                        val = replace_value[loopvars[0].counter]
+                                                    else:
+                                                        val = replace_value[0]
                                                 else:
                                                     val = replace_value
-                                                val = getattr(val, attr)
+                                                if attr is not None:
+                                                    val = getattr(val, attr)
                                             else:
                                                 val = val.replace(tv, replace_value)
                                 else:
