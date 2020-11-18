@@ -44,17 +44,40 @@ def get_window_object(hwnd):
 
 
 def show_window(win):
-    win32gui.ShowWindow(win.Hwnd, win32con.SW_SHOWNORMAL)
+    try:
+        win32gui.ShowWindow(win.Hwnd, win32con.SW_SHOWNORMAL)
+        return True
+    except win32gui.error:
+        return False
 
 
 def hide_window(win):
-    win32gui.ShowWindow(win.Hwnd, win32con.SW_HIDE)
+    try:
+        win32gui.ShowWindow(win.Hwnd, win32con.SW_HIDE)
+        return True
+    except win32gui.error:
+        return False
 
 
 def close_window(win):
-    win32gui.PostMessage(win.Hwnd, win32con.WM_CLOSE, 0, 0)
+    try:
+        win32gui.PostMessage(win.Hwnd, win32con.WM_CLOSE, 0, 0)
+        return True
+    except win32gui.error:
+        return False
 
 
 def set_foreground_window(win):
-    win32gui.SetForegroundWindow(win.Hwnd)
+    try:
+        win32gui.SetForegroundWindow(win.Hwnd)
+        return True
+    except win32gui.error:
+        return False
 
+
+def set_window_position(win, position):
+    try:
+        win32gui.MoveWindow(win.Hwnd, position[0], position[1], position[2] - position[0], position[3] - position[1], True)
+        return True
+    except win32gui.error:
+        return False
