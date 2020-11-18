@@ -1106,4 +1106,4 @@ def select_trigger_row(active_cell, add_clicks, data):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)

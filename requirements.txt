@@ -1,0 +1,7 @@
+###### Requirements without Version Specifiers ######
+xmltodict
+dash
+dash_core_components
+dash_table
+pandas
+pyautogui

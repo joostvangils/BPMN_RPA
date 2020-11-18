@@ -1,14 +1,12 @@
 import base64
+import copy
 import importlib
 import inspect
 import multiprocessing
 import os
 import site
-import copy
 import sqlite3
-import sys
 import urllib
-import uuid
 import winreg
 import xml.etree.ElementTree as ET
 import zlib
@@ -21,7 +19,7 @@ import xmltodict
 
 class WorkflowEngine():
 
-    def __init__(self, pythonpath: str="", installation_directory: str=""):
+    def __init__(self, pythonpath: str = "", installation_directory: str = ""):
         """
         Class for automating DrawIO diagrams
         :param pythonpath: The full path to the python.exe file
@@ -37,7 +35,8 @@ class WorkflowEngine():
         else:
             dbFolder = self.get_dbPath()
         if dbFolder is None:
-            installdir = input("\nYour installation directory is unknown. Please enter the path of your installation directory: ")
+            installdir = input(
+                "\nYour installation directory is unknown. Please enter the path of your installation directory: ")
             if not str(installdir).endswith("\\"):
                 installdir += "\\"
             if not os.path.exists(installdir):
@@ -48,7 +47,8 @@ class WorkflowEngine():
                 self.set_dbPath(installdir)
                 dbFolder = self.get_dbPath()
         if pythonpath is None:
-            pythonpath = input("\nThe path to your Python.exe file is unknown. Please enter the path to your Python.exe file: ")
+            pythonpath = input(
+                "\nThe path to your Python.exe file is unknown. Please enter the path to your Python.exe file: ")
             if not os.path.exists(pythonpath):
                 self.set_PythonPath(pythonpath)
             if len(pythonpath) == 0:
@@ -59,7 +59,7 @@ class WorkflowEngine():
             os.mkdir(f'{dbFolder}\\Registered Flows')
         self.pythonPath = pythonpath
         self.db = SQL(dbFolder)
-        self.db.orchestrator() # Run the orchestrator database
+        self.db.orchestrator()  # Run the orchestrator database
         self.id = -1  # Holds the ID for our flow
         self.error = False  # Indicator if the flow has any errors in its execution
         self.name = None
@@ -324,12 +324,13 @@ class WorkflowEngine():
                                     elif tv.lower().__contains__(".object"):
                                         val = loopvars[0]
                                     else:
-                                        if isinstance(replace_value, list) and not str(replace_value).__contains__("Message(mime_content="):
+                                        if isinstance(replace_value, list) and not str(replace_value).__contains__(
+                                                "Message(mime_content="):
                                             if not tv.__contains__("."):
                                                 val = val.replace(tv, replace_value[loopvars[0].counter])
                                             else:
                                                 attr = str(lst[0].split(".")[1]).replace(".", "")
-                                                val = val.replace(tv,getattr(replace_value[loopvars[0].counter], attr))
+                                                val = val.replace(tv, getattr(replace_value[loopvars[0].counter], attr))
                                         else:
                                             if str(replace_value).__contains__("Message(mime_content="):
                                                 if isinstance(replace_value, list):
@@ -672,10 +673,12 @@ class WorkflowEngine():
         if str(current_step.type).lower() == "exclusive gateway":
             if output_previous_step:
                 conn = \
-                [x for x in outgoing_connector if (str(x.value).lower() == "true" and x.source == current_step.id)][0]
+                    [x for x in outgoing_connector if (str(x.value).lower() == "true" and x.source == current_step.id)][
+                        0]
             else:
                 conn = \
-                [x for x in outgoing_connector if (str(x.value).lower() == "false" and x.source == current_step.id)][0]
+                    [x for x in outgoing_connector if
+                     (str(x.value).lower() == "false" and x.source == current_step.id)][0]
             retn = [x for x in steps if x.id == conn.target][0]
         if hasattr(retn, "loopcounter"):
             check_loopvar = [x for x in self.loopvariables if x.id == retn.id]
@@ -768,12 +771,12 @@ class SQL():
             ret.append(f"{rw[0]}.xml")
         return ret
 
-    def remove_registered_flows(self, lst: List=[]):
+    def remove_registered_flows(self, lst: List = []):
         """
         Removes registered flows from the orchestrator database by maching on the given list of flow-names
         :param lst: The list with flow names to remove from the database
         """
-        names ="'" +  "', '".join(lst) + "'"
+        names = "'" + "', '".join(lst) + "'"
         sql = f"DELETE FROM Registered WHERE name IN ({names});"
         curs = self.connection.cursor()
         curs.execute(sql)
@@ -791,7 +794,6 @@ class SQL():
         self.run_sql(sql)
         sql = "CREATE TABLE IF NOT EXISTS Triggers (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, registered_id INTEGER NOT NULL, name TEXT NOT NULL, fire_trigger TEXT NOT NULL, time TEXT NOT NULL, expires BOOL, expires_on TEXT, date TEXT, days TEXT, days_of_month TEXT, months TEXT, CONSTRAINT fk_Registered_trigger FOREIGN KEY (registered_id) REFERENCES Registered (id) ON DELETE CASCADE);"
         self.run_sql(sql)
-
 
 # Test
 # engine = WorkflowEngine()
