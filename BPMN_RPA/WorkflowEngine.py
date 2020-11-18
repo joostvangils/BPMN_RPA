@@ -323,7 +323,7 @@ class WorkflowEngine():
                                     elif tv.lower().__contains__(".object"):
                                         val = loopvars[0]
                                     else:
-                                        if isinstance(replace_value, list) and not str(replace_value).__contains__("Message(mime_content="):
+                                        if isinstance(replace_value, list):
                                             if not tv.__contains__("."):
                                                 val = val.replace(tv, replace_value[loopvars[0].counter])
                                             else:
@@ -331,10 +331,12 @@ class WorkflowEngine():
                                                 val = val.replace(tv,getattr(replace_value[loopvars[0].counter], attr))
                                         else:
                                             if str(replace_value).__contains__("Message(mime_content="):
+                                                attr = str(lst[0].split(".")[1]).replace(".", "")
                                                 if isinstance(replace_value, list):
                                                     val = replace_value[loopvars[0].counter]
                                                 else:
                                                     val = replace_value
+                                                val = getattr(val, attr)
                                             else:
                                                 val = val.replace(tv, replace_value)
                                 else:
@@ -522,7 +524,7 @@ class WorkflowEngine():
                             output_previous_step = class_object()
 
                 # set loop variable
-                output_previous_step = self.loopcounter(step, output_previous_step)
+                this_step = self.loopcounter(step, output_previous_step)
 
                 # Update the result
                 sql_out = str(output_previous_step).replace("\'", "\'\'")
@@ -562,13 +564,19 @@ class WorkflowEngine():
                 if str(output_previous_step).startswith("QuerySet"):
                     # If this is Exchangelib output then turn it into list
                     output_previous_step = list(output_previous_step)
-                self.save_output_variable(step, output_previous_step)
+                self.save_output_variable(step, this_step, output_previous_step)
             self.previous_step = copy.deepcopy(step)
             if self.error:
                 break
             step = self.get_next_step(step, steps, output_previous_step)
 
-    def loopcounter(self, step, output_previous_step):
+    def loopcounter(self, step: Any, output_previous_step: Any)-> Any:
+        """
+        Process steps with a loopcounter
+        :param step: The current step object
+        :param output_previous_step: The output of the previous step as object
+        :return: An item from the list that is looped
+        """
         loopvar = None
         if hasattr(step, "loopcounter"):
             # Update the total list count
@@ -597,17 +605,20 @@ class WorkflowEngine():
         else:
             return output_previous_step
 
-    def save_output_variable(self, step, output_previous_step):
+    def save_output_variable(self, step, this_step, output_previous_step):
         """
         Save output variable to list
         :param step: The current step object
+        :param this_step: The current output variable
         :param output_previous_step: The output of the previous step
         """
         if hasattr(step, "output_variable"):
             if len(step.output_variable) > 0 and str(step.output_variable).startswith("%") and str(
                     step.output_variable).endswith("%"):
+                if hasattr(step, "loopcounter"):
+                    this_step = output_previous_step
                 self.variables.update(
-                    {f"{step.output_variable}": output_previous_step})  # Update the variables list
+                    {f"{step.output_variable}": this_step})  # Update the variables list
 
     def loop_items_check(self, loop_variable: str) -> bool:
         """
