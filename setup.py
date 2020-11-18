@@ -15,7 +15,7 @@ if __name__ == "__main__":
         long_description = f.read()
     setuptools.setup(
         name="BPMN_RPA",  # Replace with your own username
-        version="0.0.58",
+        version="0.0.59",
         author="Joost van Gils",
         author_email="joostvangils@1ic.nl",
         description="Robotic Process Automation in Windows by using Diagrams.net BPMN diagrams.",

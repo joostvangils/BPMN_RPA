@@ -1,14 +1,12 @@
 import base64
+import copy
 import importlib
 import inspect
 import multiprocessing
 import os
 import site
-import copy
 import sqlite3
-import sys
 import urllib
-import uuid
 import winreg
 import xml.etree.ElementTree as ET
 import zlib
@@ -21,7 +19,7 @@ import xmltodict
 
 class WorkflowEngine():
 
-    def __init__(self, pythonpath: str="", installation_directory: str=""):
+    def __init__(self, pythonpath: str = "", installation_directory: str = ""):
         """
         Class for automating DrawIO diagrams
         :param pythonpath: The full path to the python.exe file
@@ -37,7 +35,8 @@ class WorkflowEngine():
         else:
             dbFolder = self.get_dbPath()
         if dbFolder is None:
-            installdir = input("\nYour installation directory is unknown. Please enter the path of your installation directory: ")
+            installdir = input(
+                "\nYour installation directory is unknown. Please enter the path of your installation directory: ")
             if not str(installdir).endswith("\\"):
                 installdir += "\\"
             if not os.path.exists(installdir):
@@ -48,7 +47,8 @@ class WorkflowEngine():
                 self.set_dbPath(installdir)
                 dbFolder = self.get_dbPath()
         if pythonpath is None:
-            pythonpath = input("\nThe path to your Python.exe file is unknown. Please enter the path to your Python.exe file: ")
+            pythonpath = input(
+                "\nThe path to your Python.exe file is unknown. Please enter the path to your Python.exe file: ")
             if not os.path.exists(pythonpath):
                 self.set_PythonPath(pythonpath)
             if len(pythonpath) == 0:
@@ -59,7 +59,7 @@ class WorkflowEngine():
             os.mkdir(f'{dbFolder}\\Registered Flows')
         self.pythonPath = pythonpath
         self.db = SQL(dbFolder)
-        self.db.orchestrator() # Run the orchestrator database
+        self.db.orchestrator()  # Run the orchestrator database
         self.id = -1  # Holds the ID for our flow
         self.error = False  # Indicator if the flow has any errors in its execution
         self.name = None
@@ -280,6 +280,7 @@ class WorkflowEngine():
                     return None
             return None
         for key, value in signature.parameters.items():
+            attr = None
             if str(key).lower() != "self":
                 try:
                     val = str(getattr(step, str(key).lower()))
@@ -323,14 +324,28 @@ class WorkflowEngine():
                                     elif tv.lower().__contains__(".object"):
                                         val = loopvars[0]
                                     else:
-                                        if isinstance(replace_value, list):
+                                        if isinstance(replace_value, list) and not str(replace_value).__contains__(
+                                                "Message(mime_content="):
                                             if not tv.__contains__("."):
                                                 val = val.replace(tv, replace_value[loopvars[0].counter])
                                             else:
                                                 attr = str(lst[0].split(".")[1]).replace(".", "")
-                                                val = val.replace(tv,getattr(replace_value[loopvars[0].counter], attr))
+                                                val = val.replace(tv, getattr(replace_value[loopvars[0].counter], attr))
                                         else:
-                                            val = val.replace(tv, replace_value)
+                                            if str(replace_value).__contains__("Message(mime_content="):
+                                                if isinstance(replace_value, list):
+                                                    if tv.__contains__("."):
+                                                        attr = str(lst[0].split(".")[1]).replace(".", "")
+                                                    if loopvars[0].counter <= len(replace_value)-1:
+                                                        val = replace_value[loopvars[0].counter]
+                                                    else:
+                                                        val = replace_value[0]
+                                                else:
+                                                    val = replace_value
+                                                if attr is not None:
+                                                    val = getattr(val, attr)
+                                            else:
+                                                val = val.replace(tv, replace_value)
                                 else:
                                     if tv.__contains__("[") and tv.__contains__("]"):
                                         if isinstance(replace_value, list):
@@ -408,15 +423,20 @@ class WorkflowEngine():
             try:
                 # to fetch module
                 class_object = None
-                module_object = self
+                module_object = None
                 method_to_call = None
                 sig = None
                 input = None
+                if hasattr(step, "name"):
+                    if len(step.name) == 0:
+                        if hasattr(step, "type"):
+                            print(f"Passing an {step.type} with value {output_previous_step}...")
+                    else:
+                        print(f"Executing step '{step.name}'...")
                 if hasattr(step, "module"):
                     # Create a record in the orchestrator database
                     sql = f"INSERT INTO Steps (Workflow, name, step) VALUES ('{self.id}', '{self.name}', '{step.name}');"
                     id = self.db.run_sql(sql=sql, tablename="Steps")  # execute, commit and return the inserted id
-
                     # region get function call
                     method_to_call = None
                     if self.step_has_direct_variables(step):
@@ -443,8 +463,8 @@ class WorkflowEngine():
                                 else:
                                     module_object = importlib.import_module(step.module)
                         if hasattr(step, "classname"):
-                            if hasattr(module_object, step.classname):
-                                class_object = getattr(module_object, step.classname)
+                            if hasattr(module_object, str(step.classname).lower()):
+                                class_object = getattr(module_object, str(step.classname).lower())
                                 if hasattr(step, "function"):
                                     if len(step.function) > 0:
                                         method_to_call = getattr(class_object, step.function)
@@ -459,8 +479,16 @@ class WorkflowEngine():
                         else:
                             method_to_call = getattr(module_object, step.function)
                 else:
-                    if hasattr(step, "function"):
-                        method_to_call = getattr(module_object, step.function)
+                    if module_object is None and hasattr(step, "classname"):
+                        if str(step.classname).startswith("%") and str(step.classname).endswith("%"):
+                            class_object = self.variables.get(step.classname)
+                            if len(step.function) > 0:
+                                method_to_call = getattr(class_object, step.function)
+                    else:
+                        if module_object is None:
+                            module_object = self
+                        if hasattr(step, "function"):
+                            method_to_call = getattr(module_object, step.function)
 
                 if method_to_call is not None:
                     try:
@@ -502,39 +530,26 @@ class WorkflowEngine():
                         if class_object is not None:
                             output_previous_step = class_object()
 
-                    # set loop variable
-                    if hasattr(step, "loopcounter"):
-                        # Update the total list count
-                        try:
-                            loopvar = [x for x in self.loopvariables if x.id == step.id][0]
-                            loopvar.start = int(step.loopcounter)  # set start of counter
-                            if int(loopvar.counter) <= loopvar.start:
-                                loopvar.counter = int(loopvar.start)
-                                loopvar.total_listitems = len(output_previous_step) - 2
-                                loopvar.name = step.output_variable
-                        except Exception as e:
-                            sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'Error: {e}');"
-                            self.db.run_sql(sql=sql, tablename="Steps")
-                            self.error = True
-                            print(f"Error: {e}")
-                    if hasattr(step, "loopcounter") and loopvar is not None:
-                        # It's a loop! Overwrite the output_previous_step with the right element
-                        output_previous_step = output_previous_step[loopvar.counter]
-                    # Update the result
-                    sql_out = str(output_previous_step).replace("\'", "\'\'")
-                    if sql_out != 'None':
-                        sql = f"UPDATE Steps SET result ='{sql_out}' WHERE id={id};"
-                        self.db.run_sql(sql)
-                    if hasattr(step, "classname"):
-                        if len(step.classname) == 0:
-                            if hasattr(step, "function"):
-                                print(f"{method_to_call.__name__} executed.")
-                        else:
-                            if hasattr(step, "function"):
-                                print(f"{class_object.__class__.__name__}.{method_to_call.__name__} executed.")
-                    else:
+                # set loop variable
+                this_step = self.loopcounter(step, output_previous_step)
+
+                # Update the result
+                sql_out = str(output_previous_step).replace("\'", "\'\'")
+                if sql_out != 'None':
+                    if sql_out.startswith("Message(mime_content"):
+                        sql_out = "Next email message"
+                    sql = f"UPDATE Steps SET result ='{sql_out}' WHERE id={id};"
+                    self.db.run_sql(sql)
+                if hasattr(step, "classname"):
+                    if len(step.classname) == 0:
                         if hasattr(step, "function"):
                             print(f"{method_to_call.__name__} executed.")
+                    else:
+                        if hasattr(step, "function"):
+                            print(f"{class_object.__class__.__name__}.{method_to_call.__name__} executed.")
+                else:
+                    if hasattr(step, "function"):
+                        print(f"{method_to_call.__name__} executed.")
             except Exception as e:
                 print(f"Error: {e}")
                 sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'Error: {e}');"
@@ -556,23 +571,61 @@ class WorkflowEngine():
                 if str(output_previous_step).startswith("QuerySet"):
                     # If this is Exchangelib output then turn it into list
                     output_previous_step = list(output_previous_step)
-                self.save_output_variable(step, output_previous_step)
+                self.save_output_variable(step, this_step, output_previous_step)
             self.previous_step = copy.deepcopy(step)
             if self.error:
                 break
             step = self.get_next_step(step, steps, output_previous_step)
 
-    def save_output_variable(self, step, output_previous_step):
+    def loopcounter(self, step: Any, output_previous_step: Any)-> Any:
+        """
+        Process steps with a loopcounter
+        :param step: The current step object
+        :param output_previous_step: The output of the previous step as object
+        :return: An item from the list that is looped
+        """
+        loopvar = None
+        if hasattr(step, "loopcounter"):
+            # Update the total list count
+            try:
+                loopvar = [x for x in self.loopvariables if x.id == step.id][0]
+                loopvar.start = int(step.loopcounter)  # set start of counter
+                if int(loopvar.counter) <= loopvar.start:
+                    loopvar.counter = int(loopvar.start)
+                    if str(output_previous_step).startswith("QuerySet"):
+                        output_previous_step = list(output_previous_step)
+                    loopvar.total_listitems = len(output_previous_step) - 2
+                    loopvar.name = step.output_variable
+            except Exception as e:
+                sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'Error: {e}');"
+                self.db.run_sql(sql=sql, tablename="Steps")
+                self.error = True
+                print(f"Error: {e}")
+            if hasattr(step, "loopcounter") and loopvar is not None and not str(output_previous_step).startswith("QuerySet"):
+                # It's a loop! Overwrite the output_previous_step with the right element
+                return output_previous_step[loopvar.counter]
+            else:
+                if str(output_previous_step).startswith("QuerySet"):
+                    return list(output_previous_step)[0]
+                else:
+                    return output_previous_step
+        else:
+            return output_previous_step
+
+    def save_output_variable(self, step, this_step, output_previous_step):
         """
         Save output variable to list
         :param step: The current step object
+        :param this_step: The current output variable
         :param output_previous_step: The output of the previous step
         """
         if hasattr(step, "output_variable"):
             if len(step.output_variable) > 0 and str(step.output_variable).startswith("%") and str(
                     step.output_variable).endswith("%"):
+                if hasattr(step, "loopcounter"):
+                    this_step = output_previous_step
                 self.variables.update(
-                    {f"{step.output_variable}": output_previous_step})  # Update the variables list
+                    {f"{step.output_variable}": this_step})  # Update the variables list
 
     def loop_items_check(self, loop_variable: str) -> bool:
         """
@@ -600,7 +653,7 @@ class WorkflowEngine():
         col_conn = []
         connectors = [x for x in steps if x.type == "connector"]
         try:
-            if current_step.type == "exclusive gateway":
+            if str(current_step.type).lower() == "exclusive gateway":
                 outgoing_connector = [x for x in connectors if x.source == current_step.id]
             else:
                 outgoing_connector = [x for x in connectors if x.source == current_step.id][0]
@@ -613,17 +666,19 @@ class WorkflowEngine():
             col_conn = [x for x in shapes if x.id == outgoing_connector.target]
         if len(col_conn) > 0:
             retn = col_conn[0]
-        if retn is None and current_step.type != "exclusive gateway":
+        if retn is None and str(current_step.type).lower() != "exclusive gateway":
             # Next step is a Gateway
             # incoming_connector = [x for x in connectors if x.source == current_step.id][0]
             retn = [x for x in steps if x.id == outgoing_connector.target][0]
-        if current_step.type == "exclusive gateway":
+        if str(current_step.type).lower() == "exclusive gateway":
             if output_previous_step:
                 conn = \
-                [x for x in outgoing_connector if (str(x.value).lower() == "true" and x.source == current_step.id)][0]
+                    [x for x in outgoing_connector if (str(x.value).lower() == "true" and x.source == current_step.id)][
+                        0]
             else:
                 conn = \
-                [x for x in outgoing_connector if (str(x.value).lower() == "false" and x.source == current_step.id)][0]
+                    [x for x in outgoing_connector if
+                     (str(x.value).lower() == "false" and x.source == current_step.id)][0]
             retn = [x for x in steps if x.id == conn.target][0]
         if hasattr(retn, "loopcounter"):
             check_loopvar = [x for x in self.loopvariables if x.id == retn.id]
@@ -716,12 +771,12 @@ class SQL():
             ret.append(f"{rw[0]}.xml")
         return ret
 
-    def remove_registered_flows(self, lst: List=[]):
+    def remove_registered_flows(self, lst: List = []):
         """
         Removes registered flows from the orchestrator database by maching on the given list of flow-names
         :param lst: The list with flow names to remove from the database
         """
-        names ="'" +  "', '".join(lst) + "'"
+        names = "'" + "', '".join(lst) + "'"
         sql = f"DELETE FROM Registered WHERE name IN ({names});"
         curs = self.connection.cursor()
         curs.execute(sql)
@@ -739,7 +794,6 @@ class SQL():
         self.run_sql(sql)
         sql = "CREATE TABLE IF NOT EXISTS Triggers (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, registered_id INTEGER NOT NULL, name TEXT NOT NULL, fire_trigger TEXT NOT NULL, time TEXT NOT NULL, expires BOOL, expires_on TEXT, date TEXT, days TEXT, days_of_month TEXT, months TEXT, CONSTRAINT fk_Registered_trigger FOREIGN KEY (registered_id) REFERENCES Registered (id) ON DELETE CASCADE);"
         self.run_sql(sql)
-
 
 # Test
 # engine = WorkflowEngine()
