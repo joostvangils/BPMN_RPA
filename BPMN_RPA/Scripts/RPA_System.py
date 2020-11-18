@@ -12,3 +12,16 @@ def screenshot(path: str) -> str:
     myScreenshot.save(path)
     return path
 
+
+def run_python_code(code):
+    """
+    Dynamically run Python code
+    :param code: The code to run
+    :return: OK, or exception when an error occurs
+    """
+    try:
+        ret = exec(code)
+        return ret
+    except Exception as ex:
+        return ex
+
