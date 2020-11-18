@@ -12,5 +12,6 @@ BPMN_RPA/Scripts/Hello_World.py
 BPMN_RPA/Scripts/MessageBox.py
 BPMN_RPA/Scripts/RPA_Keyboard.py
 BPMN_RPA/Scripts/RPA_Mouse.py
-BPMN_RPA/Scripts/RPA_system.py
+BPMN_RPA/Scripts/RPA_System.py
+BPMN_RPA/Scripts/RPA_Windows.py
 BPMN_RPA/Scripts/__init__.py
