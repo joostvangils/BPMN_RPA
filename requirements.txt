@@ -1,10 +1,9 @@
 ###### Requirements without Version Specifiers ######
-Brotli
-pyqt5-tools
 xmltodict
 dash
 dash_core_components
 dash_table
 pandas
 pyautogui
+pywin32
 
