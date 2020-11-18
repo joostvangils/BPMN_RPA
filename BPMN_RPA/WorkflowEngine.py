@@ -586,11 +586,14 @@ class WorkflowEngine():
                 self.db.run_sql(sql=sql, tablename="Steps")
                 self.error = True
                 print(f"Error: {e}")
-            if hasattr(step, "loopcounter") and loopvar is not None:
+            if hasattr(step, "loopcounter") and loopvar is not None and not str(output_previous_step).startswith("QuerySet"):
                 # It's a loop! Overwrite the output_previous_step with the right element
                 return output_previous_step[loopvar.counter]
             else:
-                return output_previous_step
+                if str(output_previous_step).startswith("QuerySet"):
+                    return list(output_previous_step)[0]
+                else:
+                    return output_previous_step
         else:
             return output_previous_step
 
