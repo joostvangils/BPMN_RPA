@@ -360,7 +360,7 @@ class WorkflowEngine():
                                             val = getattr(replace_value, attr)
                                     else:
                                         val = val.replace(tv, str(replace_value))
-                mapping[str(key).lower()] = val
+                mapping[str(key)] = val
         if returnNone:
             return None
         else:
