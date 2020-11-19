@@ -463,8 +463,11 @@ class WorkflowEngine():
                                 else:
                                     module_object = importlib.import_module(step.module)
                         if hasattr(step, "classname"):
-                            if hasattr(module_object, str(step.classname).lower()):
-                                class_object = getattr(module_object, str(step.classname).lower())
+                            if hasattr(module_object, str(step.classname).lower()) or hasattr(module_object, str(step.classname)):
+                                if hasattr(module_object, str(step.classname).lower()):
+                                    class_object = getattr(module_object, str(step.classname).lower())
+                                else:
+                                    class_object = getattr(module_object, str(step.classname))
                                 if hasattr(step, "function"):
                                     if len(step.function) > 0:
                                         method_to_call = getattr(class_object, step.function)
@@ -475,7 +478,9 @@ class WorkflowEngine():
                                         method_to_call = getattr(class_object, step.function)
 
                                 else:
-                                    method_to_call = getattr(module_object, step.function)
+                                    if hasattr(step, "function"):
+                                        method_to_call = getattr(module_object, step.function)
+
                         else:
                             method_to_call = getattr(module_object, step.function)
                 else:
