@@ -353,11 +353,11 @@ class WorkflowEngine():
                                             if nr.isnumeric():
                                                 val = val.replace(tv, replace_value[int(nr)])
                                     elif tv.__contains__("."):
-                                        attr = str(lst[0].split(".")[1]).replace(".", "")
-                                        if isinstance(replace_value, dict):
-                                            val = replace_value.get(attr)
-                                        if isinstance(replace_value, object) and not isinstance(replace_value, dict):
-                                            val = getattr(replace_value, attr)
+                                        replace_value = self.get_attribute_value(lst[0], replace_value)
+                                        if isinstance(replace_value, str):
+                                            val = val.replace(tv, str(replace_value))
+                                        else:
+                                            val = replace_value
                                     else:
                                         val = val.replace(tv, str(replace_value))
                 mapping[str(key)] = val
@@ -365,6 +365,24 @@ class WorkflowEngine():
             return None
         else:
             return mapping
+
+    def get_attribute_value(self,lst: list, replace_value: Any) -> Any:
+        """
+        Get an attribute value from a replace value (object)
+        :param lst: The attribute list
+        :param replace_value: The replace value object
+        :return: The attribute value or object
+        """
+        val = None
+        lst_ = lst.split(".")[1:]
+        for attr in lst_:
+            if val is not None:
+                replace_value = val
+            if isinstance(replace_value, dict):
+                val = replace_value.get(attr)
+            if isinstance(replace_value, object) and not isinstance(replace_value, dict):
+                val = getattr(replace_value, attr)
+        return val
 
     def step_has_direct_variables(self, step: Any) -> bool:
         """
