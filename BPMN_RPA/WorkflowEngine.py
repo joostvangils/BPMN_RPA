@@ -329,8 +329,11 @@ class WorkflowEngine():
                                             if not tv.__contains__("."):
                                                 val = val.replace(tv, replace_value[loopvars[0].counter])
                                             else:
-                                                attr = str(lst[0].split(".")[1]).replace(".", "")
-                                                val = val.replace(tv, getattr(replace_value[loopvars[0].counter], attr))
+                                                replace_value = self.get_attribute_value(lst[0], replace_value[loopvars[0].counter])
+                                                if isinstance(replace_value, str):
+                                                    val = val.replace(tv, str(replace_value))
+                                                else:
+                                                    val = replace_value
                                         else:
                                             if str(replace_value).__contains__("Message(mime_content="):
                                                 if isinstance(replace_value, list):
