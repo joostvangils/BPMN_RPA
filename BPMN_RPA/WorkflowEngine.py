@@ -486,6 +486,8 @@ class WorkflowEngine():
                             if str(step.module).lower().__contains__(".py"):
                                 spec = importlib.util.spec_from_file_location(step.module, step.module)
                                 module_object = importlib.util.module_from_spec(spec)
+                                if module_object is None:
+                                    raise Exception (f"The module '{step.module}' could not be loaded. Check the path...")
                                 spec.loader.exec_module(module_object)
                             else:
                                 if len(step.module) == 0:
@@ -564,7 +566,10 @@ class WorkflowEngine():
                                 output_previous_step = class_object()
                         else:
                             if class_object is not None:
-                                output_previous_step = class_object()
+                                if inspect.isclass(class_object):
+                                    output_previous_step = class_object
+                                else:
+                                    output_previous_step = class_object()
 
                 # set loop variable
                 this_step = self.loopcounter(step, output_previous_step)
@@ -589,8 +594,11 @@ class WorkflowEngine():
                         else:
                             print(f"{step.name} executed.")
                 else:
-                    if hasattr(step, "function"):
+                    if hasattr(step, "function") and method_to_call is not None:
                         print(f"{method_to_call.__name__} executed.")
+                    else:
+                        if hasattr(step, "name"):
+                            print(f"{step.name} executed.")
             except Exception as e:
                 print(f"Error: {e}")
                 try:
