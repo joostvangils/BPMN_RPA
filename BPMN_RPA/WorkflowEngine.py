@@ -527,19 +527,24 @@ class WorkflowEngine():
 
                 if method_to_call is not None:
                     input = self.get_input_from_signature(step, method_to_call)
+                if method_to_call is None and class_object is not None:
+                    input = self.get_input_from_signature(step, class_object)
 
                 # execute function call and get returned values
                 if input is not None and not IsInLoop:
-                    if len(step.function) > 0:
-                        if isinstance(input, dict):
-                            output_previous_step = method_to_call(**input)
+                    if hasattr(step, "function"):
+                        if len(step.function) > 0:
+                            if isinstance(input, dict):
+                                output_previous_step = method_to_call(**input)
+                            else:
+                                try:
+                                    output_previous_step = method_to_call(input)
+                                except Exception as e:
+                                    # sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'OK. Note: {e}');"
+                                    # self.db.run_sql(sql=sql, tablename="Steps")
+                                    pass
                         else:
-                            try:
-                                output_previous_step = method_to_call(input)
-                            except Exception as e:
-                                # sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'OK. Note: {e}');"
-                                # self.db.run_sql(sql=sql, tablename="Steps")
-                                pass
+                            output_previous_step = class_object(**input)
                     else:
                         output_previous_step = class_object(**input)
                 else:
