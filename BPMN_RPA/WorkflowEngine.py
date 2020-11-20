@@ -346,10 +346,10 @@ class WorkflowEngine():
                                                         val = replace_value[loopvars[0].counter]
                                                     else:
                                                         val = replace_value[0]
+                                                    val = self.get_attribute_value(lst[0], val)
+                                                    #val = replace_value
                                                 else:
                                                     val = replace_value
-                                                if attr is not None:
-                                                    val = getattr(val, attr)
                                             else:
                                                 replace_value = self.get_attribute_value(lst[0], replace_value)
                                                 val = val.replace(tv, replace_value)
@@ -459,10 +459,11 @@ class WorkflowEngine():
                             print(f"Passing an {step.type} with value {output_previous_step}...")
                     else:
                         print(f"Executing step '{step.name}'...")
-                loopkvp = [kvp for kvp in self.loopvariables if kvp.id == step.id]
-                if loopkvp:
-                    if loopkvp[0].counter > 0 and loopkvp[0].counter > loopkvp[0].start:
-                        IsInLoop = True
+                if step is not None:
+                    loopkvp = [kvp for kvp in self.loopvariables if kvp.id == step.id]
+                    if loopkvp:
+                        if loopkvp[0].counter > 0 and loopkvp[0].counter > loopkvp[0].start:
+                            IsInLoop = True
                 if hasattr(step, "module"):
                     # Create a record in the orchestrator database
                     sql = f"INSERT INTO Steps (Workflow, name, step) VALUES ('{self.id}', '{self.name}', '{step.name}');"
@@ -567,8 +568,6 @@ class WorkflowEngine():
                         else:
                             if class_object is not None:
                                 if inspect.isclass(class_object):
-                                    output_previous_step = class_object
-                                else:
                                     output_previous_step = class_object()
 
                 # set loop variable
