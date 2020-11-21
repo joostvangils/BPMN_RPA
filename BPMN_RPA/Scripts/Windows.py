@@ -81,3 +81,7 @@ def set_window_position(win, position):
         return True
     except win32gui.error:
         return False
+
+
+def focus_window(win):
+    win32gui.SetFocus(win.Hwnd)

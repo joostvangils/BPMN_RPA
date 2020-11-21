@@ -346,10 +346,10 @@ class WorkflowEngine():
                                                         val = replace_value[loopvars[0].counter]
                                                     else:
                                                         val = replace_value[0]
+                                                    val = self.get_attribute_value(lst[0], val)
+                                                    #val = replace_value
                                                 else:
                                                     val = replace_value
-                                                if attr is not None:
-                                                    val = getattr(val, attr)
                                             else:
                                                 replace_value = self.get_attribute_value(lst[0], replace_value)
                                                 val = val.replace(tv, replace_value)
@@ -459,10 +459,11 @@ class WorkflowEngine():
                             print(f"Passing an {step.type} with value {output_previous_step}...")
                     else:
                         print(f"Executing step '{step.name}'...")
-                loopkvp = [kvp for kvp in self.loopvariables if kvp.id == step.id]
-                if loopkvp:
-                    if loopkvp[0].counter > 0 and loopkvp[0].counter > loopkvp[0].start:
-                        IsInLoop = True
+                if step is not None:
+                    loopkvp = [kvp for kvp in self.loopvariables if kvp.id == step.id]
+                    if loopkvp:
+                        if loopkvp[0].counter > 0 and loopkvp[0].counter > loopkvp[0].start:
+                            IsInLoop = True
                 if hasattr(step, "module"):
                     # Create a record in the orchestrator database
                     sql = f"INSERT INTO Steps (Workflow, name, step) VALUES ('{self.id}', '{self.name}', '{step.name}');"
@@ -486,6 +487,8 @@ class WorkflowEngine():
                             if str(step.module).lower().__contains__(".py"):
                                 spec = importlib.util.spec_from_file_location(step.module, step.module)
                                 module_object = importlib.util.module_from_spec(spec)
+                                if module_object is None:
+                                    raise Exception (f"The module '{step.module}' could not be loaded. Check the path...")
                                 spec.loader.exec_module(module_object)
                             else:
                                 if len(step.module) == 0:
@@ -527,19 +530,24 @@ class WorkflowEngine():
 
                 if method_to_call is not None:
                     input = self.get_input_from_signature(step, method_to_call)
+                if method_to_call is None and class_object is not None:
+                    input = self.get_input_from_signature(step, class_object)
 
                 # execute function call and get returned values
                 if input is not None and not IsInLoop:
-                    if len(step.function) > 0:
-                        if isinstance(input, dict):
-                            output_previous_step = method_to_call(**input)
+                    if hasattr(step, "function"):
+                        if len(step.function) > 0:
+                            if isinstance(input, dict):
+                                output_previous_step = method_to_call(**input)
+                            else:
+                                try:
+                                    output_previous_step = method_to_call(input)
+                                except Exception as e:
+                                    # sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'OK. Note: {e}');"
+                                    # self.db.run_sql(sql=sql, tablename="Steps")
+                                    pass
                         else:
-                            try:
-                                output_previous_step = method_to_call(input)
-                            except Exception as e:
-                                # sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'OK. Note: {e}');"
-                                # self.db.run_sql(sql=sql, tablename="Steps")
-                                pass
+                            output_previous_step = class_object(**input)
                     else:
                         output_previous_step = class_object(**input)
                 else:
@@ -559,7 +567,8 @@ class WorkflowEngine():
                                 output_previous_step = class_object()
                         else:
                             if class_object is not None:
-                                output_previous_step = class_object()
+                                if inspect.isclass(class_object):
+                                    output_previous_step = class_object()
 
                 # set loop variable
                 this_step = self.loopcounter(step, output_previous_step)
@@ -584,8 +593,11 @@ class WorkflowEngine():
                         else:
                             print(f"{step.name} executed.")
                 else:
-                    if hasattr(step, "function"):
+                    if hasattr(step, "function") and method_to_call is not None:
                         print(f"{method_to_call.__name__} executed.")
+                    else:
+                        if hasattr(step, "name"):
+                            print(f"{step.name} executed.")
             except Exception as e:
                 print(f"Error: {e}")
                 try:
