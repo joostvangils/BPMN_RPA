@@ -332,7 +332,10 @@ class WorkflowEngine():
                                                 else:
                                                     val = val.replace(tv, replace_value[loopvars[0].counter])
                                             else:
-                                                replace_value = self.get_attribute_value(lst[0], replace_value[loopvars[0].counter])
+                                                if loopvars[0].counter < len(replace_value):
+                                                    replace_value = self.get_attribute_value(lst[0], replace_value[loopvars[0].counter])
+                                                else:
+                                                    replace_value = self.get_attribute_value(lst[0], replace_value[0])
                                                 if isinstance(replace_value, str):
                                                     val = val.replace(tv, str(replace_value))
                                                 else:
@@ -366,7 +369,12 @@ class WorkflowEngine():
                                         else:
                                             val = replace_value
                                     else:
-                                        val = val.replace(tv, str(replace_value))
+                                        if isinstance(replace_value, list):
+                                            val = replace_value
+                                        elif isinstance(replace_value, str):
+                                            val = val.replace(tv, str(replace_value))
+                                        else:
+                                            val = replace_value
                 mapping[str(key)] = val
         if returnNone:
             return None
