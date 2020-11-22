@@ -6,13 +6,13 @@ if len(sys.argv) != 2:
     exit(-1)
 
 pad = sys.argv[1]
-flow = pad.lower().replace(".xml","") + ".xml"
+flow = pad.lower().replace(".xml", "") + ".xml"
 if os.path.exists(flow):
     with open(flow,'r') as f:
         inhoud=f.read()
     if inhoud.startswith("<mxfile "):
         engine = WorkflowEngine()
-        doc = engine.open(fr"d:\Runtime\{otap}\BPMN\{pad}")
+        doc = engine.open(pad)
         steps = engine.get_flow(doc)
         engine.run_flow(steps)
     else:
