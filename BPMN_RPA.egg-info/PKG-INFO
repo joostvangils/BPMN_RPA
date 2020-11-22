@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: BPMN-RPA
-Version: 1.0.2
+Version: 1.0.3
 Summary: Robotic Process Automation in Windows by using Diagrams.net BPMN diagrams.
 Home-page: https://github.com/joostvangils/BPMN_RPA
 Author: Joost van Gils
@@ -116,7 +116,7 @@ Description: # BPMN_RPA
         
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
-Classifier: License :: OSI Approved :: Apache Software License
+Classifier: License :: OSI Approved :: GPL-3.0-only
 Classifier: Operating System :: Microsoft
 Requires-Python: >=3.6
 Description-Content-Type: text/markdown

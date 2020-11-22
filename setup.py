@@ -28,7 +28,7 @@ if __name__ == "__main__":
         #install_requires=parse_requirements("requirements.txt"),
         classifiers=[
             "Programming Language :: Python :: 3",
-            "License :: OSI Approved :: GPL-3.0-only",
+            "License :: OSI Approved :: GNU AGPLv3",
             "Operating System :: Microsoft",
         ],
         python_requires='>=3.6',
