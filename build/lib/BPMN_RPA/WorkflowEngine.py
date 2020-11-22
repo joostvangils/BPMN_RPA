@@ -4,12 +4,14 @@ import importlib
 import inspect
 import multiprocessing
 import os
+import re
 import site
 import sqlite3
 import urllib
 import winreg
 import xml.etree.ElementTree as ET
 import zlib
+from datetime import datetime
 from inspect import signature
 from shutil import copyfile
 from typing import List, Any
@@ -446,12 +448,16 @@ class WorkflowEngine():
         output_previous_step = None
         shape_steps = [x for x in steps if x.type == "shape"]
         step = [x for x in shape_steps if x.IsStart == True][0]
+        step_nr = 0
+        step_time = datetime.now().strftime("%H:%M:%S")
 
         # Log the start in the orchestrator database
         sql = f"INSERT INTO Workflows (name, registered_id) VALUES ('{self.name}', {registered_id});"
         self.id = self.db.run_sql(sql=sql, tablename="Workflows")
         sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'Workflow started', '', 'Started');"
         self.db.run_sql(sql=sql, tablename="Steps")
+        start_result = f"{step_time}: Starting flow '{self.name}'..."
+        print(start_result)
         while True:
             try:
                 # to fetch module
@@ -462,11 +468,16 @@ class WorkflowEngine():
                 input = None
                 IsInLoop = False
                 if hasattr(step, "name"):
+                    step_time = datetime.now().strftime("%H:%M:%S")
+                    step_nr += 1
+                    start_result = ""
                     if len(step.name) == 0:
                         if hasattr(step, "type"):
-                            print(f"Passing an {step.type} with value {output_previous_step}...")
+                            start_result = f"{step_time}: Step {step_nr} - Passing an {step.type} with value {output_previous_step}..."
+                            print(start_result)
                     else:
-                        print(f"Executing step '{step.name}'...")
+                        start_result = f"{step_time}: Step {step_nr} - Executing step '{step.name}'..."
+                        print(start_result)
                 if step is not None:
                     loopkvp = [kvp for kvp in self.loopvariables if kvp.id == step.id]
                     if loopkvp:
@@ -474,7 +485,8 @@ class WorkflowEngine():
                             IsInLoop = True
                 if hasattr(step, "module"):
                     # Create a record in the orchestrator database
-                    sql = f"INSERT INTO Steps (Workflow, name, step) VALUES ('{self.id}', '{self.name}', '{step.name}');"
+                    start_result = start_result.replace("'", "\"")
+                    sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running, {start_result}', 'None');"
                     id = self.db.run_sql(sql=sql, tablename="Steps")  # execute, commit and return the inserted id
                     # region get function call
                     method_to_call = None
@@ -496,7 +508,8 @@ class WorkflowEngine():
                                 spec = importlib.util.spec_from_file_location(step.module, step.module)
                                 module_object = importlib.util.module_from_spec(spec)
                                 if module_object is None:
-                                    raise Exception (f"The module '{step.module}' could not be loaded. Check the path...")
+                                    step_time = datetime.now().strftime("%H:%M:%S")
+                                    raise Exception (f"{step_time}: The module '{step.module}' could not be loaded. Check the path...")
                                 spec.loader.exec_module(module_object)
                             else:
                                 if len(step.module) == 0:
@@ -585,31 +598,43 @@ class WorkflowEngine():
 
 
                 # Update the result
+                step_time = datetime.now().strftime("%H:%M:%S")
                 sql_out = str(output_previous_step).replace("\'", "\'\'")
-                if sql_out != 'None':
-                    if sql_out.startswith("Message(mime_content"):
-                        sql_out = "Next email message"
-                    sql = f"UPDATE Steps SET result ='{sql_out}' WHERE id={id};"
-                    self.db.run_sql(sql)
+                end_result = ""
                 if hasattr(step, "classname"):
                     if len(step.classname) == 0:
                         if hasattr(step, "function"):
-                            print(f"{method_to_call.__name__} executed.")
+                            end_result = f"{step_time}: Step {step_nr} - {method_to_call.__name__} executed."
+                            print(end_result)
                     else:
                         if hasattr(step, "function") and class_object is not None:
-                            print(f"{class_object.__class__.__name__}.{method_to_call.__name__} executed.")
+                            end_result = f"{step_time}: Step {step_nr} - {class_object.__class__.__name__}.{method_to_call.__name__} executed."
+                            print(end_result)
                         else:
-                            print(f"{step.name} executed.")
+                            if step.name is not None:
+                                if len(step.name) > 0:
+                                    end_result = f"{step_time}: Step {step_nr} - {step.name} executed."
+                                    print(end_result)
                 else:
                     if hasattr(step, "function") and method_to_call is not None:
-                        print(f"{method_to_call.__name__} executed.")
+                        end_result = f"{step_time}: Step {step_nr} - {method_to_call.__name__} executed."
+                        print(end_result)
                     else:
                         if hasattr(step, "name"):
-                            print(f"{step.name} executed.")
+                            if len(step.name) > 0:
+                                end_result = f"{step_time}: Step {step_nr} - {step.name} executed."
+                                print(end_result)
+                if sql_out != 'None':
+                    end_result = end_result.replace("'", "\"")
+                    if sql_out.startswith("Message(mime_content"):
+                        sql_out = "Next email message"
+                    if hasattr(step, "name"):
+                        sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running, {end_result}', '{sql_out}');"
+                        self.db.run_sql(sql)
             except Exception as e:
                 print(f"Error: {e}")
                 try:
-                    sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'Error: {e}');"
+                    sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running, {end_result}', '', 'Error: {e}');"
                     self.db.run_sql(sql=sql, tablename="Steps")
                 except:
                     pass
@@ -620,7 +645,10 @@ class WorkflowEngine():
                 ok = "OK"
                 if self.error:
                     ok = "Error"
-                sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'Ended', '', '{ok}');"
+                sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'End', 'Ended', '{ok}');"
+                step_time = datetime.now().strftime("%H:%M:%S")
+                end_result = f"{step_time}: Flow '{self.name}' ended with result '{ok}'."
+                print(end_result)
                 self.db.run_sql(sql=sql, tablename="Steps")
                 # Update the result of the flow
                 sql = f"UPDATE Workflows SET result= '{ok}' where id = {self.id};"
@@ -876,6 +904,6 @@ class SQL():
 
 # Test
 # engine = WorkflowEngine()
-# doc = engine.open(fr"test_loop.xml")  # c:\\temp\\test.xml
+# doc = engine.open(fr"c:\\temp\\test2.xml")  # c:\\temp\\test.xml
 # steps = engine.get_flow(doc)
 # engine.run_flow(steps)

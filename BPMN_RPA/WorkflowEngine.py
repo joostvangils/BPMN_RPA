@@ -642,12 +642,12 @@ class WorkflowEngine():
                 pass
             if step is None:
                 # Flow has ended. Log the end in the orchestrator database.
-                ok = "OK"
+                ok = "The flow was executed without errors."
                 if self.error:
-                    ok = "Error"
+                    ok = "The flow was executed, but ERRORS have occurred."
                 sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'End', 'Ended', '{ok}');"
                 step_time = datetime.now().strftime("%H:%M:%S")
-                end_result = f"{step_time}: Flow '{self.name}' ended with result '{ok}'."
+                end_result = f"{step_time}: Flow '{self.name}' ended. {ok}"
                 print(end_result)
                 self.db.run_sql(sql=sql, tablename="Steps")
                 # Update the result of the flow
