@@ -653,7 +653,7 @@ class WorkflowEngine():
                 # Update the result of the flow
                 sql = f"UPDATE Workflows SET result= '{ok}' where id = {self.id};"
                 self.db.run_sql(sql=sql, tablename="Workflows")
-                break
+                return output_previous_step
             if output_previous_step is not None:
                 if str(output_previous_step).startswith("QuerySet"):
                     # If this is Exchangelib output then turn it into list
