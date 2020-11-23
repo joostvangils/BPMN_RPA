@@ -109,7 +109,7 @@ The WorkflowEngine logs all executed steps in a SQLite database, called 'Orchest
 The ending of a flow will also be logged in the Orchestrator database. When ending a flow, the output of the last executed step will also be the output of the entire flow, unless the flow is ended with an exitcode.
 
 ##### End flow with exitcode
-If you wish to end your flow with an exitcode (0 for OK and -1 for not OK) then you can call a internal functions of the workflowengine:
+If you wish to end your flow with an exitcode (0 for OK and -1 for not OK) then you can call one of the internal functions of the WorkflowEngine:
 * exitcode_ok
 * exitcode_not_ok<br>
 <br>
