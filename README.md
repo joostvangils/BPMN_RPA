@@ -102,7 +102,7 @@ This instantiates the class and saves the instance in the variable %test%.
 You can call any function of the class object by use of these attributes in Tasks following the instantiation Task (leave the 'Module' attribute blank):<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Instantiate_class2.PNG" height="100" width="400" ></a><br>
 
-### Logging
+#### Logging
 The WorkflowEngine logs all executed steps in a SQLite database, called 'Orchestrator.db'. This database is located in the install directory. If the install directory is unknown when starting the WorkflowEngine, the WorkflowEngine will ask you for the folder. This path then will be saved in the registry and the Orchestrator database will be created in that folder.
 
 #### End a flow
