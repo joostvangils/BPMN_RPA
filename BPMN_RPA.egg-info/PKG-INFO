@@ -116,7 +116,7 @@ Description: # BPMN_RPA
         
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
-Classifier: License :: OSI Approved :: GPL-3.0-only
+Classifier: License :: OSI Approved :: GNU Affero General Public License v3
 Classifier: Operating System :: Microsoft
 Requires-Python: >=3.6
 Description-Content-Type: text/markdown
