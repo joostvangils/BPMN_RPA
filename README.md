@@ -119,7 +119,7 @@ Just call one of the above functions by only passing the 'function' parameter (t
 #### Example
 
 ```Python
-engine = WorkflowEngine(r"c:\Python\python.exe")
+engine = WorkflowEngine()
 doc = engine.open("BPMN_RPA/test.xml")
 steps = engine.get_flow(doc)
 engine.run_flow(steps)

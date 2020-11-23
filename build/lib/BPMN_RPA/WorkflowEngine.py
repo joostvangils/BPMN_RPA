@@ -641,18 +641,7 @@ class WorkflowEngine():
                 self.error = True
                 pass
             if step is None:
-                # Flow has ended. Log the end in the orchestrator database.
-                ok = "The flow was executed without errors."
-                if self.error:
-                    ok = "The flow was executed, but ERRORS have occurred."
-                sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'End', 'Ended', '{ok}');"
-                step_time = datetime.now().strftime("%H:%M:%S")
-                end_result = f"{step_time}: Flow '{self.name}' ended. {ok}"
-                print(end_result)
-                self.db.run_sql(sql=sql, tablename="Steps")
-                # Update the result of the flow
-                sql = f"UPDATE Workflows SET result= '{ok}' where id = {self.id};"
-                self.db.run_sql(sql=sql, tablename="Workflows")
+                self.end_flow()
                 break
             if output_previous_step is not None:
                 if str(output_previous_step).startswith("QuerySet"):
@@ -663,6 +652,39 @@ class WorkflowEngine():
             if self.error:
                 break
             step = self.get_next_step(step, steps, output_previous_step)
+        if output_previous_step is not None:
+            return output_previous_step
+
+    def exitcode_not_ok(self):
+        """
+        Exit the flow with exitcode not OK -1
+        """
+        self.end_flow()
+        exit(-1)
+
+    def exitcode_ok(self):
+        """
+        Exit the flow with exitcode OK 0
+        """
+        self.end_flow()
+        exit(0)
+
+    def end_flow(self):
+        """
+        Log the end of the flow in the orchestrator database
+        """
+        # Flow has ended. Log the end in the orchestrator database.
+        ok = "The flow has ended."
+        if self.error:
+            ok = "The flow has ended with ERRORS."
+        sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'End', 'Ended', '{ok}');"
+        step_time = datetime.now().strftime("%H:%M:%S")
+        end_result = f"{step_time}: Flow '{self.name}' ended. {ok}"
+        print(end_result)
+        self.db.run_sql(sql=sql, tablename="Steps")
+        # Update the result of the flow
+        sql = f"UPDATE Workflows SET result= '{ok}' where id = {self.id};"
+        self.db.run_sql(sql=sql, tablename="Workflows")
 
     def get_input_from_signature(self, step, method_to_call):
         try:
