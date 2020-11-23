@@ -6,6 +6,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 
 ### Content:
 * [Quick Start](#Quick-start)
+* [First start](#First-start)
 * [Recognized Shapes](#Recognized-Shapes)
   * [Tasks](#Tasks)
   * [Gateways](#Gateways)
@@ -13,6 +14,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 * [Variables](#Variables)
 * [Loops](#Loops)
 * [Instantiate a Class and use in Flow](#Instantiate-a-Class-and-use-in-Flow)
+* [Logging](#Logging)
 * [End a flow](#End-a-flow)
   * [End flow with exitcode](#End-flow-with-exitcode)
 * [Example](#Example)
@@ -24,6 +26,9 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 - Create your Diagram in https://app.diagrams.net/ or in the Desktop application by using the BPMN_RPA Shape-set
 - Save your diagram as XML
 - Run your workflow by using the WorkflowEngine
+
+#### First start
+The first time you will try to run a Flow, you will be asked to enter the path of your install directory. The path of the install directory will be saved in the registry (path saved in registry key 'HKEY_CURRENT_USER\Software\BPMN_RPA\dbPath') and is used to create a SQLite database for logging purposes, called 'Orchestrator.db'. The WorkflowEngine must also know where your python.exe is located. You will be asked to enter the full path to the python.exe file (including the '.exe' extension). This path will be saved in registry key 'HKEY_CURRENT_USER\Software\BPMN_RPA\PythonPath'.
 
 #### Recognized Shapes
 For the Workflow engine to recognize the flow, you must use the recommended shape attributes with the following Shapes:
@@ -96,6 +101,9 @@ You can instantiate a Python class by using ony these attributes (leave the 'Fun
 This instantiates the class and saves the instance in the variable %test%.
 You can call any function of the class object by use of these attributes in Tasks following the instantiation Task (leave the 'Module' attribute blank):<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Instantiate_class2.PNG" height="100" width="400" ></a><br>
+
+### Logging
+The WorkflowEngine logs all executed steps in a SQLite database, called 'Orchestrator.db'. This database is located in the install directory. If the install directory is unknown when starting the WorkflowEngine, the WorkflowEngine will ask you for the folder. This path then will be saved in the registry and the Orchestrator database will be created in that folder.
 
 #### End a flow
 The ending of a flow will also be logged in the Orchestrator database. When ending a flow, the output of the last executed step will also be the output of the entire flow, unless the flow is ended with an exitcode.
