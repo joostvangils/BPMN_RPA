@@ -674,9 +674,9 @@ class WorkflowEngine():
         Log the end of the flow in the orchestrator database
         """
         # Flow has ended. Log the end in the orchestrator database.
-        ok = "The flow was executed without errors."
+        ok = "The flow has ended."
         if self.error:
-            ok = "The flow was executed, but ERRORS have occurred."
+            ok = "The flow has ended with ERRORS."
         sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'End', 'Ended', '{ok}');"
         step_time = datetime.now().strftime("%H:%M:%S")
         end_result = f"{step_time}: Flow '{self.name}' ended. {ok}"
