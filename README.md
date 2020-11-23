@@ -96,7 +96,7 @@ This instantiates the class and saves the instance in the variable %test%.
 You can call any function of the class object by use of these attributes in Tasks following the instantiation Task (leave the 'Module' attribute blank):<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Instantiate_class2.PNG" height="100" width="400" ></a><br>
 
-##### End flow with exitcode
+#### End flow with exitcode
 If you wish to end your flow with an exitcode (0 for OK and -1 for not OK) then you can call a internal functions of the workflowengine:
 * exitcode_ok
 * exitcode_not_ok<br>
@@ -104,7 +104,7 @@ If you wish to end your flow with an exitcode (0 for OK and -1 for not OK) then 
 Just call one of the above functions by only passing the 'function' parameter (thus not passing the 'Module' and 'Class' parameter):<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Exit_not_ok.PNG" height="120" width="350" ></a><br>
 
-##### Example
+#### Example
 
 ```Python
 engine = WorkflowEngine(r"c:\Python\python.exe")
