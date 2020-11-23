@@ -13,7 +13,8 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 * [Variables](#Variables)
 * [Loops](#Loops)
 * [Instantiate a Class and use in Flow](#Instantiate-a-Class-and-use-in-Flow)
-* [End flow with exitcode](#End-flow-with-exitcode)
+* [End a flow](#End-a-flow)
+  * [End flow with exitcode](#End-flow-with-exitcode)
 * [Example](#Example)
 
 
@@ -96,7 +97,10 @@ This instantiates the class and saves the instance in the variable %test%.
 You can call any function of the class object by use of these attributes in Tasks following the instantiation Task (leave the 'Module' attribute blank):<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Instantiate_class2.PNG" height="100" width="400" ></a><br>
 
-#### End flow with exitcode
+#### End a flow
+The ending of a flow will also be logged in the Orchestrator database. When ending a flow, the output of the last executed step will also be the output of the entire flow, unless the flow is ended with an exitcode.
+
+##### End flow with exitcode
 If you wish to end your flow with an exitcode (0 for OK and -1 for not OK) then you can call a internal functions of the workflowengine:
 * exitcode_ok
 * exitcode_not_ok<br>
