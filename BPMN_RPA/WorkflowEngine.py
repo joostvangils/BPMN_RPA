@@ -732,6 +732,10 @@ class WorkflowEngine():
                     name = name.titel
                 elif hasattr(name, 'naam'):
                     name = name.naam
+                elif hasattr(name, 'subject'):
+                    name = name.subject
+                elif hasattr(name, 'onderwerp'):
+                    name = name.onderwerp
                 else:
                     name = name.__str__()
                 end_result = f"{step_time}: Step {step_nr} - loopitem '{name}' returned."
