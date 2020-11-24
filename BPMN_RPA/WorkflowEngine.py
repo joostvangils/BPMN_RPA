@@ -266,7 +266,7 @@ class WorkflowEngine():
             retn = None
         return retn
 
-    def get_parameters_from_shapevalues(self, step: Any, signature: Any) -> str:
+    def get_parameters_from_shapevalues(self, step: Any, signature: Any, step_nr: str) -> str:
         """
         If input values are provided in the Shapevalues, then create a mapping
         :param step: The step to use the Shapevalues of to create the mapping
@@ -334,11 +334,16 @@ class WorkflowEngine():
                                                 if len(replace_value) == 1:
                                                     val = val.replace(tv, replace_value[0])
                                                 else:
-                                                    val = val.replace(tv, replace_value[loopvars[0].counter])
+                                                    if len(replace_value) == 0:
+                                                        step_time = datetime.now().strftime("%H:%M:%S")
+                                                        end_result = f"{step_time}: Step {step_nr} - No items to loop."
+                                                        print(end_result)
+                                                        self.exitcode_ok()
+                                                    else:
+                                                        val = val.replace(tv, replace_value[loopvars[0].counter])
                                             else:
                                                 if loopvars[0].counter < len(replace_value):
-                                                    replace_value = self.get_attribute_value(lst[0], replace_value[
-                                                        loopvars[0].counter])
+                                                    replace_value = self.get_attribute_value(lst[0], replace_value[loopvars[0].counter])
                                                 else:
                                                     replace_value = self.get_attribute_value(lst[0], replace_value[0])
                                                 if isinstance(replace_value, str):
@@ -350,12 +355,12 @@ class WorkflowEngine():
                                                 if isinstance(replace_value, list):
                                                     if tv.__contains__("."):
                                                         attr = str(lst[0].split(".")[1]).replace(".", "")
-                                                    if loopvars[0].counter <= len(replace_value) - 1:
+                                                    if loopvars[0].counter <= len(replace_value)-1:
                                                         val = replace_value[loopvars[0].counter]
                                                     else:
                                                         val = replace_value[0]
-                                                    val = self.get_attribute_value(lst[0], val)
-                                                    # val = replace_value
+                                                    #val = self.get_attribute_value(lst[0], val)
+                                                    #val = replace_value
                                                 else:
                                                     val = replace_value
                                             else:
@@ -386,7 +391,7 @@ class WorkflowEngine():
         else:
             return mapping
 
-    def get_attribute_value(self, lst: list, replace_value: Any) -> Any:
+    def get_attribute_value(self,lst: list, replace_value: Any) -> Any:
         """
         Get an attribute value from a replace value (object)
         :param lst: The attribute list
@@ -511,8 +516,7 @@ class WorkflowEngine():
                                 module_object = importlib.util.module_from_spec(spec)
                                 if module_object is None:
                                     step_time = datetime.now().strftime("%H:%M:%S")
-                                    raise Exception(
-                                        f"{step_time}: The module '{step.module}' could not be loaded. Check the path...")
+                                    raise Exception (f"{step_time}: The module '{step.module}' could not be loaded. Check the path...")
                                 spec.loader.exec_module(module_object)
                             else:
                                 if len(step.module) == 0:
@@ -520,8 +524,7 @@ class WorkflowEngine():
                                 else:
                                     module_object = importlib.import_module(step.module)
                         if hasattr(step, "classname"):
-                            if hasattr(module_object, str(step.classname).lower()) or hasattr(module_object,
-                                                                                              str(step.classname)):
+                            if hasattr(module_object, str(step.classname).lower()) or hasattr(module_object, str(step.classname)):
                                 if hasattr(module_object, str(step.classname).lower()):
                                     class_object = getattr(module_object, str(step.classname).lower())
                                 else:
@@ -554,9 +557,9 @@ class WorkflowEngine():
                             method_to_call = getattr(module_object, step.function)
 
                 if method_to_call is not None:
-                    input = self.get_input_from_signature(step, method_to_call)
+                    input = self.get_input_from_signature(step, method_to_call, step_nr)
                 if method_to_call is None and class_object is not None:
-                    input = self.get_input_from_signature(step, class_object)
+                    input = self.get_input_from_signature(step, class_object, step_nr)
 
                 # execute function call and get returned values
                 if input is not None and not IsInLoop:
@@ -577,7 +580,7 @@ class WorkflowEngine():
                         output_previous_step = class_object(**input)
                 else:
                     if IsInLoop:
-                        output_previous_step = [x for x in self.loopvariables if id == step.id]
+                        output_previous_step = [x for x in self.loopvariables if id==step.id]
                     else:
                         if hasattr(step, "function"):
                             called = False
@@ -599,6 +602,7 @@ class WorkflowEngine():
                 this_step = self.loopcounter(step, output_previous_step, step_nr)
                 if IsInLoop:
                     output_previous_step = [this_step]
+
 
                 # Update the result
                 step_time = datetime.now().strftime("%H:%M:%S")
@@ -682,32 +686,33 @@ class WorkflowEngine():
             ok = "The flow has ended with ERRORS."
         sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'End', 'Ended', '{ok}');"
         step_time = datetime.now().strftime("%H:%M:%S")
-        end_result = f"{step_time}: Flow '{self.name}' ended. {ok}"
+        end_result = f"{step_time}: Flow '{self.name}': {ok}"
         print(end_result)
         self.db.run_sql(sql=sql, tablename="Steps")
         # Update the result of the flow
         sql = f"UPDATE Workflows SET result= '{ok}' where id = {self.id};"
         self.db.run_sql(sql=sql, tablename="Workflows")
 
-    def get_input_from_signature(self, step, method_to_call):
+    def get_input_from_signature(self, step, method_to_call, step_nr):
         try:
             sig = signature(method_to_call)
         except Exception as e:
             print(f"Error in getting input from signature: {e}")
         if str(sig) != "()":
-            input = self.get_parameters_from_shapevalues(step=step, signature=sig)
+            input = self.get_parameters_from_shapevalues(step=step, signature=sig, step_nr=step_nr)
             return input
         return None
 
-    def loopcounter(self, step: Any, output_previous_step: Any, step_nr: str) -> Any:
+    def loopcounter(self, step: Any, output_previous_step: Any, step_nr: str)-> Any:
         """
         Process steps with a loopcounter
         :param step: The current step object
         :param output_previous_step: The output of the previous step as object
+        :param step_nr: The number of the current step
         :return: An item from the list that is looped
         """
         loopvar = None
-        if hasattr(step, "loopcounter"):
+        if  hasattr(step, "loopcounter"):
             # Update the total list count
             try:
                 loopvar = [x for x in self.loopvariables if x.id == step.id][0]
@@ -723,24 +728,27 @@ class WorkflowEngine():
                     loopvar.name = step.output_variable
                 # It's a loop! Overwrite the output_previous_step with the right element
                 step_time = datetime.now().strftime("%H:%M:%S")
-                name = loopvar.items[loopvar.counter]
-                if hasattr(name, 'name'):
-                    name = name.name
-                elif hasattr(name, 'title'):
-                    name = name.title
-                elif hasattr(name, 'titel'):
-                    name = name.titel
-                elif hasattr(name, 'naam'):
-                    name = name.naam
-                elif hasattr(name, 'subject'):
-                    name = name.subject
-                elif hasattr(name, 'onderwerp'):
-                    name = name.onderwerp
+                if len(loopvar.items) > 0:
+                    name = loopvar.items[loopvar.counter]
+                    if hasattr(name, 'name'):
+                        name = name.name
+                    elif hasattr(name, 'title'):
+                        name = name.title
+                    elif hasattr(name, 'titel'):
+                        name = name.titel
+                    elif hasattr(name, 'naam'):
+                        name = name.naam
+                    elif hasattr(name, 'subject'):
+                        name = name.subject
+                    elif hasattr(name, 'onderwerp'):
+                        name = name.onderwerp
+                    else:
+                        name = name.__str__()
+                    end_result = f"{step_time}: Step {step_nr} - loopitem '{name}' returned."
+                    print(end_result)
+                    return loopvar.items[loopvar.counter]
                 else:
-                    name = name.__str__()
-                end_result = f"{step_time}: Step {step_nr} - loopitem '{name}' returned."
-                print(end_result)
-                return loopvar.items[loopvar.counter]
+                    return output_previous_step
             except Exception as e:
                 sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running', '', 'Error: {e}');"
                 self.db.run_sql(sql=sql, tablename="Steps")
@@ -776,8 +784,7 @@ class WorkflowEngine():
             loop = [x for x in self.loopvariables if x.name == loop_variable][0]
             loop.counter += 1
         except:
-            print(
-                f"Error: probably isn't the variable name '{loop_variable}' the right variable to check for more loop-items...")
+            print(f"Error: probably isn't the variable name '{loop_variable}' the right variable to check for more loop-items...")
             return retn
         if loop is not None:
             if loop.counter < loop.total_listitems:
@@ -828,8 +835,7 @@ class WorkflowEngine():
             try:
                 retn = [x for x in steps if x.id == conn.target][0]
             except:
-                print(
-                    "Error: probably one of the Exclusive Gateways has some Sequence Flow Arrows that aren't connected properly...")
+                print("Error: probably one of the Exclusive Gateways has some Sequence Flow Arrows that aren't connected properly...")
                 return None
         if hasattr(retn, "loopcounter"):
             check_loopvar = [x for x in self.loopvariables if x.id == retn.id]
