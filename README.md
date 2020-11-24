@@ -109,9 +109,8 @@ You can pass input to the WorkflowEnging by using the 'input_parameter' argument
 myObject = ['this could be', 'any', 'type', 'of', 'object']
 engine = WorkflowEngine(input_parameter=myObject)
 ```
-You can call the internal 'get_input_parameter' function to retreive this input value and assign it to a variable name for later use in your flow:<br>
+Call the internal 'get_input_parameter' function to retreive this input value and assign it to a variable name for later use in your flow:<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Get_input_parameter.PNG" height="100" width="400" ></a><br>
-
 
 #### Logging
 The WorkflowEngine logs all executed steps in a SQLite database, called 'Orchestrator.db'. This database is located in the install directory. If the install directory is unknown when starting the WorkflowEngine, the WorkflowEngine will ask you for the folder. This path then will be saved in the registry and the Orchestrator database will be created in that folder.
