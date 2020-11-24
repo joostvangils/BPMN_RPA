@@ -24,7 +24,7 @@ class WorkflowEngine():
     def __init__(self, input_parameter: Any = None, pythonpath: str = "", installation_directory: str = ""):
         """
         Class for automating DrawIO diagrams
-        :param input_parameter: An object holding arguments to be passed as input to the WorkflowEngine.  in a flow, use get_input_parameter
+        :param input_parameter: An object holding arguments to be passed as input to the WorkflowEngine.  in a flow, use get_input_parameter to retreive the value.
         :param pythonpath: The full path to the python.exe file
         :param installation_directory: The folder where your BPMN_RPA files are installed. This folder will be used for the orchestrator database.
         """
