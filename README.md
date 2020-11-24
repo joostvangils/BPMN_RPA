@@ -14,6 +14,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 * [Variables](#Variables)
 * [Loops](#Loops)
 * [Instantiate a Class and use in Flow](#Instantiate-a-Class-and-use-in-Flow)
+* [Passing input to the WorkflowEngine](#Passing-input-to-the-WorkflowEngine]
 * [Logging](#Logging)
 * [End a flow](#End-a-flow)
   * [End flow with exitcode](#End-flow-with-exitcode)
@@ -101,6 +102,16 @@ You can instantiate a Python class by using ony these attributes (leave the 'Fun
 This instantiates the class and saves the instance in the variable %test%.
 You can call any function of the class object by use of these attributes in Tasks following the instantiation Task (leave the 'Module' attribute blank):<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Instantiate_class2.PNG" height="100" width="400" ></a><br>
+
+#### Passing input to the WorkflowEngine
+You can pass input to the WorkflowEnging by using the 'input_parameter' argument.
+```Python
+myObject = ['this could be', 'any', 'type', 'of', 'object']
+engine = WorkflowEngine(input_parameter=myObject)
+```
+You can call the internal 'get_input_parameter' function to retreive this input value and assign it to a variable name for later use in your flow:<br>
+<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Get_input_parameter.PNG" height="100" width="400" ></a><br>
+
 
 #### Logging
 The WorkflowEngine logs all executed steps in a SQLite database, called 'Orchestrator.db'. This database is located in the install directory. If the install directory is unknown when starting the WorkflowEngine, the WorkflowEngine will ask you for the folder. This path then will be saved in the registry and the Orchestrator database will be created in that folder.
