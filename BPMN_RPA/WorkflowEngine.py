@@ -335,15 +335,17 @@ class WorkflowEngine():
                                                     val = val.replace(tv, replace_value[0])
                                                 else:
                                                     if len(replace_value) == 0:
-                                                        step_time = datetime.now().strftime("%H:%M:%S")
-                                                        end_result = f"{step_time}: Step {step_nr} - No items to loop."
-                                                        print(end_result)
+                                                        self.print_log(id=self.id, name=self.name,
+                                                                       step_name=f"{self.name}", step_nr=step_nr,
+                                                                       status="Ending",
+                                                                       result=f"No items to loop...")
                                                         self.exitcode_ok()
                                                     else:
                                                         val = val.replace(tv, replace_value[loopvars[0].counter])
                                             else:
                                                 if loopvars[0].counter < len(replace_value):
-                                                    replace_value = self.get_attribute_value(lst[0], replace_value[loopvars[0].counter])
+                                                    replace_value = self.get_attribute_value(lst[0], replace_value[
+                                                        loopvars[0].counter])
                                                 else:
                                                     replace_value = self.get_attribute_value(lst[0], replace_value[0])
                                                 if isinstance(replace_value, str):
@@ -355,12 +357,12 @@ class WorkflowEngine():
                                                 if isinstance(replace_value, list):
                                                     if tv.__contains__("."):
                                                         attr = str(lst[0].split(".")[1]).replace(".", "")
-                                                    if loopvars[0].counter <= len(replace_value)-1:
+                                                    if loopvars[0].counter <= len(replace_value) - 1:
                                                         val = replace_value[loopvars[0].counter]
                                                     else:
                                                         val = replace_value[0]
-                                                    #val = self.get_attribute_value(lst[0], val)
-                                                    #val = replace_value
+                                                    # val = self.get_attribute_value(lst[0], val)
+                                                    # val = replace_value
                                                 else:
                                                     val = replace_value
                                             else:
@@ -391,7 +393,7 @@ class WorkflowEngine():
         else:
             return mapping
 
-    def get_attribute_value(self,lst: list, replace_value: Any) -> Any:
+    def get_attribute_value(self, lst: list, replace_value: Any) -> Any:
         """
         Get an attribute value from a replace value (object)
         :param lst: The attribute list
@@ -423,14 +425,6 @@ class WorkflowEngine():
         else:
             return False
 
-    def log_error(self, msg: str):
-        """
-        Log an error message in the orchestrator database
-        :param msg: The error message to log
-        """
-        sql = f"INSERT INTO Steps (name, step, result) VALUES ('{self.name}', f'Error', f{msg})"
-        self.db.run_sql(sql=sql, tablename="Steps")
-
     def run_flow(self, steps):
         """
         Execute a Workflow.
@@ -461,10 +455,10 @@ class WorkflowEngine():
         # Log the start in the orchestrator database
         sql = f"INSERT INTO Workflows (name, registered_id) VALUES ('{self.name}', {registered_id});"
         self.id = self.db.run_sql(sql=sql, tablename="Workflows")
-        sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', 'Workflow started', '', 'Started');"
-        self.db.run_sql(sql=sql, tablename="Steps")
-        start_result = f"{step_time}: Starting flow '{self.name}'..."
-        print(start_result)
+        print("\n")
+        self.print_log(id=self.id, name=self.name, step_name=f"{self.name}", step_nr=step_nr,
+                       status="Running",
+                       result=f"Starting flow '{self.name}'...")
         while True:
             try:
                 # to fetch module
@@ -477,24 +471,21 @@ class WorkflowEngine():
                 if hasattr(step, "name"):
                     step_time = datetime.now().strftime("%H:%M:%S")
                     step_nr += 1
-                    start_result = ""
                     if len(step.name) == 0:
                         if hasattr(step, "type"):
-                            start_result = f"{step_time}: Step {step_nr} - Passing an {step.type} with value {output_previous_step}..."
-                            print(start_result)
+                            self.print_log(id=self.id, name=self.name, step_name=f"Step {step_nr}", step_nr=step_nr,
+                                           status="Running",
+                                           result=f"Passing an {step.type} with value {output_previous_step}...")
                     else:
-                        start_result = f"{step_time}: Step {step_nr} - Executing step '{step.name}'..."
-                        print(start_result)
+                        self.print_log(id=self.id, name=self.name, step_name=f"Step {step_nr}", step_nr=step_nr,
+                                       status="Running",
+                                       result=f"Executing step '{step.name}'...")
                 if step is not None:
                     loopkvp = [kvp for kvp in self.loopvariables if kvp.id == step.id]
                     if loopkvp:
                         if loopkvp[0].counter > 0 and loopkvp[0].counter > loopkvp[0].start:
                             IsInLoop = True
                 if hasattr(step, "module"):
-                    # Create a record in the orchestrator database
-                    start_result = start_result.replace("'", "\"")
-                    sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running, {start_result}', 'None');"
-                    id = self.db.run_sql(sql=sql, tablename="Steps")  # execute, commit and return the inserted id
                     # region get function call
                     method_to_call = None
                     if self.step_has_direct_variables(step):
@@ -516,7 +507,8 @@ class WorkflowEngine():
                                 module_object = importlib.util.module_from_spec(spec)
                                 if module_object is None:
                                     step_time = datetime.now().strftime("%H:%M:%S")
-                                    raise Exception (f"{step_time}: The module '{step.module}' could not be loaded. Check the path...")
+                                    raise Exception(
+                                        f"{step_time}: The module '{step.module}' could not be loaded. Check the path...")
                                 spec.loader.exec_module(module_object)
                             else:
                                 if len(step.module) == 0:
@@ -524,7 +516,8 @@ class WorkflowEngine():
                                 else:
                                     module_object = importlib.import_module(step.module)
                         if hasattr(step, "classname"):
-                            if hasattr(module_object, str(step.classname).lower()) or hasattr(module_object, str(step.classname)):
+                            if hasattr(module_object, str(step.classname).lower()) or hasattr(module_object,
+                                                                                              str(step.classname)):
                                 if hasattr(module_object, str(step.classname).lower()):
                                     class_object = getattr(module_object, str(step.classname).lower())
                                 else:
@@ -580,7 +573,7 @@ class WorkflowEngine():
                         output_previous_step = class_object(**input)
                 else:
                     if IsInLoop:
-                        output_previous_step = [x for x in self.loopvariables if id==step.id]
+                        output_previous_step = [x for x in self.loopvariables if id == step.id]
                     else:
                         if hasattr(step, "function"):
                             called = False
@@ -603,50 +596,38 @@ class WorkflowEngine():
                 if IsInLoop:
                     output_previous_step = [this_step]
 
-
                 # Update the result
-                step_time = datetime.now().strftime("%H:%M:%S")
-                sql_out = str(output_previous_step).replace("\'", "\'\'")
-                end_result = ""
                 if hasattr(step, "classname"):
                     if len(step.classname) == 0:
                         if hasattr(step, "function"):
-                            end_result = f"{step_time}: Step {step_nr} - {method_to_call.__name__} executed."
-                            print(end_result)
+                            self.print_log(id=self.id, name=self.name, step_name=f"Step {step_nr}", step_nr=step_nr,
+                                           status="Running",
+                                           result=f"{method_to_call.__name__} executed.")
                     else:
                         if hasattr(step, "function") and class_object is not None:
-                            end_result = f"{step_time}: Step {step_nr} - {class_object.__class__.__name__}.{method_to_call.__name__} executed."
-                            print(end_result)
+                            self.print_log(id=self.id, name=self.name, step_name=f"Step {step_nr}", step_nr=step_nr,
+                                           status="Running",
+                                           result=f"{class_object.__class__.__name__}.{method_to_call.__name__} executed.")
                         else:
                             if step.name is not None:
                                 if len(step.name) > 0:
-                                    end_result = f"{step_time}: Step {step_nr} - {step.name} executed."
-                                    print(end_result)
+                                    self.print_log(id=self.id, name=self.name, step_name=f"Step {step_nr}",
+                                                   step_nr=step_nr,
+                                                   status="Running",
+                                                   result=f"{step.name} executed.")
                 else:
                     if hasattr(step, "function") and method_to_call is not None:
-                        end_result = f"{step_time}: Step {step_nr} - {method_to_call.__name__} executed."
-                        print(end_result)
+                        self.print_log(id=self.id, name=self.name, step_name=f"Step {step_nr}", step_nr=step_nr,
+                                       status="Running",
+                                       result=f"{method_to_call.__name__} executed.")
                     else:
                         if hasattr(step, "name"):
                             if len(step.name) > 0:
-                                end_result = f"{step_time}: Step {step_nr} - {step.name} executed."
-                                print(end_result)
-                if sql_out != 'None':
-                    end_result = end_result.replace("'", "\"")
-                    if sql_out.startswith("Message(mime_content"):
-                        sql_out = "Next email message"
-                    if hasattr(step, "name"):
-                        sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running, {end_result}', '{sql_out}');"
-                        self.db.run_sql(sql)
+                                self.print_log(id=self.id, name=self.name, step_name=f"Step {step_nr}", step_nr=step_nr,
+                                               status="Running",
+                                               result=f"{step.name} executed.")
             except Exception as e:
-                print(f"Error: {e}")
-                try:
-                    sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{step.name}', 'Running, {end_result}', '', 'Error: {e}');"
-                    self.db.run_sql(sql=sql, tablename="Steps")
-                except:
-                    pass
-                self.error = True
-                pass
+                raise Exception(f"Error: {e}")
             if step is None:
                 self.end_flow()
                 break
@@ -661,6 +642,23 @@ class WorkflowEngine():
             step = self.get_next_step(step, steps, output_previous_step)
         if output_previous_step is not None:
             return output_previous_step
+
+    def print_log(self, id: str, name: str, step_name: str, step_nr: str, status: str, result: str):
+        """
+        Log progress to the Orchestrator database and print progress on screen
+        :param id: The id of the Workflow
+        :param name: The name of the Workflow
+        :param step_name: The name of the step
+        :param status: The status of the step
+        :param result: The result of the step
+        """
+        step_time = datetime.now().strftime("%H:%M:%S")
+        print(f"{step_time}: Step {step_nr} - {result}.")
+        result = result.replace("'", "''")
+        if len(status) > 0:
+            status = f" - {status}"
+        sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.name}', '{name}', '{result}', '{step_nr}{status}');"
+        self.db.run_sql(sql)
 
     def exitcode_not_ok(self):
         """
@@ -703,7 +701,7 @@ class WorkflowEngine():
             return input
         return None
 
-    def loopcounter(self, step: Any, output_previous_step: Any, step_nr: str)-> Any:
+    def loopcounter(self, step: Any, output_previous_step: Any, step_nr: str) -> Any:
         """
         Process steps with a loopcounter
         :param step: The current step object
@@ -712,7 +710,7 @@ class WorkflowEngine():
         :return: An item from the list that is looped
         """
         loopvar = None
-        if  hasattr(step, "loopcounter"):
+        if hasattr(step, "loopcounter"):
             # Update the total list count
             try:
                 loopvar = [x for x in self.loopvariables if x.id == step.id][0]
@@ -784,7 +782,8 @@ class WorkflowEngine():
             loop = [x for x in self.loopvariables if x.name == loop_variable][0]
             loop.counter += 1
         except:
-            print(f"Error: probably isn't the variable name '{loop_variable}' the right variable to check for more loop-items...")
+            print(
+                f"Error: probably isn't the variable name '{loop_variable}' the right variable to check for more loop-items...")
             return retn
         if loop is not None:
             if loop.counter < loop.total_listitems:
@@ -835,7 +834,8 @@ class WorkflowEngine():
             try:
                 retn = [x for x in steps if x.id == conn.target][0]
             except:
-                print("Error: probably one of the Exclusive Gateways has some Sequence Flow Arrows that aren't connected properly...")
+                print(
+                    "Error: probably one of the Exclusive Gateways has some Sequence Flow Arrows that aren't connected properly...")
                 return None
         if hasattr(retn, "loopcounter"):
             check_loopvar = [x for x in self.loopvariables if x.id == retn.id]
