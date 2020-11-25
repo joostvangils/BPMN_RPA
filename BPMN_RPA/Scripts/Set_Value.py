@@ -12,3 +12,6 @@ def main(value):
         value=values
     return value
 
+
+def value_to_variable(value):
+    return value
