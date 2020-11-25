@@ -16,5 +16,6 @@ BPMN_RPA/Scripts/Set_Value.py
 BPMN_RPA/Scripts/Standard_returns.py
 BPMN_RPA/Scripts/System.py
 BPMN_RPA/Scripts/Trigger_listener.py
+BPMN_RPA/Scripts/Triggers.py
 BPMN_RPA/Scripts/Windows.py
 BPMN_RPA/Scripts/__init__.py

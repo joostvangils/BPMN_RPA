@@ -21,9 +21,10 @@ import xmltodict
 
 class WorkflowEngine():
 
-    def __init__(self, pythonpath: str = "", installation_directory: str = ""):
+    def __init__(self, input_parameter: Any = None, pythonpath: str = "", installation_directory: str = ""):
         """
         Class for automating DrawIO diagrams
+        :param input_parameter: An object holding arguments to be passed as input to the WorkflowEngine.  in a flow, use get_input_parameter to retreive the value.
         :param pythonpath: The full path to the python.exe file
         :param installation_directory: The folder where your BPMN_RPA files are installed. This folder will be used for the orchestrator database.
         """
@@ -59,6 +60,7 @@ class WorkflowEngine():
                 self.set_PythonPath(pythonpath)
         if not os.path.exists(f'{dbFolder}\\Registered Flows'):
             os.mkdir(f'{dbFolder}\\Registered Flows')
+        self.input_parameter = input_parameter
         self.pythonPath = pythonpath
         self.db = SQL(dbFolder)
         self.db.orchestrator()  # Run the orchestrator database
@@ -70,10 +72,16 @@ class WorkflowEngine():
         self.previous_step = None
         self.variables = {}  # Dictionary to hold WorkflowEngine variables
 
+    def get_input_parameter(self):
+        """
+        Returns the input parameter that was given when creating an instance of the WorkflowEngine
+        :return: The input_parameter that was given when creating an instance of the WorkflowEngine
+        """
+        return self.input_parameter
+
     def open(self, filepath: str) -> Any:
         """
         Open a DrawIO document
-
         :param filepath: The full path (including extension) of the diagram file
         :returns: A DrawIO dictionary object
         """
@@ -93,7 +101,6 @@ class WorkflowEngine():
     def set_dbPath(self, value: str):
         """
         Write the orchestrator database path to the registry.
-
         :param value: The path of the orchestrator database that has to be written to the registry
         """
         try:
@@ -110,7 +117,6 @@ class WorkflowEngine():
     def get_dbPath(self):
         """
         Get the path to the orchestrator database
-
         :return: The path to the orchestrator database
         """
         try:
@@ -125,7 +131,6 @@ class WorkflowEngine():
     def get_pythonPath(self):
         """
         Get the path to the Python.exe file
-
         :return: The path to the Python.exe file
         """
         try:
@@ -140,7 +145,6 @@ class WorkflowEngine():
     def set_PythonPath(self, value: str):
         """
         Write the oPython path to the registry.
-
         :param value: The path of the Python.exe file that has to be written to the registry
         """
         try:
@@ -157,7 +161,6 @@ class WorkflowEngine():
     def get_flow(self, ordered_dict) -> Any:
         """
         Retreiving the elements of the flow in the Document.
-
         :param ordered_dict: The document object containing the flow elements.
         :returns: A List of flow elements
         """
@@ -209,7 +212,6 @@ class WorkflowEngine():
     def get_step_from_shape(self, shape):
         """
         Build a Step-object from the Shape-object
-
         :param shape: The Shape-object
         :returns: A Step-object
         """
@@ -426,7 +428,6 @@ class WorkflowEngine():
     def run_flow(self, steps):
         """
         Execute a Workflow.
-
         :params steps: The steps that must be executed in the flow
         """
         dbPath = self.get_dbPath()
@@ -769,7 +770,6 @@ class WorkflowEngine():
     def get_next_step(self, current_step, steps, output_previous_step: Any) -> Any:
         """
         Get the next step in the flow
-
         :param current_step: The step object of the current step
         :param steps: The steps collection
         :return: The next step object
@@ -851,7 +851,6 @@ class SQL():
         Run SQL command and commit.
         :param sql: The SQL command to execute.
         :param tablename: Optional. The tablename of the table used in the SQL command, for returning the last id of the primary key column.
-
         :return: The last inserted id of the primary key column
         """
         if not hasattr(self, "connection"):
@@ -870,7 +869,6 @@ class SQL():
         """
         Get the last inserted id of the primary key column of the table
         :param tablename: The name of the table to get the last id of
-
         :return: The last inserted id of the primary key column
         """
         sql = f"SELECT MAX(id) FROM {tablename};"
@@ -888,7 +886,6 @@ class SQL():
     def get_registered_flows(self):
         """
         Get a list from all registered flows in the orchestrator database.
-
         :return: A list of flow names that are registered in the orchestrator database.
         """
         sql = "SELECT name FROM Registered;"
@@ -921,7 +918,7 @@ class SQL():
         self.run_sql(sql)
         sql = "CREATE TABLE IF NOT EXISTS Steps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, workflow INTEGER NOT NULL, parent TEXT, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_Workflow FOREIGN KEY (Workflow) REFERENCES Workflows (id) ON DELETE CASCADE);"
         self.run_sql(sql)
-        sql = "CREATE TABLE IF NOT EXISTS Triggers (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, registered_id INTEGER NOT NULL, name TEXT NOT NULL, fire_trigger TEXT NOT NULL, time TEXT NOT NULL, expires BOOL, expires_on TEXT, date TEXT, days TEXT, days_of_month TEXT, months TEXT, CONSTRAINT fk_Registered_trigger FOREIGN KEY (registered_id) REFERENCES Registered (id) ON DELETE CASCADE);"
+        sql = "CREATE TABLE IF NOT EXISTS Triggers (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, registered_id INTEGER NOT NULL, trigger_info, CONSTRAINT fk_Registered_trigger FOREIGN KEY (registered_id) REFERENCES Registered (id) ON DELETE CASCADE);"
         self.run_sql(sql)
 
 # Test
