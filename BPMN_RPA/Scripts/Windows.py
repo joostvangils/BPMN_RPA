@@ -15,7 +15,7 @@ def window_enumeration_handler(hwnd, top_windows):
     top_windows.append((hwnd, win32gui.GetWindowText(hwnd)))
 
 
-def find_window(title, case_sensitive=True):
+def find_window(title, case_sensitive=False):
     top_windows = []
     hwnd = win32gui.FindWindow(None, title)
     win32gui.EnumWindows(window_enumeration_handler, top_windows)
@@ -29,17 +29,23 @@ def find_window(title, case_sensitive=True):
             candidates.append(get_window_object(window[0]))
         return candidates
     else:
-        return get_window_object(windows[0][0])
+        if len(windows) > 0 :
+            return get_window_object(windows[0][0])
+        else:
+            return None
 
 
 def get_window_object(hwnd):
     win = BPMN_RPA_Window()
     win.Hwnd = hwnd
     win.Title = win32gui.GetWindowText(hwnd)
-    win.Rect = win32gui.GetWindowPlacement(hwnd)
-    win.ClassName = win32gui.GetClassName(hwnd)
-    win.ParentHwnd = win32gui.GetParent(hwnd)
-    win.WndProc = win32gui.GetWindowLong(hwnd, win32con.GWL_WNDPROC)
+    try:
+        win.Rect = win32gui.GetWindowPlacement(hwnd)
+        win.ClassName = win32gui.GetClassName(hwnd)
+        win.ParentHwnd = win32gui.GetParent(hwnd)
+        win.WndProc = win32gui.GetWindowLong(hwnd, win32con.GWL_WNDPROC)
+    except:
+        pass
     return win
 
 
