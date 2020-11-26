@@ -1,0 +1,72 @@
+import ast
+import base64
+import io
+import os
+import sys
+import urllib
+import xml.etree.ElementTree as ET
+import zlib
+from datetime import datetime
+from typing import Any
+import xmltodict
+
+
+class library(object):
+    pass
+
+
+class shape(object):
+    pass
+
+
+def open(filepath: str) -> Any:
+    """
+    Open a DrawIO document
+    :param filepath: The full path (including extension) of the diagram file
+    :returns: A DrawIO dictionary object
+    """
+    # Open an existing document.
+    print(filepath)
+    xml_file = io.open(filepath, "r")
+    xml_root = ET.fromstring(xml_file.read())
+    raw_text = xml_root.text
+    retn = ast.literal_eval(raw_text)
+    return retn
+
+
+def get_libraries():
+    drawio_libraries = "d:\\projecten\\BPMN\\Libraries\\"
+    # Loop directory with all libraries
+    non_interresting = ["@id", "@label", "mxCell"]
+    libraries = []
+    for filename in os.listdir(drawio_libraries):
+        shapes = open(drawio_libraries + filename)
+        lib = library()
+        lib.name = filename.replace(".xml", "").replace(".Xml", "").replace("XML", "")
+        lib.shapes = []
+        for sh in shapes:
+            sp = None
+            if "title" in sh:
+                sp = shape()
+                sp.name = sh.get("title")
+                print(f"\t{sp.name}")
+            if "xml" in sh:
+                sh_attribs = []
+                base64_decode = base64.b64decode(sh.get("xml"))
+                inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
+                url_decode = urllib.parse.unquote(inflated_xml)
+                root = xmltodict.parse(url_decode)
+                attrs = root.get("mxGraphModel").get("root").get("object")
+                if attrs is not None:
+                    for att in attrs:
+                        if att not in non_interresting:
+                            attrib = att.replace("@", "")
+                            value = attrs.get(f"@{attrib}")
+                            print(f"\t\t- {attrib}: {value}")
+                            sh_attribs.append({attrib: value})
+                if sp is not None:
+                    sp.attributes = sh_attribs
+            if sp is not None:
+                lib.shapes.append(sp)
+        libraries.append(lib)
+    return libraries
