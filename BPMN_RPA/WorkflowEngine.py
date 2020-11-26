@@ -371,9 +371,20 @@ class WorkflowEngine():
                                 else:
                                     if tv.__contains__("[") and tv.__contains__("]"):
                                         if isinstance(replace_value, list):
-                                            nr = str(lst[1]).replace("]", "")
-                                            if nr.isnumeric():
-                                                val = val.replace(tv, replace_value[int(nr)])
+                                            repl_list = tv.split("[")
+                                            tmp = None
+                                            for repl in repl_list:
+                                                if repl.__contains__("]"):
+                                                    nr = str(repl).replace("]", "").replace("%", "")
+                                                    if nr.isnumeric():
+                                                        if isinstance(replace_value, str):
+                                                            tmp = tmp.replace(tv, replace_value[int(nr)])
+                                                        else:
+                                                            if tmp is None:
+                                                                tmp = replace_value[int(nr)]
+                                                            else:
+                                                                tmp = tmp[int(nr)]
+                                                val = tmp
                                     elif tv.__contains__("."):
                                         replace_value = self.get_attribute_value(lst[0], replace_value)
                                         if isinstance(replace_value, str):
@@ -954,3 +965,4 @@ class SQL():
 # doc = engine.open(fr"c:\\temp\\test2.xml")  # c:\\temp\\test.xml
 # steps = engine.get_flow(doc)
 # engine.run_flow(steps)
+
