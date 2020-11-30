@@ -358,10 +358,12 @@ class WorkflowEngine():
                                                         attr = str(lst[0].split(".")[1]).replace(".", "")
                                                     if loopvars[0].counter <= len(replace_value) - 1:
                                                         val = replace_value[loopvars[0].counter]
+                                                        if len(attr) > 0:
+                                                            val = getattr(val, attr)
                                                     else:
                                                         val = replace_value[0]
-                                                    # val = self.get_attribute_value(lst[0], val)
-                                                    # val = replace_value
+                                                        if len(attr) > 0:
+                                                            val = getattr(val, attr)
                                                 else:
                                                     val = replace_value
                                             else:
@@ -650,7 +652,11 @@ class WorkflowEngine():
         result = result.replace("'", "''")
         if len(status) > 0:
             status = f" - {status}"
-        sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', '{self.step_name}', '{result}', '{self.step_nr}{status}');"
+        if self.step_name is not None:
+            step_name = self.step_name.replace("'", "''")
+        else:
+            step_name = ""
+        sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', '{step_name}', '{result}', '{self.step_nr}{status}');"
         self.db.run_sql(sql)
 
     def exitcode_not_ok(self):
@@ -707,10 +713,11 @@ class WorkflowEngine():
             try:
                 loopvar = [x for x in self.loopvariables if x.id == step.id][0]
                 if not hasattr(loopvar, "items"):
-                    loopvar.total_listitems = len(output_previous_step)
                     if str(output_previous_step).startswith("QuerySet"):
                         loopvar.items = list(output_previous_step)
+                        loopvar.total_listitems = len(list(output_previous_step))
                     else:
+                        loopvar.total_listitems = len(output_previous_step)
                         loopvar.items = output_previous_step
                     loopvar.start = int(step.loopcounter)  # set start of counter
                 if int(loopvar.counter) <= loopvar.start:
@@ -946,5 +953,3 @@ class SQL():
 # doc = engine.open(fr"c:\\temp\\test2.xml")  # c:\\temp\\test.xml
 # steps = engine.get_flow(doc)
 # engine.run_flow(steps)
-
-
