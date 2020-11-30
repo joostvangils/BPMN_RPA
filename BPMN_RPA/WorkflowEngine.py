@@ -719,6 +719,9 @@ class WorkflowEngine():
                     else:
                         loopvar.total_listitems = len(output_previous_step)
                         loopvar.items = output_previous_step
+                    if loopvar.total_listitems == 0:
+                        self.print_log("There are no more items to loop","Ending")
+                        self.exitcode_ok()
                     loopvar.start = int(step.loopcounter)  # set start of counter
                 if int(loopvar.counter) <= loopvar.start:
                     loopvar.counter = int(loopvar.start)
