@@ -1,4 +1,4 @@
-def main(value):
+def value_to_variable(value):
     """
     Function for returning a value to the WorkflowEngine
     :param value: Any value
@@ -10,8 +10,4 @@ def main(value):
         for v in value:
             values.append(v.strip())
         value=values
-    return value
-
-
-def value_to_variable(value):
     return value
