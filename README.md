@@ -104,7 +104,7 @@ You can call any function of the class object by use of these attributes in Task
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Instantiate_class2.PNG" height="100" width="400" ></a><br>
 
 #### Passing input to the WorkflowEngine
-You can pass input to the WorkflowEnging by using the 'input_parameter' argument.
+You can pass input to the WorkflowEnging by using the 'input_parameter' argument. Please note that it is only possible to pass a single object to the WorkflowEngine. Wrap all your inputs into a single object (like: dictionary or custom object) to pass multiple values to the WorkflowEngine.
 ```Python
 myObject = ['this could be', 'any', 'type', 'of', 'object']
 engine = WorkflowEngine(input_parameter=myObject)
