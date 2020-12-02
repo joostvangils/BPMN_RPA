@@ -448,7 +448,8 @@ class WorkflowEngine():
             self.error = True
             return
         # Register the flow if not already registered
-        if not os.path.exists(f'{self.db}\\Registered Flows\\{self.flowname}.xml') and not os.path.exists(self.flowpath):
+        if not os.path.exists(f'{self.db}\\Registered Flows\\{self.flowname}.xml') and not os.path.exists(
+                self.flowpath):
             # Move the file to the registered directory if not exists
             copyfile(self.flowpath, f'{dbPath}\\Registered Flows\\{self.flowname}.xml')
         self.flowpath = f'{dbPath}\\Registered Flows\\{self.flowname}.xml'
@@ -484,7 +485,8 @@ class WorkflowEngine():
                     self.step_name = step.name
                     if len(step.name) == 0:
                         if hasattr(step, "type"):
-                            self.print_log(status="Running", result=f"Passing an {step.type} with value {output_previous_step}...")
+                            self.print_log(status="Running",
+                                           result=f"Passing an {step.type} with value {output_previous_step}...")
                     else:
                         self.print_log(status="Running", result=f"Executing step '{step.name}'...")
                 if step is not None:
@@ -608,7 +610,8 @@ class WorkflowEngine():
                             self.print_log(status="Running", result=f"{method_to_call.__name__} executed.")
                     else:
                         if hasattr(step, "function") and class_object is not None:
-                            self.print_log(status="Running", result=f"{class_object.__class__.__name__}.{method_to_call.__name__} executed.")
+                            self.print_log(status="Running",
+                                           result=f"{class_object.__class__.__name__}.{method_to_call.__name__} executed.")
                         else:
                             if step.name is not None:
                                 if len(step.name) > 0:
@@ -637,17 +640,19 @@ class WorkflowEngine():
         if output_previous_step is not None:
             return output_previous_step
 
-    def print_log(self,  result: str, status: str = ""):
+    def print_log(self, result: str, status: str = ""):
         """
         Log progress to the Orchestrator database and print progress on screen
         :param status: Optional. The status of the step
         :param result: The result of the step
         """
+        if not result.endswith("."):
+            result += "."
         step_time = datetime.now().strftime("%H:%M:%S")
         if self.step_nr is not None:
-            print(f"{step_time}: Step {self.step_nr} - {result}.")
+            print(f"{step_time}: Step {self.step_nr} - {result}")
         else:
-            print(f"{step_time}: {result}.")
+            print(f"{step_time}: {result}")
             self.step_nr = ""
         result = result.replace("'", "''")
         if len(status) > 0:
@@ -720,7 +725,7 @@ class WorkflowEngine():
                         loopvar.total_listitems = len(output_previous_step)
                         loopvar.items = output_previous_step
                     if loopvar.total_listitems == 0:
-                        self.print_log("There are no more items to loop","Ending")
+                        self.print_log("There are no more items to loop", "Ending")
                         self.exitcode_ok()
                     loopvar.start = int(step.loopcounter)  # set start of counter
                 if int(loopvar.counter) <= loopvar.start:
@@ -730,22 +735,23 @@ class WorkflowEngine():
                 step_time = datetime.now().strftime("%H:%M:%S")
                 if len(loopvar.items) > 0:
                     name = loopvar.items[loopvar.counter]
-                    if hasattr(name, 'name'):
-                        name = name.name
-                    elif hasattr(name, 'title'):
-                        name = name.title
-                    elif hasattr(name, 'titel'):
-                        name = name.titel
-                    elif hasattr(name, 'naam'):
-                        name = name.naam
-                    elif hasattr(name, 'subject'):
-                        name = name.subject
-                    elif hasattr(name, 'onderwerp'):
-                        name = name.onderwerp
-                    else:
-                        name = name.__str__()
-                    end_result = f"{step_time}: Step {self.step_nr} - loopitem '{name}' returned."
-                    print(end_result)
+                    if not isinstance(name, str):
+                        if hasattr(name, 'name'):
+                            name = name.name
+                        elif hasattr(name, 'title'):
+                            name = name.title
+                        elif hasattr(name, 'titel'):
+                            name = name.titel
+                        elif hasattr(name, 'naam'):
+                            name = name.naam
+                        elif hasattr(name, 'subject'):
+                            name = name.subject
+                        elif hasattr(name, 'onderwerp'):
+                            name = name.onderwerp
+                        else:
+                            name = name.__str__()
+                    end_result = f"loopitem '{name}' returned."
+                    self.print_log(end_result)
                     return loopvar.items[loopvar.counter]
                 else:
                     return output_previous_step
@@ -826,13 +832,19 @@ class WorkflowEngine():
             retn = [x for x in steps if x.id == outgoing_connector.target][0]
         if str(current_step.type).lower() == "exclusive gateway":
             if output_previous_step:
-                conn = \
-                    [x for x in outgoing_connector if (str(x.value).lower() == "true" and x.source == current_step.id)][
-                        0]
+                try:
+                    conn = \
+                        [x for x in outgoing_connector if
+                         (str(x.value).lower() == "true" and x.source == current_step.id)][0]
+                except:
+                    raise Exception("Your Exclusive Gateway doesn't contain a 'True' sequence arrow output.")
             else:
-                conn = \
-                    [x for x in outgoing_connector if
-                     (str(x.value).lower() == "false" and x.source == current_step.id)][0]
+                try:
+                    conn = \
+                        [x for x in outgoing_connector if
+                         (str(x.value).lower() == "false" and x.source == current_step.id)][0]
+                except:
+                    raise Exception("Your Exclusive Gateway doesn't contain a 'False' sequence arrow output.")
             try:
                 retn = [x for x in steps if x.id == conn.target][0]
             except:
