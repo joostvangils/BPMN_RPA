@@ -85,3 +85,18 @@ def is_time_number_of_seconds_ago(date_time: Any, interval_in_seconds: int) -> b
     :return: Boolean True or False
     """
     return (date_time - datetime.now()).total_seconds() <= interval_in_seconds
+
+def item1_contains_item2(item1: Any, item2: Any) -> bool:
+    """
+    Check if item 1 contains item2.
+    :param item1: The first object.
+    :param item2: The second object.
+    :return: True or False
+    """
+    if isinstance(item1, str) and isinstance(item2, str):
+        return str(item1).__contains__(item2)
+    if isinstance(item1, dict) and isinstance(item2, str):
+        return item1.keys().__contains__(item2)
+    if isinstance(item1, list) and isinstance(item2, str):
+        return item1.__contains__(item2)
+    return item1.__contains__(item2)

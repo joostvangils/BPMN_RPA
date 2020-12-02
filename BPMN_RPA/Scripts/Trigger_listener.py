@@ -5,7 +5,7 @@ import sqlite3
 import winreg
 import subprocess
 import multiprocessing
-
+from datetime import datetime
 
 from BPMN_RPA.Scripts.Windows import find_window
 from BPMN_RPA.WorkflowEngine import WorkflowEngine
@@ -43,18 +43,58 @@ def start_listener(job):
     if job.get('type') == "window":
         while True:
             sensitive = False
-            if hasattr(job, "case_sensitive"):
+            if "case_sensitive" in job.keys():
                 sensitive = job.get("case_sensitive")
             hwnd = find_window(job.get('title'), case_sensitive=sensitive)
-            if not is_triggered and hwnd is not None:
+            if not is_triggered and hwnd is not None and not job.get('flow') is None:
                 is_triggered = True
                 engine = WorkflowEngine()
-                doc = engine.open(job.get('path'))
+                doc = engine.open(job.get('flow'))
                 steps = engine.get_flow(doc)
                 engine.run_flow(steps)
             else:
                 if not hwnd:
                     is_triggered = False
+    if job.get('type') == "schedule":
+        while True:
+            if "fire" in job.keys():
+                type = job.get("fire")
+                if type == "d":
+                    count = 1
+                    times = []
+                    while True:
+                        if f"trigger_time_{count}" in job.keys():
+                            times.append(job.get(f"trigger_time_{count}"))
+                        else:
+                            break
+                        count += 1
+                    now = datetime.now().strftime("%H:%M:%S")
+                    if not is_triggered and now in times:
+                        is_triggered = True
+                        engine = WorkflowEngine()
+                        doc = engine.open(job.get('flow'))
+                        steps = engine.get_flow(doc)
+                        engine.run_flow(steps)
+                    else:
+                        is_triggered = True
+                if type == "s":
+                    count = 1
+                    times = []
+                    while True:
+                        if f"trigger_time_{count}" in job.keys():
+                            times.append(job.get(f"trigger_time_{count}"))
+                        else:
+                            break
+                        count += 1
+                    now = datetime.now().strftime("%H:%M:%S")
+                    if not is_triggered and now in times:
+                        is_triggered = True
+                        engine = WorkflowEngine()
+                        doc = engine.open(job.get('flow'))
+                        steps = engine.get_flow(doc)
+                        engine.run_flow(steps)
+                    else:
+                        is_triggered = True
 
 
 if __name__ == "__main__":
