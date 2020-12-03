@@ -95,7 +95,7 @@ Explanation:
 
 ##### Reset a loop variable
 When you are creating loops in loops, then it is necessary to reset the inner loop variable each time you restart the inner loop. You can do so by using the WorkflowEngine function 'reset_loopcounter':<br>
-<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Reset_loopcounter.png" height="50" width="400" ></a><br>
+<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Reset_loopcounter.png" height="50" width="350" ></a><br>
 
 #### Retreiving information
 In order to retrieve a specific item of a list, you must use the following format (notation): %VariableName[ItemNumber]%. The “ItemNumber” should be 0 for the first item of the list, 1 for the second and so on. For example, if you have a list that is stored in the variable %MyList% and contains 10 items, you can retrieve the first item with: %MyList[0]% and the last item with %MyList[9]%. For data tables, you must use the following notation: %VariableName[RowNumber][ColumnNumber]%.
