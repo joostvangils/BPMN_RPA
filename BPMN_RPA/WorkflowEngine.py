@@ -307,11 +307,16 @@ class WorkflowEngine():
                     else:
                         returnNone = False
                 if isinstance(val, str):
-                    if val.replace(".", "").isnumeric():
-                        if val.__contains__("."):
-                            val = float(val)
-                        else:
-                            val = int(val)
+                    if val == "True":
+                        val = True
+                    elif val == "False":
+                        val = False
+                    else:
+                        if val.replace(".", "").isnumeric():
+                            if val.__contains__("."):
+                                val = float(val)
+                            else:
+                                val = int(val)
                 if not str(key).__contains__("variable"):
                     textvars = self.get_variables_from_text(val)
                     if textvars is not None:
