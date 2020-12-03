@@ -13,8 +13,8 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
   * [Sequence flow arrow](#Sequence-flow-arrow)
 * [Variables](#Variables)
 * [Loops](#Loops)
- * [Special loop variable options](#Special-loop-variable-options)
- * [Reset a loop variable](#Reset-a-loop-variable)
+  * [Special loop variable options](#Special-loop-variable-options)
+  * [Reset a loop variable](#Reset-a-loop-variable)
 * [Instantiate a Class and use in Flow](#Instantiate-a-Class-and-use-in-Flow)
 * [Passing input to the WorkflowEngine](#Passing-input-to-the-WorkflowEngine]
 * [Logging](#Logging)
