@@ -94,7 +94,7 @@ Explanation:
 4. The Exclusive Gateway is deciding which Sequence Flow Arrow to follow. If the loop is still ongoing, the 'Loop List' Task will be called again and the next element in the list will be returned.
 
 ##### Reset a loop variable
-When you are creating loops in loops, then it is necessary to reset the inner loop variable each time you restart the inner loop. You can do so by using the WorkflowEngine function 'reset_loopcounter':<br>
+When you are creating loops in loops, then it is necessary to reset the inner loop variable each time you restart the inner loop. You can do so by using the WorkflowEngine function 'reset_loopcounter'. Please call this function before you enter the inner loop. The function doesn't break if the loopvariable hasn't been initiated yet. Attributes for this function:<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Reset_loopcounter.png" height="50" width="350" ></a><br>
 
 #### Retreiving information
