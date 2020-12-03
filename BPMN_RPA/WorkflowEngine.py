@@ -705,6 +705,22 @@ class WorkflowEngine():
             return input
         return None
 
+    def reset_loopcounter(self, reset_for_loop_variable):
+        """
+        Reset the loopcounter for a loop variable
+        :param reset_for_loop_variable: The name of the loop variable.
+        """
+        loopvars = [x for x in self.loopvariables if x.name == reset_for_loop_variable]
+        if loopvars is not None and len(loopvars)>0:
+            loopvar = loopvars[0]
+        else:
+            loopvar = None
+            self.print_log(f"Loopcounter '{reset_for_loop_variable}' has not yet been initiated. No reset needed.", "Running")
+        if loopvar is not None:
+            if loopvar.total_listitems == loopvar.counter:
+                self.loopvariables.remove(loopvar)
+                self.print_log(f"Loopcounter reset loopvariable '{reset_for_loop_variable}'", "Running")
+
     def loopcounter(self, step: Any, output_previous_step: Any) -> Any:
         """
         Process steps with a loopcounter
