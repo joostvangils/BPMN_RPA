@@ -13,6 +13,8 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
   * [Sequence flow arrow](#Sequence-flow-arrow)
 * [Variables](#Variables)
 * [Loops](#Loops)
+ * [Special loop variable options](#Special-loop-variable-options)
+ * [Reset a loop variable](#Reset-a-loop-variable)
 * [Instantiate a Class and use in Flow](#Instantiate-a-Class-and-use-in-Flow)
 * [Passing input to the WorkflowEngine](#Passing-input-to-the-WorkflowEngine]
 * [Logging](#Logging)
@@ -75,7 +77,7 @@ etc. etc.
 #### Loops
 You can create loops by using exclusive gateways. An exclusive gateway should always have two sequence flow arrows: one with the label "True" and the other with the label "False". The actual true/false decision isn't made in the exclusive gateway itself, but in the last Task before the exclusive gateway. A loop is started by a Task that is calling a Python script that returns a list. The task is recognized as the start of the loop by adding/using the attribute 'Loopcounter'. The loopcounter number is the starting point for the loop (for returning the n-th element of the list). The task before the Exclusive Gateway should be the 'More loop items?' Task. You can find this Task in the predefined Shapes. This Task should have two attributes: 'Function' with value 'loop_items_check' will call the loop_items_check() function in the WorkflowEngine object, and 'Loop_variable' with the variable name to loop as value. The loop_items_check() function will return True or False, which will be used by the WorkflowEngine to decide which Sequence Flow Arrow to follow.
 
-##### Sepcial loop variable options
+##### Special loop variable options
 You can get the value of the loopvariable counter by using the '.counter' attribute of the loopvariable (p.e.: %test.counter%). To get the whole list that is looped, use the '.object' attribute of the loopvariable (p.e.: '%test.object%') or just the variable name (like '%test%').
 
 An example:<br>
@@ -90,6 +92,10 @@ Explanation:
 3. The 'More loop items?' Task checks if the List in the variable '%test%' has any items left to loop. If so, then it returns True, otherwise it will return False. If it returns True, the 'Loopcounter' is raised by 1. The function is called within the WorkflowEngine class (no 'Module'or 'Class' specified).<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Looptest_attributes.PNG" height="100" width="400" ></a>
 4. The Exclusive Gateway is deciding which Sequence Flow Arrow to follow. If the loop is still ongoing, the 'Loop List' Task will be called again and the next element in the list will be returned.
+
+##### Reset a loop variable
+When you are creating loops in loops, then it is necessary to reset the inner loop variable each time you restart the inner loop. You can do so by using the WorkflowEngine function 'reset_loopcounter':<br>
+<a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Reset_loopcounter.PNG" height="100" width="400" ></a><br>
 
 #### Retreiving information
 In order to retrieve a specific item of a list, you must use the following format (notation): %VariableName[ItemNumber]%. The “ItemNumber” should be 0 for the first item of the list, 1 for the second and so on. For example, if you have a list that is stored in the variable %MyList% and contains 10 items, you can retrieve the first item with: %MyList[0]% and the last item with %MyList[9]%. For data tables, you must use the following notation: %VariableName[RowNumber][ColumnNumber]%.
