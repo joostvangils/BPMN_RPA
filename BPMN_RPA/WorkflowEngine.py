@@ -277,6 +277,7 @@ class WorkflowEngine():
         """
         mapping = {}
         returnNone = True
+        tmp = None
         if signature is None:
             if hasattr(self.previous_step, "output_variable"):
                 var = self.variables.get(self.previous_step.output_variable)
@@ -338,20 +339,45 @@ class WorkflowEngine():
                                         if isinstance(replace_value, list) and not str(replace_value).__contains__(
                                                 "Message(mime_content="):
                                             if not tv.__contains__("."):
-                                                if len(replace_value) == 1:
+                                                if len(replace_value) == 1 and not isinstance(replace_value[0], list):
                                                     val = val.replace(tv, replace_value[0])
                                                 else:
                                                     if len(replace_value) == 0:
                                                         self.print_log(status="Ending", result=f"No items to loop...")
                                                         self.exitcode_ok()
                                                     else:
-                                                        if isinstance(replace_value[loopvars[0].counter], str):
-                                                            val = val.replace(tv, replace_value[loopvars[0].counter])
+                                                        if loopvars[0].counter < len(replace_value):
+                                                            if isinstance(replace_value[loopvars[0].counter], str):
+                                                                val = val.replace(tv, replace_value[loopvars[0].counter])
+                                                            else:
+                                                                val = list(replace_value[loopvars[0].counter])
+                                                                if len(lst)>1:
+                                                                    for l in lst[1:]:
+                                                                        val = val[int(l.replace("]",""))]
                                                         else:
-                                                            val = list(replace_value[loopvars[0].counter])
-                                                            if len(lst)>1:
-                                                                for l in lst[1:]:
-                                                                    val = val[int(l.replace("]",""))]
+                                                            if isinstance(replace_value[0], str):
+                                                                val = val.replace(tv, replace_value[0])
+                                                            else:
+                                                                val = replace_value[0]
+                                                                if len(lst)>1:
+                                                                    for l in lst[1:]:
+                                                                        val = val[int(l.replace("]",""))]
+
+                                                        if  str(getattr(step, str(key).lower())) != tv:
+                                                            if loopvars[0].counter < len(replace_value):
+                                                                replace_value = replace_value[loopvars[0].counter]
+                                                            else:
+                                                                replace_value = replace_value[0]
+                                                            if isinstance(replace_value, list):
+                                                                repl_list = tv.split("[")
+                                                                if tmp is None:
+                                                                    tmp = str(getattr(step, str(key).lower()))
+                                                                for repl in repl_list:
+                                                                    if repl.__contains__("]"):
+                                                                        nr = str(repl).replace("]", "").replace("%", "")
+                                                                        if nr.isnumeric():
+                                                                            tmp = tmp.replace(tv, str(replace_value[int(nr)]))
+                                                                    val = tmp
 
                                             else:
                                                 if loopvars[0].counter < len(replace_value):
@@ -751,6 +777,9 @@ class WorkflowEngine():
                         loopvar.total_listitems = len(list(output_previous_step))
                     else:
                         loopvar.total_listitems = len(output_previous_step)
+                        if loopvar.total_listitems > 0 and type(output_previous_step[0]).__name__ == "Row":
+                            for t in range(0, loopvar.total_listitems):
+                                output_previous_step[t] = list(output_previous_step[t])
                         loopvar.items = output_previous_step
                     if loopvar.total_listitems == 0:
                         self.print_log("There are no more items to loop", "Ending")
