@@ -345,7 +345,14 @@ class WorkflowEngine():
                                                         self.print_log(status="Ending", result=f"No items to loop...")
                                                         self.exitcode_ok()
                                                     else:
-                                                        val = val.replace(tv, replace_value[loopvars[0].counter])
+                                                        if isinstance(replace_value[loopvars[0].counter], str):
+                                                            val = val.replace(tv, replace_value[loopvars[0].counter])
+                                                        else:
+                                                            val = list(replace_value[loopvars[0].counter])
+                                                            if len(lst)>1:
+                                                                for l in lst[1:]:
+                                                                    val = val[int(l.replace("]",""))]
+
                                             else:
                                                 if loopvars[0].counter < len(replace_value):
                                                     replace_value = self.get_attribute_value(lst[0], replace_value[
