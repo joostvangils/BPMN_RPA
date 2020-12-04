@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any
-
+from dateutil.parser import parse
+import time
 
 def is_first_item_equal_to_second_item(first_item: Any, second_item: Any) -> bool:
     """
@@ -76,7 +77,11 @@ def is_time_interval_less_or_equal(datetime1: Any, datetime2: Any, interval_in_s
     :param interval_in_seconds: The interval in seconds
     :return: Boolean True or False
     """
-    return (datetime2 - datetime1).total_seconds() <= interval_in_seconds
+    if not isinstance(datetime1, datetime):
+        datetime1 = datetime.combine(datetime1, datetime.now().time())
+    if not isinstance(datetime2, datetime):
+        datetime2 = datetime.combine(datetime2, datetime.now().time())
+    return (datetime2 - datetime1).total_seconds() <= int(interval_in_seconds)
 
 
 def is_time_number_of_seconds_ago(date_time: Any, interval_in_seconds: int) -> bool:
@@ -87,7 +92,9 @@ def is_time_number_of_seconds_ago(date_time: Any, interval_in_seconds: int) -> b
     :param interval_in_seconds: The interval in seconds
     :return: Boolean True or False
     """
-    return (date_time - datetime.now()).total_seconds() <= interval_in_seconds
+    if not isinstance(date_time, datetime):
+        date_time = datetime.combine(date_time, datetime.now().time())
+    return (date_time - datetime.now()).total_seconds() <= int(interval_in_seconds)
 
 
 def item1_contains_item2(item1: Any, item2: Any, exact_match: bool = True) -> bool:
