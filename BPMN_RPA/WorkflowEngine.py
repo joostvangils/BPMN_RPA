@@ -410,6 +410,8 @@ class WorkflowEngine():
                                 else:
                                     if tv.__contains__("[") and tv.__contains__("]"):
                                         if isinstance(replace_value, list):
+                                            if tmp is None:
+                                                tmp = str(getattr(step, str(key).lower()))
                                             repl_list = tv.split("[")
                                             for repl in repl_list:
                                                 if repl.__contains__("]"):
@@ -422,10 +424,15 @@ class WorkflowEngine():
                                                                 if tmp is None:
                                                                     tmp = replace_value[int(nr)]
                                                                 else:
-                                                                    tmp = tmp[int(nr)]
-                                                        else:
-                                                            tmp = tmp[int(nr)]
-                                                val = tmp
+                                                                    if len(repl_list) > 1:
+                                                                        tmp2 = replace_value[int(nr)]
+                                                                        for l in repl_list[2:]:
+                                                                            tmp2 = tmp2[int(l.replace("]","").replace("%", ""))]
+                                                                        if isinstance(tmp, str) and tmp!=tv:
+                                                                            tmp = tmp.replace(tv, tmp2)
+                                                                        else:
+                                                                            tmp = tmp2
+                                            val = tmp
                                     elif tv.__contains__("."):
                                         replace_value = self.get_attribute_value(lst[0], replace_value)
                                         if isinstance(replace_value, str):
