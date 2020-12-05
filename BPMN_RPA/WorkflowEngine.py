@@ -438,7 +438,10 @@ class WorkflowEngine():
                                         if isinstance(replace_value, str):
                                             val = val.replace(tv, str(replace_value))
                                         else:
-                                            val = replace_value
+                                            if val != tv:
+                                                val = val.replace(tv, str(replace_value))
+                                            else:
+                                                val = replace_value
                                     else:
                                         if isinstance(replace_value, list):
                                             val = replace_value
@@ -699,6 +702,8 @@ class WorkflowEngine():
         :param status: Optional. The status of the step
         :param result: The result of the step
         """
+        result = str(result)
+        ststus = str(status)
         if not result.endswith("."):
             result += "."
         step_time = datetime.now().strftime("%H:%M:%S")
