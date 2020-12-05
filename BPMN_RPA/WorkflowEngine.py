@@ -411,12 +411,11 @@ class WorkflowEngine():
                                     if tv.__contains__("[") and tv.__contains__("]"):
                                         if isinstance(replace_value, list):
                                             repl_list = tv.split("[")
-                                            tmp = None
                                             for repl in repl_list:
                                                 if repl.__contains__("]"):
                                                     nr = str(repl).replace("]", "").replace("%", "")
                                                     if nr.isnumeric():
-                                                        if isinstance(replace_value, str):
+                                                        if isinstance(replace_value[int(nr)], str):
                                                             tmp = tmp.replace(tv, replace_value[int(nr)])
                                                         else:
                                                             if tmp is None:
