@@ -415,13 +415,16 @@ class WorkflowEngine():
                                                 if repl.__contains__("]"):
                                                     nr = str(repl).replace("]", "").replace("%", "")
                                                     if nr.isnumeric():
-                                                        if isinstance(replace_value[int(nr)], str):
-                                                            tmp = tmp.replace(tv, replace_value[int(nr)])
-                                                        else:
-                                                            if tmp is None:
-                                                                tmp = replace_value[int(nr)]
+                                                        if int(nr) < len(replace_value):
+                                                            if isinstance(replace_value[int(nr)], str):
+                                                                tmp = tmp.replace(tv, replace_value[int(nr)])
                                                             else:
-                                                                tmp = tmp[int(nr)]
+                                                                if tmp is None:
+                                                                    tmp = replace_value[int(nr)]
+                                                                else:
+                                                                    tmp = tmp[int(nr)]
+                                                        else:
+                                                            tmp = tmp[int(nr)]
                                                 val = tmp
                                     elif tv.__contains__("."):
                                         replace_value = self.get_attribute_value(lst[0], replace_value)
