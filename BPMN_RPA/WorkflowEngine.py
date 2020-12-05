@@ -614,6 +614,9 @@ class WorkflowEngine():
                 if input is not None and not IsInLoop:
                     if hasattr(step, "function"):
                         if len(step.function) > 0:
+                            if isinstance(class_object, type):
+                                class_object = class_object()
+                                method_to_call = getattr(class_object, step.function)
                             if isinstance(input, dict):
                                 output_previous_step = method_to_call(**input)
                             else:
@@ -633,6 +636,9 @@ class WorkflowEngine():
                             called = False
                             if len(step.function) > 0:
                                 if method_to_call is not None:
+                                    if isinstance(class_object, type):
+                                        class_object = class_object()
+                                        method_to_call = getattr(class_object, step.function)
                                     output_previous_step = method_to_call()
                                     called = True
                                 else:
