@@ -9,9 +9,10 @@ import site
 import sqlite3
 import urllib
 import winreg
+import socket
 import xml.etree.ElementTree as ET
 import zlib
-from datetime import datetime
+from datetime import datetime, timedelta
 from inspect import signature
 from shutil import copyfile
 from typing import List, Any
@@ -184,10 +185,12 @@ class WorkflowEngine():
         if not isinstance(objects, list):
             # there is only one shape
             step = self.get_step_from_shape(objects)
+            self.store_system_variables(step)
             shapes.append(step)
         else:
             for shape in objects:
                 step = self.get_step_from_shape(shape)
+                self.store_system_variables(step)
                 shapes.append(step)
         # Find start shape
         for shape in shapes:
@@ -448,7 +451,10 @@ class WorkflowEngine():
                                         elif isinstance(replace_value, str):
                                             val = val.replace(tv, str(replace_value))
                                         else:
-                                            val = replace_value
+                                            if val != tv:
+                                                val = val.replace(tv, str(replace_value))
+                                            else:
+                                                val = replace_value
                 mapping[str(key)] = val
         if returnNone:
             return None
@@ -841,6 +847,46 @@ class WorkflowEngine():
         else:
             return output_previous_step
 
+    def store_system_variables(self, step):
+        for value in vars(step):
+            if str(getattr(step, value)).__contains__("%__today__%"):
+                self.variables.update({'%__today__%': datetime.today().date()})
+            if str(getattr(step, value)).__contains__("%__today_formatted__%"):
+                self.variables.update({'%__today_formatted__%': datetime.today().date().strftime("%d-%m-%Y")})
+            if str(getattr(step, value)).__contains__("%__month__%"):
+                self.variables.update({'%__month__%': datetime.today().month})
+            if str(getattr(step, value)).__contains__("%__year__%"):
+                self.variables.update({'%__year__%': datetime.today().year})
+            if str(getattr(step, value)).__contains__("%__weeknumber__%"):
+                self.variables.update({'%__weeknumber__%': datetime.today().strftime("%V")})
+            if str(getattr(step, value)).__contains__("%__today__%"):
+                self.variables.update({'%__today__%': datetime.today()})
+            if str(getattr(step, value)).__contains__("%__tomorrow__%"):
+                self.variables.update({'%__tomorrow__%': datetime.today() + timedelta(days=1)})
+            if str(getattr(step, value)).__contains__("%__tomorrow_formatted__%"):
+                self.variables.update({'%__tomorrow_formatted__%': (datetime.today() + timedelta(days=1)).strftime("%d-%m-%Y")})
+            if str(getattr(step, value)).__contains__("%__yesterday__%"):
+                self.variables.update({'%__yesterday__%': datetime.today() + timedelta(days=-1)})
+            if str(getattr(step, value)).__contains__("%__yesterday_formatted__%"):
+                self.variables.update({'%__yesterday_formatted__%': (datetime.today() + timedelta(days=-1)).strftime("%d-%m-%Y")})
+            if str(getattr(step, value)).__contains__("%__time__%"):
+                self.variables.update({'%__time__%': datetime.now().time()})
+            if str(getattr(step, value)).__contains__("%__time_fromatted__%"):
+                self.variables.update({'%__time_fromatted__%': datetime.now().time().strftime("%H:%M:%S")})
+            if str(getattr(step, value)).__contains__("%__now__%"):
+                self.variables.update({'%__now__%': datetime.now()})
+            if str(getattr(step, value)).__contains__("%__folder_desktop__%"):
+                self.variables.update({'%__folder_desktop__%': os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')})
+            if str(getattr(step, value)).__contains__("%__folder_downloads__%"):
+                self.variables.update({'%__folder_downloads__%': os.path.join(os.path.join(os.environ['USERPROFILE']), 'Downloads')})
+            if str(getattr(step, value)).__contains__("%__folder_system__%"):
+                self.variables.update({'%__folder_system__%': os.environ['WINDIR'] + "\\System\\"})
+            if str(getattr(step, value)).__contains__("%__system_name__%"):
+                self.variables.update({'%__system_name__%': socket.getfqdn()})
+            if str(getattr(step, value)).__contains__("%__user_name__%"):
+                self.variables.update({'%__user_name__%': os.getenv('username')})
+
+
     def save_output_variable(self, step, this_step, output_previous_step):
         """
         Save output variable to list
@@ -855,6 +901,7 @@ class WorkflowEngine():
                     this_step = output_previous_step
                 self.variables.update(
                     {f"{step.output_variable}": this_step})  # Update the variables list
+
 
     def loop_items_check(self, loop_variable: str) -> bool:
         """
