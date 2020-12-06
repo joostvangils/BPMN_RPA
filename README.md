@@ -77,23 +77,23 @@ etc. etc.
 
 ##### System variables
 System variables are pre-defined variables that provide information that can be used in flow attributes. The System variables content is set by the WorkflowEngine automatically and cannot be changed. All system variables begin with a double underscore between precent signs. Available variables:<br>
-* %__folder_desktop__%: returns the desktop folder of the current user
-* %__folder_downloads__%: returns the downloads folder of the current user
-* %__folder_system__%: returns the windows system folder
-* %__month__%: returns the current month
-* %__now__%: returns the datetime now() object
-* %__system_name__%: returns the fully qualified domain name (FQDN) of the system 
-* %__time__%: returns the current time
-* %__time_formatted__%: returns the current time in 'hh:mm:ss' format
-* %__today__%: returns the current date
-* %__today_formatted__%: returns the current date in 'dd-mm-yyyy' format
-* %__tomorrow__%: returns the date of tomorrow
-* %__tomorrow_formatted__%: returns the date of tomorrow in 'dd-mm-yyyy' format
-* %__user_name__%: returns the account name of the user that is currently logged in
-* %__weeknumber__%: returns the current weeknumber
-* %__year__%: returns the current year number
-* %__yesterday__%: returns the date of yesterday
-* %__yesterday_formatted__%: returns the date of yesterday in 'dd-mm-yyyy' format
+* %\_\_folder_desktop\_\_%: returns the desktop folder of the current user
+* %\_\_folder_downloads\_\_%: returns the downloads folder of the current user
+* %\_\_folder_system\_\_%: returns the windows system folder
+* %\_\_month\_\_%: returns the current month
+* %\_\_now\_\_%: returns the datetime now() object
+* %\_\_system_name\_\_%: returns the fully qualified domain name (FQDN) of the system 
+* %\_\_time\_\_%: returns the current time
+* %\_\_time_formatted\_\_%: returns the current time in 'hh:mm:ss' format
+* %\_\_today\_\_%: returns the current date
+* %\_\_today_formatted\_\_%: returns the current date in 'dd-mm-yyyy' format
+* %\_\_tomorrow\_\_%: returns the date of tomorrow
+* %\_\_tomorrow_formatted\_\_%: returns the date of tomorrow in 'dd-mm-yyyy' format
+* %\_\_user_name\_\_%: returns the account name of the user that is currently logged in
+* %\_\_weeknumber\_\_%: returns the current weeknumber
+* %\_\_year\_\_%: returns the current year number
+* %\_\_yesterday\_\_%: returns the date of yesterday
+* %\_\_yesterday_formatted\_\_%: returns the date of yesterday in 'dd-mm-yyyy' format
 
 #### Loops
 You can create loops by using exclusive gateways. An exclusive gateway should always have two sequence flow arrows: one with the label "True" and the other with the label "False". The actual true/false decision isn't made in the exclusive gateway itself, but in the last Task before the exclusive gateway. A loop is started by a Task that is calling a Python script that returns a list. The task is recognized as the start of the loop by adding/using the attribute 'Loopcounter'. The loopcounter number is the starting point for the loop (for returning the n-th element of the list). The task before the Exclusive Gateway should be the 'More loop items?' Task. You can find this Task in the predefined Shapes. This Task should have two attributes: 'Function' with value 'loop_items_check' will call the loop_items_check() function in the WorkflowEngine object, and 'Loop_variable' with the variable name to loop as value. The loop_items_check() function will return True or False, which will be used by the WorkflowEngine to decide which Sequence Flow Arrow to follow.
