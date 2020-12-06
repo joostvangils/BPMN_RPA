@@ -9,9 +9,10 @@ import site
 import sqlite3
 import urllib
 import winreg
+import socket
 import xml.etree.ElementTree as ET
 import zlib
-from datetime import datetime
+from datetime import datetime, timedelta
 from inspect import signature
 from shutil import copyfile
 from typing import List, Any
@@ -184,10 +185,12 @@ class WorkflowEngine():
         if not isinstance(objects, list):
             # there is only one shape
             step = self.get_step_from_shape(objects)
+            self.store_system_variables(step)
             shapes.append(step)
         else:
             for shape in objects:
                 step = self.get_step_from_shape(shape)
+                self.store_system_variables(step)
                 shapes.append(step)
         # Find start shape
         for shape in shapes:
@@ -277,6 +280,7 @@ class WorkflowEngine():
         """
         mapping = {}
         returnNone = True
+        tmp = None
         if signature is None:
             if hasattr(self.previous_step, "output_variable"):
                 var = self.variables.get(self.previous_step.output_variable)
@@ -338,14 +342,46 @@ class WorkflowEngine():
                                         if isinstance(replace_value, list) and not str(replace_value).__contains__(
                                                 "Message(mime_content="):
                                             if not tv.__contains__("."):
-                                                if len(replace_value) == 1:
+                                                if len(replace_value) == 1 and not isinstance(replace_value[0], list):
                                                     val = val.replace(tv, replace_value[0])
                                                 else:
                                                     if len(replace_value) == 0:
                                                         self.print_log(status="Ending", result=f"No items to loop...")
                                                         self.exitcode_ok()
                                                     else:
-                                                        val = val.replace(tv, replace_value[loopvars[0].counter])
+                                                        if loopvars[0].counter < len(replace_value):
+                                                            if isinstance(replace_value[loopvars[0].counter], str):
+                                                                val = val.replace(tv, replace_value[loopvars[0].counter])
+                                                            else:
+                                                                val = list(replace_value[loopvars[0].counter])
+                                                                if len(lst)>1:
+                                                                    for l in lst[1:]:
+                                                                        val = val[int(l.replace("]",""))]
+                                                        else:
+                                                            if isinstance(replace_value[0], str):
+                                                                val = val.replace(tv, replace_value[0])
+                                                            else:
+                                                                val = replace_value[0]
+                                                                if len(lst)>1:
+                                                                    for l in lst[1:]:
+                                                                        val = val[int(l.replace("]",""))]
+
+                                                        if  str(getattr(step, str(key).lower())) != tv:
+                                                            if loopvars[0].counter < len(replace_value):
+                                                                replace_value = replace_value[loopvars[0].counter]
+                                                            else:
+                                                                replace_value = replace_value[0]
+                                                            if isinstance(replace_value, list):
+                                                                repl_list = tv.split("[")
+                                                                if tmp is None:
+                                                                    tmp = str(getattr(step, str(key).lower()))
+                                                                for repl in repl_list:
+                                                                    if repl.__contains__("]"):
+                                                                        nr = str(repl).replace("]", "").replace("%", "")
+                                                                        if nr.isnumeric():
+                                                                            tmp = tmp.replace(tv, str(replace_value[int(nr)]))
+                                                                    val = tmp
+
                                             else:
                                                 if loopvars[0].counter < len(replace_value):
                                                     replace_value = self.get_attribute_value(lst[0], replace_value[
@@ -377,33 +413,48 @@ class WorkflowEngine():
                                 else:
                                     if tv.__contains__("[") and tv.__contains__("]"):
                                         if isinstance(replace_value, list):
+                                            if tmp is None:
+                                                tmp = str(getattr(step, str(key).lower()))
                                             repl_list = tv.split("[")
-                                            tmp = None
                                             for repl in repl_list:
                                                 if repl.__contains__("]"):
                                                     nr = str(repl).replace("]", "").replace("%", "")
                                                     if nr.isnumeric():
-                                                        if isinstance(replace_value, str):
-                                                            tmp = tmp.replace(tv, replace_value[int(nr)])
-                                                        else:
-                                                            if tmp is None:
-                                                                tmp = replace_value[int(nr)]
+                                                        if int(nr) < len(replace_value):
+                                                            if isinstance(replace_value[int(nr)], str):
+                                                                tmp = tmp.replace(tv, replace_value[int(nr)])
                                                             else:
-                                                                tmp = tmp[int(nr)]
-                                                val = tmp
+                                                                if tmp is None:
+                                                                    tmp = replace_value[int(nr)]
+                                                                else:
+                                                                    if len(repl_list) > 1:
+                                                                        tmp2 = replace_value[int(nr)]
+                                                                        for l in repl_list[2:]:
+                                                                            tmp2 = tmp2[int(l.replace("]","").replace("%", ""))]
+                                                                        if isinstance(tmp, str) and tmp!=tv:
+                                                                            tmp = tmp.replace(tv, tmp2)
+                                                                        else:
+                                                                            tmp = tmp2
+                                            val = tmp
                                     elif tv.__contains__("."):
                                         replace_value = self.get_attribute_value(lst[0], replace_value)
                                         if isinstance(replace_value, str):
                                             val = val.replace(tv, str(replace_value))
                                         else:
-                                            val = replace_value
+                                            if val != tv:
+                                                val = val.replace(tv, str(replace_value))
+                                            else:
+                                                val = replace_value
                                     else:
                                         if isinstance(replace_value, list):
                                             val = replace_value
                                         elif isinstance(replace_value, str):
                                             val = val.replace(tv, str(replace_value))
                                         else:
-                                            val = replace_value
+                                            if val != tv:
+                                                val = val.replace(tv, str(replace_value))
+                                            else:
+                                                val = replace_value
                 mapping[str(key)] = val
         if returnNone:
             return None
@@ -572,6 +623,9 @@ class WorkflowEngine():
                 if input is not None and not IsInLoop:
                     if hasattr(step, "function"):
                         if len(step.function) > 0:
+                            if isinstance(class_object, type):
+                                class_object = class_object()
+                                method_to_call = getattr(class_object, step.function)
                             if isinstance(input, dict):
                                 output_previous_step = method_to_call(**input)
                             else:
@@ -591,6 +645,9 @@ class WorkflowEngine():
                             called = False
                             if len(step.function) > 0:
                                 if method_to_call is not None:
+                                    if isinstance(class_object, type):
+                                        class_object = class_object()
+                                        method_to_call = getattr(class_object, step.function)
                                     output_previous_step = method_to_call()
                                     called = True
                                 else:
@@ -651,6 +708,8 @@ class WorkflowEngine():
         :param status: Optional. The status of the step
         :param result: The result of the step
         """
+        result = str(result)
+        ststus = str(status)
         if not result.endswith("."):
             result += "."
         step_time = datetime.now().strftime("%H:%M:%S")
@@ -744,6 +803,9 @@ class WorkflowEngine():
                         loopvar.total_listitems = len(list(output_previous_step))
                     else:
                         loopvar.total_listitems = len(output_previous_step)
+                        if loopvar.total_listitems > 0 and type(output_previous_step[0]).__name__ == "Row":
+                            for t in range(0, loopvar.total_listitems):
+                                output_previous_step[t] = list(output_previous_step[t])
                         loopvar.items = output_previous_step
                     if loopvar.total_listitems == 0:
                         self.print_log("There are no more items to loop", "Ending")
@@ -785,6 +847,46 @@ class WorkflowEngine():
         else:
             return output_previous_step
 
+    def store_system_variables(self, step):
+        for value in vars(step):
+            if str(getattr(step, value)).__contains__("%__today__%"):
+                self.variables.update({'%__today__%': datetime.today().date()})
+            if str(getattr(step, value)).__contains__("%__today_formatted__%"):
+                self.variables.update({'%__today_formatted__%': datetime.today().date().strftime("%d-%m-%Y")})
+            if str(getattr(step, value)).__contains__("%__month__%"):
+                self.variables.update({'%__month__%': datetime.today().month})
+            if str(getattr(step, value)).__contains__("%__year__%"):
+                self.variables.update({'%__year__%': datetime.today().year})
+            if str(getattr(step, value)).__contains__("%__weeknumber__%"):
+                self.variables.update({'%__weeknumber__%': datetime.today().strftime("%V")})
+            if str(getattr(step, value)).__contains__("%__today__%"):
+                self.variables.update({'%__today__%': datetime.today()})
+            if str(getattr(step, value)).__contains__("%__tomorrow__%"):
+                self.variables.update({'%__tomorrow__%': datetime.today() + timedelta(days=1)})
+            if str(getattr(step, value)).__contains__("%__tomorrow_formatted__%"):
+                self.variables.update({'%__tomorrow_formatted__%': (datetime.today() + timedelta(days=1)).strftime("%d-%m-%Y")})
+            if str(getattr(step, value)).__contains__("%__yesterday__%"):
+                self.variables.update({'%__yesterday__%': datetime.today() + timedelta(days=-1)})
+            if str(getattr(step, value)).__contains__("%__yesterday_formatted__%"):
+                self.variables.update({'%__yesterday_formatted__%': (datetime.today() + timedelta(days=-1)).strftime("%d-%m-%Y")})
+            if str(getattr(step, value)).__contains__("%__time__%"):
+                self.variables.update({'%__time__%': datetime.now().time()})
+            if str(getattr(step, value)).__contains__("%__time_fromatted__%"):
+                self.variables.update({'%__time_fromatted__%': datetime.now().time().strftime("%H:%M:%S")})
+            if str(getattr(step, value)).__contains__("%__now__%"):
+                self.variables.update({'%__now__%': datetime.now()})
+            if str(getattr(step, value)).__contains__("%__folder_desktop__%"):
+                self.variables.update({'%__folder_desktop__%': os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')})
+            if str(getattr(step, value)).__contains__("%__folder_downloads__%"):
+                self.variables.update({'%__folder_downloads__%': os.path.join(os.path.join(os.environ['USERPROFILE']), 'Downloads')})
+            if str(getattr(step, value)).__contains__("%__folder_system__%"):
+                self.variables.update({'%__folder_system__%': os.environ['WINDIR'] + "\\System\\"})
+            if str(getattr(step, value)).__contains__("%__system_name__%"):
+                self.variables.update({'%__system_name__%': socket.getfqdn()})
+            if str(getattr(step, value)).__contains__("%__user_name__%"):
+                self.variables.update({'%__user_name__%': os.getenv('username')})
+
+
     def save_output_variable(self, step, this_step, output_previous_step):
         """
         Save output variable to list
@@ -799,6 +901,7 @@ class WorkflowEngine():
                     this_step = output_previous_step
                 self.variables.update(
                     {f"{step.output_variable}": this_step})  # Update the variables list
+
 
     def loop_items_check(self, loop_variable: str) -> bool:
         """

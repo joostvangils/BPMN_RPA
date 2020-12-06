@@ -848,6 +848,10 @@ class WorkflowEngine():
             return output_previous_step
 
     def store_system_variables(self, step):
+        """
+        Filetr out system variables from step attributes and store them in self.variables
+        :param step: The step object to search for system variables
+        """
         for value in vars(step):
             if str(getattr(step, value)).__contains__("%__today__%"):
                 self.variables.update({'%__today__%': datetime.today().date()})

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: BPMN-RPA
-Version: 1.0.80
+Version: 1.0.90
 Summary: Robotic Process Automation in Windows by running Diagrams.net BPMN flows.
 Home-page: https://github.com/joostvangils/BPMN_RPA
 Author: Joost van Gils
@@ -20,6 +20,7 @@ Description: # BPMN_RPA
           * [Gateways](#Gateways)
           * [Sequence flow arrow](#Sequence-flow-arrow)
         * [Variables](#Variables)
+          * [System variables](#System-variables)
         * [Loops](#Loops)
           * [Special loop variable options](#Special-loop-variable-options)
           * [Reset a loop variable](#Reset-a-loop-variable)
@@ -81,6 +82,26 @@ Description: # BPMN_RPA
         * Dictionary
         * Class objects <br>
         etc. etc.
+        
+        ##### System variables
+        System variables are pre-defined variables that provide information that can be used in flow attributes. The System variables content is set by the WorkflowEngine automatically and cannot be changed. All system variables begin with a double underscore between precent signs. Available variables:<br>
+        * __%\_\_folder_desktop\_\_%__: returns the desktop folder of the current user
+        * __%\_\_folder_downloads\_\_%__: returns the downloads folder of the current user
+        * __%\_\_folder_system\_\_%__: returns the windows system folder
+        * __%\_\_month\_\_%__: returns the current month
+        * __%\_\_now\_\_%__: returns the datetime now() object
+        * __%\_\_system_name\_\_%__: returns the fully qualified domain name (FQDN) of the system 
+        * __%\_\_time\_\_%__: returns the current time
+        * __%\_\_time_formatted\_\_%__: returns the current time in 'hh:mm:ss' format
+        * __%\_\_today\_\_%__: returns the current date
+        * __%\_\_today_formatted\_\_%__: returns the current date in 'dd-mm-yyyy' format
+        * __%\_\_tomorrow\_\_%__: returns the date of tomorrow
+        * __%\_\_tomorrow_formatted\_\_%__: returns the date of tomorrow in 'dd-mm-yyyy' format
+        * __%\_\_user_name\_\_%__: returns the account name of the user that is currently logged in
+        * __%\_\_weeknumber\_\_%__: returns the current weeknumber
+        * __%\_\_year\_\_%__: returns the current year number
+        * __%\_\_yesterday\_\_%__: returns the date of yesterday
+        * __%\_\_yesterday_formatted\_\_%__: returns the date of yesterday in 'dd-mm-yyyy' format
         
         #### Loops
         You can create loops by using exclusive gateways. An exclusive gateway should always have two sequence flow arrows: one with the label "True" and the other with the label "False". The actual true/false decision isn't made in the exclusive gateway itself, but in the last Task before the exclusive gateway. A loop is started by a Task that is calling a Python script that returns a list. The task is recognized as the start of the loop by adding/using the attribute 'Loopcounter'. The loopcounter number is the starting point for the loop (for returning the n-th element of the list). The task before the Exclusive Gateway should be the 'More loop items?' Task. You can find this Task in the predefined Shapes. This Task should have two attributes: 'Function' with value 'loop_items_check' will call the loop_items_check() function in the WorkflowEngine object, and 'Loop_variable' with the variable name to loop as value. The loop_items_check() function will return True or False, which will be used by the WorkflowEngine to decide which Sequence Flow Arrow to follow.
