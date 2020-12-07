@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
-from dateutil.parser import parse
-import time
+import inspect
+
 
 def is_first_item_equal_to_second_item(first_item: Any, second_item: Any) -> bool:
     """
@@ -124,7 +124,6 @@ def item1_contains_item2(item1: Any, item2: Any, exact_match: bool = True) -> bo
             return False
     return item1.__contains__(item2)
 
-
 def does_list_contain_item(list_object: list, item:Any) -> bool:
     """
     Check if list contains an item
@@ -134,8 +133,7 @@ def does_list_contain_item(list_object: list, item:Any) -> bool:
     """
     return list_object.__contains__(item)
 
-
-def does_list_contain_items(list_object: list) -> bool:
+def does_list_contain_any_items(list_object: list) -> bool:
     """
     Check if a list contains items
     :param list_object: The list object to check
