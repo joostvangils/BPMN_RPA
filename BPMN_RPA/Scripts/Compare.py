@@ -133,3 +133,15 @@ def does_list_contain_item(list_object: list, item:Any) -> bool:
     :return: True or False
     """
     return list_object.__contains__(item)
+
+
+def does_list_contain_items(list_object: list) -> bool:
+    """
+    Check if a list contains items
+    :param list_object: The list object to check
+    :return: True or False
+    """
+    if len(list_object) > 0:
+        return True
+    else:
+        return False
