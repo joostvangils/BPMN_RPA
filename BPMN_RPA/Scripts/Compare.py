@@ -123,3 +123,13 @@ def item1_contains_item2(item1: Any, item2: Any, exact_match: bool = True) -> bo
                     return True
             return False
     return item1.__contains__(item2)
+
+
+def does_list_contain_item(list_object: list, item:Any) -> bool:
+    """
+    Check if list contains an item
+    :param list_object: The list object
+    :param item: The item to check for
+    :return: True or False
+    """
+    return list_object.__contains__(item)
