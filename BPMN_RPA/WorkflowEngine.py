@@ -556,7 +556,11 @@ class WorkflowEngine():
                             self.print_log(status="Running",
                                            result=f"Passing an {step.type} with value {output_previous_step}...")
                     else:
-                        self.print_log(status="Running", result=f"Executing step '{step.name}'...")
+                        if hasattr(step, "function"):
+                            if step.function != "print_log":
+                                self.print_log(status="Running", result=f"Executing step '{step.name}'...")
+                        else:
+                            self.print_log(status="Running", result=f"Executing step '{step.name}'...")
                 if step is not None:
                     loopkvp = [kvp for kvp in self.loopvariables if kvp.id == step.id]
                     if loopkvp:
@@ -692,7 +696,8 @@ class WorkflowEngine():
                                     self.print_log(status="Running", result=f"{step.name} executed.")
                 else:
                     if hasattr(step, "function") and method_to_call is not None:
-                        self.print_log(status="Running", result=f"{method_to_call.__name__} executed.")
+                        if step.function != "print_log":
+                            self.print_log(status="Running", result=f"{method_to_call.__name__} executed.")
                     else:
                         if hasattr(step, "name"):
                             if len(step.name) > 0:
@@ -721,6 +726,7 @@ class WorkflowEngine():
         :param result: The result of the step
         """
         result = str(result).replace("<br>", " ")
+        result = str(result[0]).capitalize()+result[1:]
         ststus = str(status)
         if not result.endswith("."):
             result += "."
