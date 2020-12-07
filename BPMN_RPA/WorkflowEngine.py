@@ -80,6 +80,7 @@ class WorkflowEngine():
         Returns the input parameter that was given when creating an instance of the WorkflowEngine
         :return: The input_parameter that was given when creating an instance of the WorkflowEngine
         """
+        self.print_log(f"Got input parameter {str(self.input_parameter)}")
         return self.input_parameter
 
     def open(self, filepath: str) -> Any:
@@ -409,7 +410,10 @@ class WorkflowEngine():
                                                     val = replace_value
                                             else:
                                                 replace_value = self.get_attribute_value(lst[0], replace_value)
-                                                val = val.replace(tv, replace_value)
+                                                if val is not None and replace_value is not None:
+                                                    val = val.replace(tv, replace_value)
+                                                else:
+                                                    val = replace_value
                                 else:
                                     if tv.__contains__("[") and tv.__contains__("]"):
                                         if isinstance(replace_value, list):
@@ -470,13 +474,21 @@ class WorkflowEngine():
         """
         val = None
         lst_ = lst.split(".")[1:]
-        for attr in lst_:
-            if val is not None:
-                replace_value = val
-            if isinstance(replace_value, dict):
-                val = replace_value.get(attr)
-            if isinstance(replace_value, object) and not isinstance(replace_value, dict):
-                val = getattr(replace_value, attr)
+        if len(lst_)==0:
+            lst_ = lst
+        if isinstance(lst_, list):
+            for attr in lst_:
+                if val is not None:
+                    replace_value = val
+                if isinstance(replace_value, dict):
+                    val = replace_value.get(attr)
+                if isinstance(replace_value, object) and not isinstance(replace_value, dict):
+                    if hasattr(replace_value, attr):
+                        val = getattr(replace_value, attr)
+                    else:
+                        val = replace_value
+        else:
+            val = replace_value
         return val
 
     def step_has_direct_variables(self, step: Any) -> bool:
@@ -524,7 +536,7 @@ class WorkflowEngine():
         sql = f"INSERT INTO Workflows (name, registered_id) VALUES ('{self.flowname}', {registered_id});"
         self.id = self.db.run_sql(sql=sql, tablename="Workflows")
         print("\n")
-        self.print_log(status="Running", result=f"Starting flow '{self.flowname}'...")
+        self.print_log(status="Running", result=f"{datetime.today().strftime('%d-%m-%Y')} Starting flow '{self.flowname}'...")
         self.step_nr = 0
         while True:
             try:
@@ -708,7 +720,7 @@ class WorkflowEngine():
         :param status: Optional. The status of the step
         :param result: The result of the step
         """
-        result = str(result)
+        result = str(result).replace("<br>", " ")
         ststus = str(status)
         if not result.endswith("."):
             result += "."
@@ -802,11 +814,17 @@ class WorkflowEngine():
                         loopvar.items = list(output_previous_step)
                         loopvar.total_listitems = len(list(output_previous_step))
                     else:
-                        loopvar.total_listitems = len(output_previous_step)
+                        if isinstance(output_previous_step, list):
+                            loopvar.total_listitems = len(output_previous_step)
+                        else:
+                            loopvar.total_listitems = 1
                         if loopvar.total_listitems > 0 and type(output_previous_step[0]).__name__ == "Row":
                             for t in range(0, loopvar.total_listitems):
                                 output_previous_step[t] = list(output_previous_step[t])
-                        loopvar.items = output_previous_step
+                        if isinstance(output_previous_step, str) and not str(output_previous_step).__contains__("%") and not isinstance(output_previous_step, list):
+                            loopvar.items = [output_previous_step]
+                        else:
+                            loopvar.items = output_previous_step
                     if loopvar.total_listitems == 0:
                         self.print_log("There are no more items to loop", "Ending")
                         self.exitcode_ok()
@@ -848,10 +866,6 @@ class WorkflowEngine():
             return output_previous_step
 
     def store_system_variables(self, step):
-        """
-        Filetr out system variables from step attributes and store them in self.variables
-        :param step: The step object to search for system variables
-        """
         for value in vars(step):
             if str(getattr(step, value)).__contains__("%__today__%"):
                 self.variables.update({'%__today__%': datetime.today().date()})
@@ -863,8 +877,6 @@ class WorkflowEngine():
                 self.variables.update({'%__year__%': datetime.today().year})
             if str(getattr(step, value)).__contains__("%__weeknumber__%"):
                 self.variables.update({'%__weeknumber__%': datetime.today().strftime("%V")})
-            if str(getattr(step, value)).__contains__("%__today__%"):
-                self.variables.update({'%__today__%': datetime.today()})
             if str(getattr(step, value)).__contains__("%__tomorrow__%"):
                 self.variables.update({'%__tomorrow__%': datetime.today() + timedelta(days=1)})
             if str(getattr(step, value)).__contains__("%__tomorrow_formatted__%"):
@@ -965,14 +977,14 @@ class WorkflowEngine():
                         [x for x in outgoing_connector if
                          (str(x.value).lower() == "true" and x.source == current_step.id)][0]
                 except:
-                    raise Exception("Your Exclusive Gateway doesn't contain a 'True' sequence arrow output.")
+                    raise Exception("Your Exclusive Gateway doesn't contain a 'True' or 'False' sequence arrow output.")
             else:
                 try:
                     conn = \
                         [x for x in outgoing_connector if
                          (str(x.value).lower() == "false" and x.source == current_step.id)][0]
                 except:
-                    raise Exception("Your Exclusive Gateway doesn't contain a 'False' sequence arrow output.")
+                    raise Exception("Your Exclusive Gateway doesn't contain a 'True' or 'False' sequence arrow output.")
             try:
                 retn = [x for x in steps if x.id == conn.target][0]
             except:
