@@ -23,4 +23,5 @@ def split_string_to_list(string: str, separator: str = " ", maxsplit:int = -1) -
     :param maxsplit: Optional. Specifies how many splits to do. Default value is -1, which is "all occurrences".
     :return: A list created from the string
     """
-    return string.split(separator, maxsplit=maxsplit)
+    separator = separator.replace('\\n', '\n').replace('\\r', '\r').replace('\\t', '\t')
+    return string.split(separator, maxsplit=int(maxsplit))
