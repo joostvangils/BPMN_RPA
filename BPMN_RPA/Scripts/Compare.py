@@ -12,7 +12,6 @@ def is_first_item_equal_to_second_item(first_item: Any, second_item: Any) -> boo
     """
     return first_item == second_item
 
-
 def is_first_item_less_than_second_item(first_item: Any, second_item: Any) -> bool:
     """
     Check if first item is less than second item
@@ -25,7 +24,6 @@ def is_first_item_less_than_second_item(first_item: Any, second_item: Any) -> bo
     if not isinstance(second_item, int) or not isinstance(second_item, float):
         raise Exception("The second item isn't a number")
     return first_item < second_item
-
 
 def is_first_item_greater_than_second_item(first_item: Any, second_item: Any) -> bool:
     """
@@ -40,7 +38,6 @@ def is_first_item_greater_than_second_item(first_item: Any, second_item: Any) ->
         raise Exception("The second item isn't a number")
     return first_item > second_item
 
-
 def is_first_item_less_or_equal_than_second_item(first_item: Any, second_item: Any) -> bool:
     """
     Check if first item is less or equal to second item
@@ -54,7 +51,6 @@ def is_first_item_less_or_equal_than_second_item(first_item: Any, second_item: A
         raise Exception("The second item isn't a number")
     return first_item <= second_item
 
-
 def is_first_item_greater_or_equal_than_second_item(first_item: Any, second_item: Any) -> bool:
     """
     Check if first item is greater or equal to second item
@@ -67,7 +63,6 @@ def is_first_item_greater_or_equal_than_second_item(first_item: Any, second_item
     if not isinstance(second_item, int) or not isinstance(second_item, float):
         raise Exception("The second item isn't a number")
     return first_item >= second_item
-
 
 def is_time_interval_less_or_equal(datetime1: Any, datetime2: Any, interval_in_seconds: int) -> bool:
     """
@@ -83,7 +78,6 @@ def is_time_interval_less_or_equal(datetime1: Any, datetime2: Any, interval_in_s
         datetime2 = datetime.combine(datetime2, datetime.now().time())
     return (datetime2 - datetime1).total_seconds() <= int(interval_in_seconds)
 
-
 def is_time_number_of_seconds_ago(date_time: Any, interval_in_seconds: int) -> bool:
     """
     Check if the interval of a date-time is less or equal than the given amount of seconds compared to now.
@@ -95,7 +89,6 @@ def is_time_number_of_seconds_ago(date_time: Any, interval_in_seconds: int) -> b
     if not isinstance(date_time, datetime):
         date_time = datetime.combine(date_time, datetime.now().time())
     return (date_time - datetime.now()).total_seconds() <= int(interval_in_seconds)
-
 
 def item1_contains_item2(item1: Any, item2: Any, exact_match: bool = True) -> bool:
     """
