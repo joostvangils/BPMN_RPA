@@ -132,6 +132,10 @@ def does_list_contain_any_items(list_object: list) -> bool:
     :param list_object: The list object to check
     :return: True or False
     """
+    if list_object is None:
+        return False
+    if not isinstance(list_object, list):
+        list_object = [list_object]
     if len(list_object) > 0:
         return True
     else:
