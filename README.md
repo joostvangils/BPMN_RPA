@@ -21,6 +21,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 * [Logging](#Logging)
 * [End a flow](#End-a-flow)
   * [End flow with exitcode](#End-flow-with-exitcode)
+* [PlugIn](#PlugIn)
 * [Example](#Example)
 
 
@@ -152,6 +153,9 @@ If you wish to end your flow with an exitcode (0 for OK and -1 for not OK) then 
 <br>
 Just call one of the above functions by only passing the 'function' parameter (thus not passing the 'Module' and 'Class' parameter):<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Exit_not_ok.PNG" height="120" width="350" ></a><br>
+
+#### PlugIn
+BPMN-RPA has a Drawio plugin for checking your flows. You can download it here: <a href="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/BPMN-RPA_PlugIn.js">PlugIn</a><br>
 
 #### Example
 
