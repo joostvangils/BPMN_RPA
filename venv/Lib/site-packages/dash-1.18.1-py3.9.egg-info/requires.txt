@@ -1,0 +1,51 @@
+Flask>=1.0.4
+flask-compress
+plotly
+dash_renderer==1.8.3
+dash-core-components==1.14.1
+dash-html-components==1.1.1
+dash-table==4.11.1
+future
+
+[dev]
+dash_flow_example==0.0.5
+dash-dangerously-set-inner-html
+isort==4.3.21
+flake8==3.7.9
+PyYAML==5.3
+fire==0.2.1
+coloredlogs==14.0
+
+[dev:python_version < "3.7"]
+pylint==1.9.4
+
+[dev:python_version == "2.7"]
+mock==3.0.5
+virtualenv==20.0.10
+
+[dev:python_version == "3.7"]
+pylint==2.3.1
+astroid==2.2.5
+
+[dev:python_version >= "3.0"]
+mock==4.0.1
+black==19.10b0
+
+[testing]
+pytest-sugar==0.9.4
+lxml==4.6.1
+selenium==3.141.0
+percy==2.0.2
+cryptography==3.0
+requests[security]==2.21.0
+beautifulsoup4==4.8.2
+waitress==1.4.3
+flask-talisman==0.7.0
+
+[testing:python_version == "2.7"]
+pytest==4.6.9
+pytest-mock==2.0.0
+
+[testing:python_version >= "3.0"]
+pytest==6.0.1
+pytest-mock==3.2.0

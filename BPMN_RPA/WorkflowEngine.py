@@ -83,10 +83,11 @@ class WorkflowEngine():
         self.print_log(f"Got input parameter {str(self.input_parameter)}")
         return self.input_parameter
 
-    def open(self, filepath: str) -> Any:
+    def open(self, filepath: str, as_xml: bool = False) -> Any:
         """
         Open a DrawIO document
         :param filepath: The full path (including extension) of the diagram file
+        :param as_xml: Optional. Returns the file content as XML.
         :returns: A DrawIO dictionary object
         """
         # Open an existing document.
@@ -99,6 +100,8 @@ class WorkflowEngine():
         base64_decode = base64.b64decode(raw_text)
         inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
         url_decode = urllib.parse.unquote(inflated_xml)
+        if as_xml:
+            return  url_decode
         retn = xmltodict.parse(url_decode)
         return retn
 
