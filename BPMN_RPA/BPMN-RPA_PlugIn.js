@@ -1,8 +1,8 @@
 Draw.loadPlugin(function(ui) {
-	
+
 	// ui.editor = mxEditor!!!!!!
-	
-	
+
+
 	// Adds menu
 	mxResources.parse('Reset=Reset');
 	mxResources.parse('Check Flow=Check Flow');
@@ -13,13 +13,14 @@ Draw.loadPlugin(function(ui) {
     {
 		 // Displays status message
 		ui.editor.setStatus('Resetting the flow...');
+		graph.clearCellOverlays(tmp);
 		for (var key in graph.getModel().cells)
 		{
 			var tmp = graph.getModel().getCell(key);
 			graph.setCellStyles(mxConstants.STYLE_STROKECOLOR, 'black', [tmp]);
 		}
 		ui.editor.setStatus('Reset Done.');
-		
+
     });
 
 
@@ -47,6 +48,7 @@ Draw.loadPlugin(function(ui) {
 				var blntrue = -1;
 				var blnfalse = -1;
 				var msg = "";
+				var attr;
 				for(var c = 0; c < outgoing.length; c++)
 				{
 					outg = outgoing[c];
@@ -88,6 +90,7 @@ Draw.loadPlugin(function(ui) {
 			}
 			if (graph.getModel().isVertex(tmp))
 			{
+
 				if(String(graph.getLabel(tmp)).toLowerCase()== "start")
 				{
 					has_start = 0;
@@ -95,33 +98,41 @@ Draw.loadPlugin(function(ui) {
 				}
 				if(String(graph.getLabel(tmp)).toLowerCase()== "end")
 				{
-					has_end = 0;
+					has_end = 0
 				}
-				
-				try{
-					if(tmp.hasAttribute('Loopcounter'))
+
+				if (mxUtils.isNode(tmp.value))
+				{
+					attr = tmp.getAttribute('Loopcounter', '')
+					if(attr !='')
 					{
 						has_loopcounter = 0;
 					}
-				}
-				catch(err){}
-				try{
-					if(tmp.hasAttribute('Function'))
+					attr = tmp.getAttribute('Function', '')
+					if(attr =='loop_items_check')
 					{
-						if(tmp.getAttribute('Function', null)=='loop_items_check')
-						{
-							has_loopitemscheck = 0;
-						}
+						has_loopitemscheck = 0;
 					}
 				}
-				catch (err){}
-				try{
-					if(tmp.hasAttribute('Output_variable'))
-					{
-						variables.push(tmp.getAttribute('Output_variable', null));
-					}
-				}
-				catch (err){}
+
+				//try{
+				//	if(tmp.hasAttribute('Function'))
+				//	{
+				//		if(tmp.getAttribute('Function', null)=='loop_items_check')
+				//		{
+				//			has_loopitemscheck = 0;
+				//		}
+				//	}
+				//}
+				//catch (err){}
+				//try{
+				//	if(tmp.hasAttribute('Output_variable'))
+				//	{
+				//		variables.push(tmp.getAttribute('Output_variable', null));
+				//	}
+				//}
+				//catch (err){}
+
 			}
 			if (graph.getModel().isEdge(tmp))
 			{
@@ -147,8 +158,18 @@ Draw.loadPlugin(function(ui) {
 		}
 		graph.getModel().endUpdate();
 		if (_err == 0 && has_start == 0 && has_end==0){
-			ui.editor.setStatus('Flow checked, no errors found.');
-			
+			if (has_loopcounter==0 && has_loopitemscheck==-1)
+			{
+				mxUtils.error("Your Flow has a Loopcounter, but no Loopitems check (like 'more loop items?'). Please check...", 250, true, mxUtils.errorImage);
+				 _err = -1;
+			}
+			else if (has_loopcounter==-1 && has_loopitemscheck==0)
+			{
+				mxUtils.error("Your Flow has a Loop Items Check, but no Loopcounter. Please check...", 250, true, mxUtils.errorImage);
+				 _err = -1;
+			}
+			else{ui.editor.setStatus('Flow checked, no errors found.');}
+
 		}
 		else if(has_start==-1 && has_end == 0)
 		{
@@ -165,12 +186,6 @@ Draw.loadPlugin(function(ui) {
 			 mxUtils.error("Your Flow has no Start and no End!", 250, true, mxUtils.errorImage);
 			 _err = -1;
 		}
-		
-		else if (has_loopcounter==0 && has_loopitemscheck==-1)
-		{
-			mxUtils.error("Your Flow has a Loopcounter, but no Loopitems check (like 'more loop items?'). Please check...", 250, true, mxUtils.errorImage);
-			 _err = -1;
-		}
 		else{
 			mxUtils.error("Your Flow has Errors. Please check...", 250, true, mxUtils.errorImage);
 			 _err = -1;
@@ -184,15 +199,15 @@ Draw.loadPlugin(function(ui) {
 		//		outgoing = graph.getEdges(current_node, null, false, true, false, false);
 		//		if(outgoing.length == 1)
 		//		{
-		//			
+		//
 		//			current_node = graph.getCell(outgoing[0].id);
 		//		}
 		//	}
-		//	
+		//
 		//}
-		
+
     });
-    
+
 	ui.menus.put('BPMN-RPA', new Menu(function(menu, parent)
 	{
 		ui.menus.addMenuItems(menu, ['-', 'Check Flow', '-', 'Reset']);
