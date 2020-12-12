@@ -8,7 +8,7 @@ Draw.loadPlugin(function(ui) {
 	mxResources.parse('Check Flow=Check Flow');
 	var graph = ui.editor.graph;
 	var model = graph.model;
-
+	var tp;
     ui.actions.addAction('Reset', function()
     {
 		 // Displays status message
@@ -36,6 +36,7 @@ Draw.loadPlugin(function(ui) {
 		var has_loopcounter = -1;
 		var has_loopitemscheck = -1;
 		var startnode;
+		var forgotten_loopvariable = -1
 		for (var key in graph.getModel().cells)
 		{
 			var tmp = graph.getModel().getCell(key);
@@ -71,7 +72,15 @@ Draw.loadPlugin(function(ui) {
 				}
 				if(blntrue == -1 && blnfalse == -1)
 				{
-					msg = "This exclusive gateway has no 'True' nor 'False' outgoing sequence arrows." ;
+					attr = tmp.getAttribute('Type', '')
+					if(attr=='Exclusive Gateway')
+					{
+						msg = "This exclusive gateway has neither a 'True' nor a 'False' outgoing sequence arrow." ;
+					}
+					else
+					{
+						msg = "This step has more than one outgoing sequence arrow." ;
+					}
 				}
 				if(blntrue == 0 && blnfalse == -1)
 				{
@@ -100,7 +109,6 @@ Draw.loadPlugin(function(ui) {
 				{
 					has_end = 0
 				}
-
 				if (mxUtils.isNode(tmp.value))
 				{
 					attr = tmp.getAttribute('Loopcounter', '')
@@ -112,6 +120,15 @@ Draw.loadPlugin(function(ui) {
 					if(attr =='loop_items_check')
 					{
 						has_loopitemscheck = 0;
+						lv = tmp.getAttribute('Loop_variable', '');
+						if (lv=='')
+						{
+							forgotten_loopvariable = 0
+							var overlay_source = new mxCellOverlay(img, "This loop items check has no variable to check.");
+							graph.addCellOverlay(tmp, overlay_source);
+							graph.setCellStyles(mxConstants.STYLE_STROKECOLOR, 'red', [tmp]);
+							_err = -1;
+						}
 					}
 				}
 
@@ -220,4 +237,3 @@ Draw.loadPlugin(function(ui) {
     }
 
 });
-
