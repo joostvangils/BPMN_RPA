@@ -840,7 +840,8 @@ class WorkflowEngine():
                     loopvar.start = int(step.loopcounter)  # set start of counter
                 if int(loopvar.counter) <= loopvar.start:
                     loopvar.counter = int(loopvar.start)
-                    loopvar.name = step.output_variable
+                    if hasattr(step, 'output_variable'):
+                        loopvar.name = step.output_variable
                 # It's a loop! Overwrite the output_previous_step with the right element
                 step_time = datetime.now().strftime("%H:%M:%S")
                 if len(loopvar.items) > 0:
