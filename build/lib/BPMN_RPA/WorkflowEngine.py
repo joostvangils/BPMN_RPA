@@ -682,7 +682,7 @@ class WorkflowEngine():
                                     output_previous_step = class_object()
 
                 # set loop variable
-                if hasattr(step, 'output_previous_step'):
+                if output_previous_step is not None:
                     this_step = self.loopcounter(step, output_previous_step)
                 if IsInLoop:
                     output_previous_step = [this_step]
