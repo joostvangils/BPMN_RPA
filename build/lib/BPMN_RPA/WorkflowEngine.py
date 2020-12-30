@@ -351,8 +351,8 @@ class WorkflowEngine():
                                                     val = val.replace(tv, replace_value[0])
                                                 else:
                                                     if len(replace_value) == 0:
-                                                        self.print_log(status="Ending", result=f"No items to loop...")
-                                                        self.exitcode_ok()
+                                                        self.print_log(status="Ending loop", result=f"No items to loop...")
+                                                        #self.exitcode_ok()
                                                     else:
                                                         if loopvars[0].counter < len(replace_value):
                                                             if isinstance(replace_value[loopvars[0].counter], str):
@@ -839,8 +839,8 @@ class WorkflowEngine():
                         else:
                             loopvar.items = output_previous_step
                     if loopvar.total_listitems == 0:
-                        self.print_log("There are no more items to loop", "Ending")
-                        self.exitcode_ok()
+                        self.print_log("There are no more items to loop", "Ending loop")
+                        #self.exitcode_ok()
                     loopvar.start = int(step.loopcounter)  # set start of counter
                 if int(loopvar.counter) <= loopvar.start:
                     loopvar.counter = int(loopvar.start)
