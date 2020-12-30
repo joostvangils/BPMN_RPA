@@ -117,7 +117,6 @@ def item1_contains_item2(item1: Any, item2: Any, exact_match: bool = True) -> bo
             return False
     return item1.__contains__(item2)
 
-
 def does_list_contain_item(list_object: list, item:Any) -> bool:
     """
     Check if list contains an item
@@ -125,15 +124,7 @@ def does_list_contain_item(list_object: list, item:Any) -> bool:
     :param item: The item to check for
     :return: True or False
     """
-    if len(list_object) > 0:
-        tmp = str(list_object[0])
-        if tmp.startswith("%") and tmp.endswith("%") and len(list_object) == 1:
-            return False
-        else:
-            return True
-    else:
-        return False
-
+    return list_object.__contains__(item)
 
 def does_list_contain_any_items(list_object: list) -> bool:
     """
@@ -146,7 +137,11 @@ def does_list_contain_any_items(list_object: list) -> bool:
     if not isinstance(list_object, list):
         list_object = [list_object]
     if len(list_object) > 0:
-        return True
+        tmp = str(list_object[0])
+        if tmp.startswith("%") and tmp.endswith("%") and len(list_object) == 1:
+            return False
+        else:
+            return True
     else:
         return False
 
