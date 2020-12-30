@@ -1,5 +1,6 @@
 import base64
 import copy
+import importlib.util as util
 import importlib
 import inspect
 import multiprocessing
@@ -83,10 +84,11 @@ class WorkflowEngine():
         self.print_log(f"Got input parameter {str(self.input_parameter)}")
         return self.input_parameter
 
-    def open(self, filepath: str) -> Any:
+    def open(self, filepath: str, as_xml: bool = False) -> Any:
         """
         Open a DrawIO document
         :param filepath: The full path (including extension) of the diagram file
+        :param as_xml: Optional. Returns the file content as XML.
         :returns: A DrawIO dictionary object
         """
         # Open an existing document.
@@ -99,6 +101,8 @@ class WorkflowEngine():
         base64_decode = base64.b64decode(raw_text)
         inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
         url_decode = urllib.parse.unquote(inflated_xml)
+        if as_xml:
+            return  url_decode
         retn = xmltodict.parse(url_decode)
         return retn
 
@@ -544,6 +548,7 @@ class WorkflowEngine():
                 class_object = None
                 module_object = None
                 method_to_call = None
+                this_step = None
                 sig = None
                 input = None
                 IsInLoop = False
@@ -584,8 +589,8 @@ class WorkflowEngine():
                                     step.module).__contains__(".py"):
                                 step.module = f"{site.getsitepackages()[1]}\\{step.module}"
                             if str(step.module).lower().__contains__(".py"):
-                                spec = importlib.util.spec_from_file_location(step.module, step.module)
-                                module_object = importlib.util.module_from_spec(spec)
+                                spec = util.spec_from_file_location(step.module, step.module)
+                                module_object = util.module_from_spec(spec)
                                 if module_object is None:
                                     step_time = datetime.now().strftime("%H:%M:%S")
                                     raise Exception(
@@ -677,7 +682,8 @@ class WorkflowEngine():
                                     output_previous_step = class_object()
 
                 # set loop variable
-                this_step = self.loopcounter(step, output_previous_step)
+                if hasattr(step, 'output_previous_step'):
+                    this_step = self.loopcounter(step, output_previous_step)
                 if IsInLoop:
                     output_previous_step = [this_step]
 
@@ -711,7 +717,8 @@ class WorkflowEngine():
                 if str(output_previous_step).startswith("QuerySet"):
                     # If this is Exchangelib output then turn it into list
                     output_previous_step = list(output_previous_step)
-                self.save_output_variable(step, this_step, output_previous_step)
+                if this_step is not None:
+                    self.save_output_variable(step, this_step, output_previous_step)
             self.previous_step = copy.deepcopy(step)
             if self.error:
                 break
