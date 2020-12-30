@@ -1,5 +1,6 @@
 import base64
 import copy
+import importlib.util as util
 import importlib
 import inspect
 import multiprocessing
@@ -547,6 +548,7 @@ class WorkflowEngine():
                 class_object = None
                 module_object = None
                 method_to_call = None
+                this_step = None
                 sig = None
                 input = None
                 IsInLoop = False
@@ -587,8 +589,8 @@ class WorkflowEngine():
                                     step.module).__contains__(".py"):
                                 step.module = f"{site.getsitepackages()[1]}\\{step.module}"
                             if str(step.module).lower().__contains__(".py"):
-                                spec = importlib.util.spec_from_file_location(step.module, step.module)
-                                module_object = importlib.util.module_from_spec(spec)
+                                spec = util.spec_from_file_location(step.module, step.module)
+                                module_object = util.module_from_spec(spec)
                                 if module_object is None:
                                     step_time = datetime.now().strftime("%H:%M:%S")
                                     raise Exception(
@@ -680,7 +682,8 @@ class WorkflowEngine():
                                     output_previous_step = class_object()
 
                 # set loop variable
-                this_step = self.loopcounter(step, output_previous_step)
+                if hasattr(step, 'output_previous_step'):
+                    this_step = self.loopcounter(step, output_previous_step)
                 if IsInLoop:
                     output_previous_step = [this_step]
 
@@ -714,7 +717,8 @@ class WorkflowEngine():
                 if str(output_previous_step).startswith("QuerySet"):
                     # If this is Exchangelib output then turn it into list
                     output_previous_step = list(output_previous_step)
-                self.save_output_variable(step, this_step, output_previous_step)
+                if this_step is not None:
+                    self.save_output_variable(step, this_step, output_previous_step)
             self.previous_step = copy.deepcopy(step)
             if self.error:
                 break
@@ -840,8 +844,7 @@ class WorkflowEngine():
                     loopvar.start = int(step.loopcounter)  # set start of counter
                 if int(loopvar.counter) <= loopvar.start:
                     loopvar.counter = int(loopvar.start)
-                    if hasattr(step, 'output_variable'):
-                        loopvar.name = step.output_variable
+                    loopvar.name = step.output_variable
                 # It's a loop! Overwrite the output_previous_step with the right element
                 step_time = datetime.now().strftime("%H:%M:%S")
                 if len(loopvar.items) > 0:

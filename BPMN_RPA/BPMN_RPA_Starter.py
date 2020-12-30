@@ -6,6 +6,7 @@ if len(sys.argv) != 2:
     exit(-1)
 
 pad = sys.argv[1]
+print(pad)
 flow = pad.lower().replace(".xml", "") + ".xml"
 if os.path.exists(flow):
     with open(flow,'r') as f:
