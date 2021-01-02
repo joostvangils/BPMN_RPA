@@ -1115,8 +1115,8 @@ class SQL():
         self.run_sql(sql)
         sql = "CREATE TABLE IF NOT EXISTS Steps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, workflow INTEGER NOT NULL, parent TEXT, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_Workflow FOREIGN KEY (Workflow) REFERENCES Workflows (id) ON DELETE CASCADE);"
         self.run_sql(sql)
-        sql = "CREATE TABLE IF NOT EXISTS Triggers (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, registered_id INTEGER NOT NULL, trigger_info, CONSTRAINT fk_Registered_trigger FOREIGN KEY (registered_id) REFERENCES Registered (id) ON DELETE CASCADE);"
-        self.run_sql(sql)
+        # sql = "CREATE TABLE IF NOT EXISTS Triggers (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, registered_id INTEGER NOT NULL, trigger_info, CONSTRAINT fk_Registered_trigger FOREIGN KEY (registered_id) REFERENCES Registered (id) ON DELETE CASCADE);"
+        # self.run_sql(sql)
 
 # Test
 # engine = WorkflowEngine()
