@@ -4,7 +4,6 @@ import sys
 if len(sys.argv) != 2:
     print(f'Error: Unexpected number of arguments given.')
     exit(-1)
-
 pad = sys.argv[1]
 print(pad)
 flow = pad.lower().replace(".xml", "") + ".xml"

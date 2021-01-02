@@ -15,6 +15,13 @@ def window_enumeration_handler(hwnd, top_windows):
     top_windows.append((hwnd, win32gui.GetWindowText(hwnd)))
 
 
+def wait_for_window(window_title, case_sensitive=False):
+    while True:
+        window = find_window(window_title, case_sensitive)
+        if window is not None:
+            return window
+
+
 def find_window(title, case_sensitive=False):
     top_windows = []
     hwnd = win32gui.FindWindow(None, title)
@@ -49,45 +56,45 @@ def get_window_object(hwnd):
     return win
 
 
-def show_window(win):
+def show_window(window):
     try:
-        win32gui.ShowWindow(win.Hwnd, win32con.SW_SHOWNORMAL)
+        win32gui.ShowWindow(window.Hwnd, win32con.SW_SHOWNORMAL)
         return True
     except win32gui.error:
         return False
 
 
-def hide_window(win):
+def hide_window(window):
     try:
-        win32gui.ShowWindow(win.Hwnd, win32con.SW_HIDE)
+        win32gui.ShowWindow(window.Hwnd, win32con.SW_HIDE)
         return True
     except win32gui.error:
         return False
 
 
-def close_window(win):
+def close_window(window):
     try:
-        win32gui.PostMessage(win.Hwnd, win32con.WM_CLOSE, 0, 0)
+        win32gui.PostMessage(window.Hwnd, win32con.WM_CLOSE, 0, 0)
         return True
     except win32gui.error:
         return False
 
 
-def set_foreground_window(win):
+def set_foreground_window(window):
     try:
-        win32gui.SetForegroundWindow(win.Hwnd)
+        win32gui.SetForegroundWindow(window.Hwnd)
         return True
     except win32gui.error:
         return False
 
 
-def set_window_position(win, position):
+def set_window_position(window, position):
     try:
-        win32gui.MoveWindow(win.Hwnd, position[0], position[1], position[2] - position[0], position[3] - position[1], True)
+        win32gui.MoveWindow(window.Hwnd, position[0], position[1], position[2] - position[0], position[3] - position[1], True)
         return True
     except win32gui.error:
         return False
 
 
-def focus_window(win):
-    win32gui.SetFocus(win.Hwnd)
+def focus_window(window):
+    win32gui.SetFocus(window.Hwnd)

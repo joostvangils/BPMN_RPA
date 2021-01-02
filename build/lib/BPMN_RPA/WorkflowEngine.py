@@ -806,7 +806,7 @@ class WorkflowEngine():
             loopvar = None
             if directcall: self.print_log(f"Loopcounter '{reset_for_loop_variable}' has not yet been initiated. No reset needed.", "Running")
         if loopvar is not None:
-            if loopvar.total_listitems == loopvar.counter:
+            if loopvar.total_listitems <= loopvar.counter:
                 self.loopvariables.remove(loopvar)
                 if directcall: self.print_log(f"Loopcounter reset for loopvariable '{reset_for_loop_variable}'", "Running")
 
