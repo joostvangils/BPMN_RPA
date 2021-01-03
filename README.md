@@ -16,7 +16,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 * [Loops](#Loops)
   * [Special loop variable options](#Special-loop-variable-options)
 * [Instantiate a Class and use in Flow](#Instantiate-a-Class-and-use-in-Flow)
-* [Passing input to the WorkflowEngine](#Passing-input-to-the-WorkflowEngine]
+* [Passing input to the WorkflowEngine](#Passing-input-to-the-WorkflowEngine)
 * [Logging](#Logging)
 * [End a flow](#End-a-flow)
   * [End flow with exitcode](#End-flow-with-exitcode)
