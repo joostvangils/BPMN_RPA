@@ -1,5 +1,5 @@
 # BPMN_RPA
-Robotic Process Automation in Windows by using Diagrams.net BPMN diagrams.
+Robotic Process Automation in Windows and Linux by using Diagrams.net BPMN diagrams.
 
 With this Framework you can draw Business Process Model Notation based Diagrams and run those diagrams with a WorkflowEngine.
 It is based on the mxGraph model notation of https://app.diagrams.net/.
@@ -26,10 +26,10 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 
 #### Quick start
 - Open the diagram.net (or DrawIO desktop) app
-- Import one of the BPMN RPA Shape libraries ( file -> open library)
+- Import the BPMN RPA Shape library ( file -> open library, which you can download [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.xml))
 - Create your Diagram in https://app.diagrams.net/ or in the Desktop application by using the BPMN_RPA Shape-set
 - Save your diagram as XML
-- Run your workflow by using the WorkflowEngine
+- Run your workflow by using the [BPMN_RPA_Starter.py](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/BPMN_RPA_Starter.py) or the WorkflowEngine by code
 
 #### First start
 The first time you will try to run a Flow, you will be asked to enter the path of your install directory. The path of the install directory will be saved in the registry (path saved in registry key 'HKEY_CURRENT_USER\Software\BPMN_RPA\dbPath') and is used to create a SQLite database for logging purposes, called 'Orchestrator.db'. The WorkflowEngine must also know where your python.exe is located. You will be asked to enter the full path to the python.exe file (including the '.exe' extension). This path will be saved in registry key 'HKEY_CURRENT_USER\Software\BPMN_RPA\PythonPath'.
@@ -154,10 +154,17 @@ Just call one of the above functions by only passing the 'function' parameter (t
 BPMN-RPA has a Drawio plugin for checking your flows. You can download it here: <a href="https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/BPMN-RPA_PlugIn.js">PlugIn</a><br>
 
 #### Example
+Start a flow from the commandline:
+1. Open a command prompt
+2. Enter:
+```console
+c:\> python BPMN_RPA_Starter.py test.xml
+```
 
+Start a flow in code:
 ```Python
 engine = WorkflowEngine()
-doc = engine.open("BPMN_RPA/test.xml")
+doc = engine.open("test.xml")
 steps = engine.get_flow(doc)
 engine.run_flow(steps)
 ```
