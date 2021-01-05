@@ -900,8 +900,8 @@ class WorkflowEngine():
                 self.variables.update({'%__yesterday_formatted__%': (datetime.today() + timedelta(days=-1)).strftime("%d-%m-%Y")})
             if str(getattr(step, value)).__contains__("%__time__%"):
                 self.variables.update({'%__time__%': datetime.now().time()})
-            if str(getattr(step, value)).__contains__("%__time_fromatted__%"):
-                self.variables.update({'%__time_fromatted__%': datetime.now().time().strftime("%H:%M:%S")})
+            if str(getattr(step, value)).__contains__("%__time_formatted__%"):
+                self.variables.update({'%__time_formatted__%': datetime.now().time().strftime("%H:%M:%S")})
             if str(getattr(step, value)).__contains__("%__now__%"):
                 self.variables.update({'%__now__%': datetime.now()})
             if str(getattr(step, value)).__contains__("%__folder_desktop__%"):

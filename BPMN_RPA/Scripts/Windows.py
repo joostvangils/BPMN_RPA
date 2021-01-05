@@ -15,11 +15,15 @@ def window_enumeration_handler(hwnd, top_windows):
     top_windows.append((hwnd, win32gui.GetWindowText(hwnd)))
 
 
-def wait_for_window(window_title, case_sensitive=False):
+def wait_for_window(window_title, case_sensitive=False, destroyed=False):
     while True:
         window = find_window(window_title, case_sensitive)
-        if window is not None:
-            return window
+        if not destroyed:
+            if window is not None:
+                return window
+        else:
+            if window is None:
+                return True
 
 
 def find_window(title, case_sensitive=False):
