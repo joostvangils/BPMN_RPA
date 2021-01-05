@@ -1,6 +1,7 @@
 import pyautogui
 
 
+
 def sendkeys(text: str, interval: float = 0.05):
     pyautogui.write(text, interval=interval)
 

@@ -3,6 +3,7 @@ import copy
 import importlib.util as util
 import importlib
 import inspect
+import json
 import multiprocessing
 import os
 import re
@@ -30,15 +31,34 @@ class WorkflowEngine():
         :param pythonpath: The full path to the python.exe file
         :param installation_directory: The folder where your BPMN_RPA files are installed. This folder will be used for the orchestrator database.
         """
+        settings = {}
         if len(pythonpath) != 0:
-            self.set_PythonPath(pythonpath)
+            if os.name == 'nt':
+                self.set_PythonPath(pythonpath)
+            else:
+                settings.update('pythonpath', pythonpath)
         else:
-            pythonpath = self.get_pythonPath()
+            if os.name == 'nt':
+                pythonpath = self.get_pythonPath()
+            else:
+                with open('settings') as json_file:
+                    data = json.load(json_file)
+                    pythonpath = data["pythonpath"]
+                    settings.update('pythonpath', pythonpath)
         if len(installation_directory) != 0:
-            self.set_dbPath(installation_directory)
+            if os.name == 'nt':
+                self.set_dbPath(installation_directory)
+            else:
+                settings.update('dbpath', installation_directory)
             dbFolder = installation_directory
         else:
-            dbFolder = self.get_dbPath()
+            if os.name == 'nt':
+                dbFolder = self.get_dbPath()
+            else:
+                with open('settings') as json_file:
+                    data = json.load(json_file)
+                    dbFolder = data["dbpath"]
+                    settings.update('dbpath', dbFolder)
         if dbFolder is None:
             installdir = input(
                 "\nYour installation directory is unknown. Please enter the path of your installation directory: ")
@@ -49,19 +69,29 @@ class WorkflowEngine():
             if len(installdir) == 0:
                 return
             else:
-                self.set_dbPath(installdir)
-                dbFolder = self.get_dbPath()
+                if os.name == 'nt':
+                    self.set_dbPath(installdir)
+                else:
+                    settings.update('dbpath', installdir)
+                dbFolder = installdir
         if pythonpath is None:
             pythonpath = input(
                 "\nThe path to your Python.exe file is unknown. Please enter the path to your Python.exe file: ")
             if not os.path.exists(pythonpath):
-                self.set_PythonPath(pythonpath)
+                if os.name == 'nt':
+                    self.set_PythonPath(pythonpath)
+                else:
+                    settings.update('pythonpath', pythonpath)
             if len(pythonpath) == 0:
                 return
             else:
-                self.set_PythonPath(pythonpath)
-        if not os.path.exists(f'{dbFolder}\\Registered Flows'):
-            os.mkdir(f'{dbFolder}\\Registered Flows')
+                if os.name == 'nt':
+                    self.set_PythonPath(pythonpath)
+                else:
+                    settings.update('pythonpath', pythonpath)
+        if os.name != 'nt':
+            with open('settings', 'w') as outfile:
+                json.dump(settings, outfile)
         self.input_parameter = input_parameter
         self.pythonPath = pythonpath
         self.db = SQL(dbFolder)
@@ -511,7 +541,7 @@ class WorkflowEngine():
 
     def run_flow(self, steps):
         """
-        Execute a Workflow.
+        Execute a Flow.
         :params steps: The steps that must be executed in the flow
         """
         dbPath = self.get_dbPath()
@@ -519,17 +549,17 @@ class WorkflowEngine():
             raise Exception('Your installation directory is unknown.')
             self.error = True
             return
-        # Register the flow if not already registered
+        # Save the flow if not already saved
         if not os.path.exists(f'{self.db}\\Registered Flows\\{self.flowname}.xml') and not os.path.exists(
                 self.flowpath):
             # Move the file to the registered directory if not exists
             copyfile(self.flowpath, f'{dbPath}\\Registered Flows\\{self.flowname}.xml')
         self.flowpath = f'{dbPath}\\Registered Flows\\{self.flowname}.xml'
-        sql = f"SELECT id FROM Registered WHERE name ='{self.flowname}' AND location='{self.flowpath}'"
-        registered_id = self.db.run_sql(sql=sql, tablename="Registered")
-        if registered_id is None:
-            sql = f"INSERT INTO Registered (name, location) VALUES ('{self.flowname}','{self.flowpath}');"
-            registered_id = self.db.run_sql(sql=sql, tablename="Registered")
+        sql = f"SELECT id FROM Flows WHERE name ='{self.flowname}' AND location='{self.flowpath}'"
+        flow_id = self.db.run_sql(sql=sql, tablename="Flows")
+        if flow_id is None:
+            sql = f"INSERT INTO Flows (name, location) VALUES ('{self.flowname}','{self.flowpath}');"
+            flow_id = self.db.run_sql(sql=sql, tablename="Flows")
         self.previous_step = None
         output_previous_step = None
         shape_steps = [x for x in steps if x.type == "shape"]
@@ -537,10 +567,10 @@ class WorkflowEngine():
         step_time = datetime.now().strftime("%H:%M:%S")
 
         # Log the start in the orchestrator database
-        sql = f"INSERT INTO Workflows (name, registered_id) VALUES ('{self.flowname}', {registered_id});"
-        self.id = self.db.run_sql(sql=sql, tablename="Workflows")
+        sql = f"INSERT INTO Runs (name, flow_id) VALUES ('{self.flowname}', {flow_id});"
+        self.id = self.db.run_sql(sql=sql, tablename="Runs")
         print("\n")
-        self.print_log(status="Running", result=f"{datetime.today().strftime('%d-%m-%Y')} Starting flow '{self.flowname}'...")
+        self.print_log(status="Starting", result=f"{datetime.today().strftime('%d-%m-%Y')} Starting flow '{self.flowname}'...")
         self.step_nr = 0
         while True:
             try:
@@ -734,7 +764,7 @@ class WorkflowEngine():
         """
         result = str(result).replace("<br>", " ")
         result = str(result[0]).capitalize()+result[1:]
-        ststus = str(status)
+        status = str(status)
         if not result.endswith("."):
             result += "."
         step_time = datetime.now().strftime("%H:%M:%S")
@@ -743,14 +773,15 @@ class WorkflowEngine():
         else:
             print(f"{step_time}: {result}")
             self.step_nr = ""
-        result = result.replace("'", "''")
+        result = result.replace("'", "''").strip()
         if len(status) > 0:
             status = f" - {status}"
         if self.step_name is not None:
             step_name = self.step_name.replace("'", "''")
         else:
-            step_name = ""
-        sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', '{step_name}', '{result}', '{self.step_nr}{status}');"
+            result = "Starting"
+            step_name = "Start"
+        sql = f"INSERT INTO Steps (run, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', '{step_name}', '{result}', '{self.step_nr}{status}');"
         self.db.run_sql(sql)
 
     def exitcode_not_ok(self):
@@ -775,14 +806,14 @@ class WorkflowEngine():
         ok = "The flow has ended."
         if self.error:
             ok = "The flow has ended with ERRORS."
-        sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', 'End', 'Ended', '{ok}');"
+        sql = f"INSERT INTO Steps (run, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', 'End', 'Ended', '{ok}');"
         step_time = datetime.now().strftime("%H:%M:%S")
         end_result = f"{step_time}: Flow '{self.flowname}': {ok}"
         print(end_result)
         self.db.run_sql(sql=sql, tablename="Steps")
         # Update the result of the flow
-        sql = f"UPDATE Workflows SET result= '{ok}' where id = {self.id};"
-        self.db.run_sql(sql=sql, tablename="Workflows")
+        sql = f"UPDATE Runs SET result= '{ok}' where id = {self.id};"
+        self.db.run_sql(sql=sql, tablename="Runs")
 
     def get_input_from_signature(self, step, method_to_call):
         try:
@@ -870,7 +901,7 @@ class WorkflowEngine():
                 else:
                     return output_previous_step
             except Exception as e:
-                sql = f"INSERT INTO Steps (Workflow, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', '{step.name}', 'Running', '', 'Error: {e}');"
+                sql = f"INSERT INTO Steps (run, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', '{step.name}', 'Running', '', 'Error: {e}');"
                 self.db.run_sql(sql=sql, tablename="Steps")
                 self.error = True
                 print(f"Error: {e}")
@@ -915,7 +946,6 @@ class WorkflowEngine():
             if str(getattr(step, value)).__contains__("%__user_name__%"):
                 self.variables.update({'%__user_name__%': os.getenv('username')})
 
-
     def save_output_variable(self, step, this_step, output_previous_step):
         """
         Save output variable to list
@@ -930,7 +960,6 @@ class WorkflowEngine():
                     this_step = output_previous_step
                 self.variables.update(
                     {f"{step.output_variable}": this_step})  # Update the variables list
-
 
     def loop_items_check(self, loop_variable: str) -> bool:
         """
@@ -1080,12 +1109,12 @@ class SQL():
         """
         self.connection.commit()
 
-    def get_registered_flows(self):
+    def get_saved_flows(self):
         """
-        Get a list from all registered flows in the orchestrator database.
-        :return: A list of flow names that are registered in the orchestrator database.
+        Get a list from all saved flows in the orchestrator database.
+        :return: A list of flow names that are saved in the orchestrator database.
         """
-        sql = "SELECT name FROM Registered;"
+        sql = "SELECT name FROM Flows;"
         curs = self.connection.cursor()
         curs.execute(sql)
         rows = curs.fetchall()
@@ -1094,13 +1123,13 @@ class SQL():
             ret.append(f"{rw[0]}.xml")
         return ret
 
-    def remove_registered_flows(self, lst: List = []):
+    def remove_saved_flows(self, lst: List = []):
         """
-        Removes registered flows from the orchestrator database by maching on the given list of flow-names
+        Removes saved flows from the orchestrator database by maching on the given list of flow-names
         :param lst: The list with flow names to remove from the database
         """
         names = "'" + "', '".join(lst) + "'"
-        sql = f"DELETE FROM Registered WHERE name IN ({names});"
+        sql = f"DELETE FROM Flows WHERE name IN ({names});"
         curs = self.connection.cursor()
         curs.execute(sql)
         self.connection.commit()
@@ -1109,13 +1138,13 @@ class SQL():
         """
         Create tables for the Orchestrator database
         """
-        sql = "CREATE TABLE IF NOT EXISTS Registered (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, location TEXT NOT NULL, description TEXT, timestamp DATE DEFAULT (datetime('now','localtime')));"
+        sql = "CREATE TABLE IF NOT EXISTS Flows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, location TEXT NOT NULL, description TEXT, timestamp DATE DEFAULT (datetime('now','localtime')));"
         self.run_sql(sql)
-        sql = "CREATE TABLE IF NOT EXISTS Workflows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, registered_id INTEGER NOT NULL, name TEXT NOT NULL, result TEXT, started DATE DEFAULT (datetime('now','localtime')), finished DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_Registered FOREIGN KEY (registered_id) REFERENCES Registered (id) ON DELETE CASCADE);"
+        sql = "CREATE TABLE IF NOT EXISTS Runs (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, flow_id INTEGER NOT NULL, name TEXT NOT NULL, result TEXT, started DATE DEFAULT (datetime('now','localtime')), finished DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_saved FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
         self.run_sql(sql)
-        sql = "CREATE TABLE IF NOT EXISTS Steps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, workflow INTEGER NOT NULL, parent TEXT, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_Workflow FOREIGN KEY (Workflow) REFERENCES Workflows (id) ON DELETE CASCADE);"
+        sql = "CREATE TABLE IF NOT EXISTS Steps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, run INTEGER NOT NULL, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_runs FOREIGN KEY (run) REFERENCES Runs (id) ON DELETE CASCADE);"
         self.run_sql(sql)
-        # sql = "CREATE TABLE IF NOT EXISTS Triggers (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, registered_id INTEGER NOT NULL, trigger_info, CONSTRAINT fk_Registered_trigger FOREIGN KEY (registered_id) REFERENCES Registered (id) ON DELETE CASCADE);"
+        # sql = "CREATE TABLE IF NOT EXISTS Triggers (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, flow_id INTEGER NOT NULL, trigger_info, CONSTRAINT flows_saved_trigger FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
         # self.run_sql(sql)
 
 # Test
