@@ -16,7 +16,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 * [Loops](#Loops)
   * [Special loop variable options](#Special-loop-variable-options)
 * [Instantiate a Class and use in Flow](#Instantiate-a-Class-and-use-in-Flow)
-* [Passing input to the WorkflowEngine](#Passing-input-to-the-WorkflowEngine]
+* [Passing input to the WorkflowEngine](#Passing-input-to-the-WorkflowEngine)
 * [Logging](#Logging)
 * [End a flow](#End-a-flow)
   * [End flow with exitcode](#End-flow-with-exitcode)
@@ -60,7 +60,8 @@ You can use Tasks to call Python scripts. For the WorkflowEngine to recognize th
       <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/os_system.PNG" height="450" width="400" ></a>
     
 ##### GateWays
-   * For now you can only use the Exclusive Gateway. This Gateway has to have a Data attribute named 'Type' with the value 'Exclusive Gateway'.
+   * For now you can only use the Exclusive Gateway and the Parallel Gateway. These Gateways must have a Data attribute named 'Type' with the value 'Exclusive Gateway' or 'Parallel Gateway' respectively. The use of the Parallel Gateway is momentarely restricted to transform multiple inputs into one output. At this moment multiple outputs are not yet allowed.
+   
 ##### Sequence flow arrow
    * If the Sequence flow arrow is originating from an Exclusive Gateway, the Sequence flow arrow must have a value of 'True' or 'False'.
 
