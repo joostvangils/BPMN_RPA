@@ -15,10 +15,10 @@ if __name__ == "__main__":
         long_description = f.read()
     setuptools.setup(
         name="BPMN_RPA",  # Replace with your own username
-        version="2.1.0",
+        version="2.1.1",
         author="Joost van Gils",
         author_email="joostvangils@1ic.nl",
-        description="Robotic Process Automation in Windows by running Diagrams.net BPMN flows.",
+        description="Robotic Process Automation by running BPMN diagram flows.",
         long_description=long_description,
         long_description_content_type="text/markdown",
         url="https://github.com/joostvangils/BPMN_RPA",
@@ -29,7 +29,7 @@ if __name__ == "__main__":
         classifiers=[
             "Programming Language :: Python :: 3",
             "License :: OSI Approved :: GNU Affero General Public License v3",
-            "Operating System :: Microsoft",
+            "Operating System :: Microsoft", "Operating System :: POSIX :: Linux"
         ],
         python_requires='>=3.6',
     )
