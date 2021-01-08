@@ -145,18 +145,18 @@ def does_list_contain_any_items(list_object: list) -> bool:
     else:
         return False
 
-def is_item_empty(item: Any) -> bool:
+def is_object_empty(object: Any) -> bool:
     """
     Check if an item is empty
     :param item: The item to check
     :return: Boolean True or False
     """
-    if isinstance(item, str):
-        return item == ""
-    if isinstance(item, list):
-        return len(item) == 0
-    if isinstance(item, dict):
-        return len(item.keys()) == 0
-    if isinstance(item, object):
-        return item is None
-    raise Exception("Cannot determine if given item is empty...")
+    if isinstance(object, str):
+        return object == ""
+    if isinstance(object, list):
+        return len(object) == 0
+    if isinstance(object, dict):
+        return len(object.keys()) == 0
+    if isinstance(object, object):
+        return object is None
+    raise Exception("Cannot determine if given object is empty...")

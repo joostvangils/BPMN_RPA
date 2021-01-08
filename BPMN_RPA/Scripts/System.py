@@ -1,3 +1,5 @@
+from typing import Any
+
 import pyautogui
 
 
@@ -13,7 +15,7 @@ def screenshot(path: str) -> str:
     return path
 
 
-def run_python_code(code):
+def run_python_code(code: str) -> Any:
     """
     Dynamically run Python code
     :param code: The code to run

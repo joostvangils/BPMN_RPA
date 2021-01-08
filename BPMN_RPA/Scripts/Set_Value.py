@@ -17,7 +17,7 @@ def value_to_variable(value: Any) -> Any:
 
 def split_string_to_list(string: str, separator: str = " ", maxsplit:int = -1) -> List:
     """
-    Convert a string with to a list
+    Convert a string with a separator to a list
     :param string: The string to convert
     :param separator: Optional. Specifies the separator to use when splitting the string. By default any whitespace is a separator.
     :param maxsplit: Optional. Specifies how many splits to do. Default value is -1, which is "all occurrences".
