@@ -172,6 +172,7 @@ def get_library(filepath):
 
 
 def save_library(filepath, dct):
+    dct.sort(key=lambda x: x["title"], reverse=False)
     content = "<mxlibrary>" + json.dumps(dct) + "</mxlibrary>"
     # Open an existing document.
     xml_file = open(filepath, "w")
@@ -305,6 +306,12 @@ def get_docstring_from_code(module: str, function: str, classname=""):
     return doc
 
 
+def sort_library(filepath):
+    dct = get_library(filepath)
+    dct.sort(key=lambda x: x["title"], reverse=False)
+    return dct
+
+
 def add_shape_from_function_to_library(filepath, module, function, classname="", title = ""):
     if library_has_shape(filepath, module, function, classname):
         print(f"Library {filepath} already has a shape for {module} {classname} {function}.".replace("  ", " ").replace(" .", "."))
@@ -364,10 +371,11 @@ def add_shape_from_function_to_library(filepath, module, function, classname="",
                 root.find('.//root/object')
                 newentry.update({"xml": str(xml)})
                 dct.append(newentry)
+    dct.sort(key=lambda x: x["title"], reverse=False)
     save_library(filepath, dct)
     print(f"Shape {module} {classname} {title} added to Library {filepath}.".replace("..\\", "").replace("  ", " ").replace(" .", "."))
 
 
 
-add_shape_from_function_to_library(module=r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\System.py", function="run_python_code", filepath=r"..\Shapes.xml")
-#add_comments_to_library(r"c:\temp\Shapes.xml")
+#add_shape_from_function_to_library(module=r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Code.py", function="get_docstring_from_code", title="Get comments from Python code", filepath=r"..\Shapes.xml")
+#add_comments_to_library(r"..\Shapes.xml")
