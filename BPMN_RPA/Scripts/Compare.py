@@ -81,8 +81,7 @@ def is_time_interval_less_or_equal(datetime1: Any, datetime2: Any, interval_in_s
 def is_time_number_of_seconds_ago(date_time: Any, interval_in_seconds: int) -> bool:
     """
     Check if the interval of a date-time is less or equal than the given amount of seconds compared to now.
-    :param datetime1: The first datetime object
-    :param datetime2: The second datetime object
+    :param date_time: The datetime object
     :param interval_in_seconds: The interval in seconds
     :return: Boolean True or False
     """
