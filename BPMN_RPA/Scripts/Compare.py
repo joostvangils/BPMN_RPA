@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Any
-import inspect
 
 
 def is_first_item_equal_to_second_item(first_item: Any, second_item: Any) -> bool:

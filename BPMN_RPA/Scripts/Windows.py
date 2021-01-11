@@ -1,6 +1,7 @@
 from typing import Any
 
-import win32gui, win32con, win32api
+import win32con
+import win32gui
 
 
 class BPMN_RPA_Window(object):
