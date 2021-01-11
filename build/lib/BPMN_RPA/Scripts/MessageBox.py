@@ -34,6 +34,3 @@ def main(title: any, message: any, option ="ok") -> int:
     root.destroy()
     return retn
 
-
-def test():
-    main("Test", "This is a test")

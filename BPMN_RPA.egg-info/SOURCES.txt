@@ -7,6 +7,7 @@ BPMN_RPA.egg-info/PKG-INFO
 BPMN_RPA.egg-info/SOURCES.txt
 BPMN_RPA.egg-info/dependency_links.txt
 BPMN_RPA.egg-info/top_level.txt
+BPMN_RPA/Scripts/Code.py
 BPMN_RPA/Scripts/Compare.py
 BPMN_RPA/Scripts/Hello_World.py
 BPMN_RPA/Scripts/Keyboard.py

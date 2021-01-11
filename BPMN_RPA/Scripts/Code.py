@@ -167,6 +167,7 @@ def check_flow_for_usage(flow: str, search_module: str = "", search_class: str =
         retn.append(f"Function \"{search_function}\" is used in step \"{f}\" of flow \"{flowname}\".")
     return retn
 
+
 def get_library(filepath: str) -> Any:
     """
     Read a library file and return its content.
@@ -270,12 +271,13 @@ def add_comments_to_library(filepath: str):
             if variable is not None:
                 if len(variable) == 0 and label.lower() != "template":
                     del found.attrib["Output_variable"]
-            #found.set('tooltip', doc)
+            # found.set('tooltip', doc)
             xml = ET.tostring(root.getroot()).decode('utf-8')
             xml = shape_encode(xml)
             root.find('.//root/object')
             shape.update({"xml": str(xml)})
     save_library(filepath, dct)
+
 
 def library_has_shape(filepath: str, module: str, function: str, classname: str = "") -> bool:
     dct = get_library(filepath)
@@ -300,6 +302,7 @@ def library_has_shape(filepath: str, module: str, function: str, classname: str 
                 break
     return retn
 
+
 def get_docstring_from_code(module: str, function: str, filepath: str, classname: str = "") -> str:
     """
     Retreive the comments from code.
@@ -313,12 +316,12 @@ def get_docstring_from_code(module: str, function: str, filepath: str, classname
     doc = None
     callobject = None
     method_to_call = None
-    if module is None and len(classname) ==0:
+    if module is None and len(classname) == 0:
         module = str("\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
         classname = "WorkflowEngine"
     if module is not None:
-        if len(module) ==0 and len(classname) ==0:
-            module =  str("\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
+        if len(module) == 0 and len(classname) == 0:
+            module = str("\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
             classname = "WorkflowEngine"
     if classname is not None:
         if classname.startswith("%") and classname.endswith("%"):
@@ -341,7 +344,7 @@ def get_docstring_from_code(module: str, function: str, filepath: str, classname
         spec.loader.exec_module(module_object)
         callobject = module_object
         if classname is not None:
-            if len(classname)>0:
+            if len(classname) > 0:
                 classobject = getattr(module_object, classname)
                 callobject = classobject
     if function is not None:
@@ -366,7 +369,7 @@ def sort_library(filepath: str) -> Any:
     return dct
 
 
-def get_module_from_variable_name(variable: str, filepath: str)-> Any:
+def get_module_from_variable_name(variable: str, filepath: str) -> Any:
     """
     Get the module path from a variable name.
     :param variable: The name of the variable.
@@ -389,6 +392,7 @@ def get_module_from_variable_name(variable: str, filepath: str)-> Any:
                 return module, classname
     return None
 
+
 def add_shape_from_function_to_library(filepath: str, module: str, function: str, classname: str = "", title: str = ""):
     """
     Create a shape from code and add it to a shape library.
@@ -399,19 +403,20 @@ def add_shape_from_function_to_library(filepath: str, module: str, function: str
     :param title: The title of the new created shape in the library.
     """
     if library_has_shape(filepath, module, function, classname):
-        print(f"Library {filepath} already has a shape for {module} {classname} {function}.".replace("  ", " ").replace(" .", "."))
+        print(f"Library {filepath} already has a shape for {module} {classname} {function}.".replace("  ", " ").replace(
+            " .", "."))
         return
     dct = get_library(filepath)
     if len(title) == 0:
         title = function.capitalize().replace("_", " ")
-    newentry = {'xml':'', 'w': 120, 'h': 80, 'aspect': 'fixed', 'title': title}
+    newentry = {'xml': '', 'w': 120, 'h': 80, 'aspect': 'fixed', 'title': title}
     newshape = f"<mxGraphModel><root><mxCell id=\"0\"/><mxCell id=\"1\" parent=\"0\"/><object label=\"{title}\" Module=\"{module}\" Class=\"{classname}\" Function=\"{function}\" Output_variable=\"\" id=\"2\" Description=\"\"><mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"><mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/></mxCell></object></root></mxGraphModel>"
     root = ET.ElementTree(ET.fromstring(newshape))
     found = root.find('.//root/object')
     if module is None:
         module = str(Path(os.getcwd()).parent) + r"\WorkflowEngine.py"
         classname = "WorkflowEngine"
-    if len(module) ==0:
+    if len(module) == 0:
         module = str(Path(os.getcwd()).parent) + r"\WorkflowEngine.py"
         classname = "WorkflowEngine"
     if not module.endswith(".py"):
@@ -430,7 +435,7 @@ def add_shape_from_function_to_library(filepath: str, module: str, function: str
                 spec.loader.exec_module(module_object)
                 callobject = module_object
                 if classname is not None:
-                    if len(classname)>0:
+                    if len(classname) > 0:
                         classobject = getattr(module_object, classname)
                         callobject = classobject
                 method_to_call = getattr(callobject, function)
@@ -458,9 +463,9 @@ def add_shape_from_function_to_library(filepath: str, module: str, function: str
                 dct.append(newentry)
     dct.sort(key=lambda x: x["title"], reverse=False)
     save_library(filepath, dct)
-    print(f"Shape {module} {classname} {title} added to Library {filepath}.".replace("..\\", "").replace("  ", " ").replace(" .", "."))
+    print(f"Shape {module} {classname} {title} added to Library {filepath}.".replace("..\\", "").replace("  ",
+                                                                                                         " ").replace(
+        " .", "."))
 
-
-
-#add_shape_from_function_to_library(module=r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Code.py", function="get_docstring_from_code", title="Get comments from Python code", filepath=r"..\Shapes.xml")
-#add_comments_to_library(r"..\Shapes.xml")
+# add_shape_from_function_to_library(module=r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Code.py", function="get_docstring_from_code", title="Get comments from Python code", filepath=r"..\Shapes.xml")
+# add_comments_to_library(r"..\Shapes.xml")
