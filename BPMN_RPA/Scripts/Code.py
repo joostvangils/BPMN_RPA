@@ -125,6 +125,14 @@ def get_step_from_shape(shape):
 
 
 def check_flow_for_usage(flow, search_module="", search_class="", search_function=""):
+    """
+    Check if the given code is used in the steps of a flow.
+    :param flow: The path to the file of the flow.
+    :param search_module: Optional. The full path of the module to search.
+    :param search_class: Optional. The classname to search.
+    :param search_function: Optional. The function name to search.
+    :return: A list of explenations in which step the code is used.
+    """
     doc = openflow(flow)
     flowname = flow.split("\\")[-1]
     steps = get_flow(doc)
@@ -160,6 +168,11 @@ def check_flow_for_usage(flow, search_module="", search_class="", search_functio
     return retn
 
 def get_library(filepath):
+    """
+    Read a library file and return its content.
+    :param filepath: The full path of the library to read.
+    :return: The library content.
+    """
     # Open an existing document.
     xml_file = open(filepath, "r")
     xml_root = ET.fromstring(xml_file.read())
@@ -172,6 +185,11 @@ def get_library(filepath):
 
 
 def save_library(filepath, dct):
+    """
+    Save a library to a file.
+    :param filepath: The full path to save the library to.
+    :param dct: The content of the library (the list of dictionaries).
+    """
     dct.sort(key=lambda x: x["title"], reverse=False)
     content = "<mxlibrary>" + json.dumps(dct) + "</mxlibrary>"
     # Open an existing document.
@@ -181,6 +199,11 @@ def save_library(filepath, dct):
 
 
 def shape_decode(shape):
+    """
+    Decode the content of a shape to xml.
+    :param shape: The shape to decode the content of.
+    :return: Decoded xml of the shape.
+    """
     original = shape.get("xml")
     base64_decode = base64.b64decode(shape.get("xml"))
     inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
@@ -194,6 +217,11 @@ def shape_decode(shape):
 
 
 def shape_encode(shape_xml):
+    """
+    Encode the xml of a shape.
+    :param shape_xml: The xml to encode.
+    :return: Encoded xml.
+    """
     retn = urllib.parse.quote(shape_xml).replace("/", "%2F")
     retn = zlib.compress(retn.encode('unicode_escape'))
     retn = retn[2:]
@@ -203,6 +231,10 @@ def shape_encode(shape_xml):
 
 
 def add_comments_to_library(filepath):
+    """
+    Add (or update) comments  to all shapes in a library.
+    :param filepath: The full path to the library file.
+    """
     dct = get_library(filepath)
     fileupdate = False
     for shape in dct:
@@ -223,7 +255,7 @@ def add_comments_to_library(filepath):
                 if module.startswith("RPA_"):
                     module = module.replace("RPA_", "")
                     fields.update({"Module": module})
-            doc = get_docstring_from_code(module, function)
+            doc = get_docstring_from_code(module, function, filepath, classname)
             if doc is None: doc = ""
             found.set('Description', doc)
             if classname is not None:
@@ -265,21 +297,31 @@ def library_has_shape(filepath: str, module: str, function: str, classname=""):
                 break
     return retn
 
-def get_docstring_from_code(module: str, function: str, classname=""):
+def get_docstring_from_code(module: str, function: str, filepath: str, classname=""):
     """
     Retreive the comments from code.
     :param module: The module name, including the path.
     :param function: The function name.
+    :param filepath: The full path of the library file.
     :param classname: Optional. The Classname.
     :return: A string with the comments from code.
     """
+
     doc = None
-    if module is None:
-        module = str(Path(os.getcwd()).parent) + r"\WorkflowEngine.py"
+    callobject = None
+    if module is None and len(classname) ==0:
+        module = str("\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
         classname = "WorkflowEngine"
-    if len(module) ==0:
-        module = str(Path(os.getcwd()).parent) + r"\WorkflowEngine.py"
-        classname = "WorkflowEngine"
+    if module is not None:
+        if len(module) ==0 and len(classname) ==0:
+            module =  str("\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
+            classname = "WorkflowEngine"
+    if classname.startswith("%") and classname.endswith("%"):
+        if module is not None:
+            if not module.startswith("%") and not module.endswith("%"):
+                classname = module.split("\\")[-1].replace(".py", "")
+        else:
+            module, classname = get_module_from_variable_name(classname, filepath)
     if not module.endswith(".py"):
         path = "\\".join(sys.executable.split("\\")[:-1]) + "\\Lib\\"
         if os.path.exists(path + module + ".py"):
@@ -288,31 +330,69 @@ def get_docstring_from_code(module: str, function: str, classname=""):
             path = "".join(sys.executable.split("\\")[:-1]) + "\\Lib\\site-packages\\" + module
             if os.path.exists(path + module + ".py"):
                 module = path + module + ".py"
+    spec = util.spec_from_file_location(module, module)
+    if spec is not None:
+        module_object = util.module_from_spec(spec)
+        spec.loader.exec_module(module_object)
+        callobject = module_object
+        if classname is not None:
+            if len(classname)>0:
+                classobject = getattr(module_object, classname)
+                callobject = classobject
     if function is not None:
         if len(function) > 0:
-            spec = util.spec_from_file_location(module, module)
-            if spec is not None:
-                module_object = util.module_from_spec(spec)
-                spec.loader.exec_module(module_object)
-                callobject = module_object
-                if classname is not None:
-                    if len(classname)>0:
-                        classobject = getattr(module_object, classname)
-                        callobject = classobject
-                method_to_call = getattr(callobject, function)
-                doc = inspect.getdoc(method_to_call)
-                if doc is not None:
-                    doc = doc.replace(":param ", "\n").replace(":return: ", "\nReturn: ").replace(":returns: ", "\nReturn: ")
+            method_to_call = getattr(callobject, function)
+    else:
+        method_to_call = getattr(classobject, "__init__")
+    doc = inspect.getdoc(method_to_call)
+    if doc is not None:
+        doc = doc.replace(":param ", "\n").replace(":return: ", "\nReturn: ").replace(":returns: ", "\nReturn: ")
     return doc
 
 
 def sort_library(filepath):
+    """
+    Sort a DrawIo library of shapes.
+    :param filepath: The path to the library file.
+    :return: The sorted library as a list of dictionaries.
+    """
     dct = get_library(filepath)
     dct.sort(key=lambda x: x["title"], reverse=False)
     return dct
 
 
+def get_module_from_variable_name(variable: str, filepath)-> str:
+    """
+    Get the module path from a variable name.
+    :param variable: The name of the variable.
+    :param filepath: The full path of the library file.
+    :return: Tuple: The full path of the module and the classname.
+    """
+    dct = get_library(filepath)
+    for shape in dct:
+        xml = shape_decode(shape)
+        root = ET.ElementTree(ET.fromstring(xml))
+        found = root.find('.//root/object')
+        if found is not None:
+            fields = found.attrib
+            classname = fields.get("Class")
+            module = fields.get("Module")
+            function = fields.get("Function")
+            mapping = fields.get("Mapping")
+            output_variable = fields.get("Output_variable")
+            if output_variable == variable:
+                return module, classname
+    return None
+
 def add_shape_from_function_to_library(filepath, module, function, classname="", title = ""):
+    """
+    Create a shape from code and add it to a shape library.
+    :param filepath: The path to the library file.
+    :param module: The full path of the module.
+    :param function: The name of the function.
+    :param classname: The class name.
+    :param title: The title of the new created shape in the library.
+    """
     if library_has_shape(filepath, module, function, classname):
         print(f"Library {filepath} already has a shape for {module} {classname} {function}.".replace("  ", " ").replace(" .", "."))
         return
