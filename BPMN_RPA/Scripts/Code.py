@@ -43,6 +43,7 @@ def openflow(filepath: str, as_xml: bool = False) -> Any:
     retn = xmltodict.parse(url_decode)
     return retn, root
 
+
 def saveflow(filepath: str, dct: Any, original: Any) -> Any:
     """
     Save a flow to a DrawIO document
@@ -349,11 +350,13 @@ def get_docstring_from_code(module: str, function: str, filepath: str, classname
     try:
         if classname is not None:
             if module is None and len(classname) == 0:
-                module = str("\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
+                module = str(
+                    "\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
                 classname = "WorkflowEngine"
         if module is not None:
             if len(module) == 0 and len(classname) == 0:
-                module = str("\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
+                module = str(
+                    "\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
                 classname = "WorkflowEngine"
         else:
             module = str("\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
@@ -429,6 +432,7 @@ def get_module_from_variable_name(variable: str, filepath: str) -> Any:
                 return module, classname
     return None
 
+
 def search_modulename_in_flow(variable: str, flowsteps: Any) -> Any:
     """
     Search for the module path from a variable name.
@@ -444,6 +448,7 @@ def search_modulename_in_flow(variable: str, flowsteps: Any) -> Any:
         if output_variable == variable:
             return module, classname
     return None
+
 
 def add_shape_from_function_to_library(filepath: str, module: str, function: str, classname: str = "", title: str = ""):
     """
@@ -551,9 +556,6 @@ def add_descriptions_to_flow(filepath: str):
                     shape.pop("@Output_variable")
             # found.set('tooltip', doc)
     saveflow(filepath, dct, original)
-
-
-
 
 # add_shape_from_function_to_library(module=r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Code.py", function="get_docstring_from_code", title="Get comments from Python code", filepath=r"..\Shapes.xml")
 # add_descriptions_to_flow(r"D:\temp\taranis_query.xml")
