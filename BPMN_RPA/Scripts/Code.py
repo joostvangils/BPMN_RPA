@@ -30,6 +30,9 @@ def openflow(filepath: str, as_xml: bool = False) -> Any:
     """
     # Open an existing document.
     xml_file = open(filepath, "r")
+    header = xml_file.readlines()
+    xml_file.seek(0, 0)
+    root = ET.fromstring(header[0])
     xml_root = ET.fromstring(xml_file.read())
     raw_text = xml_root[0].text
     base64_decode = base64.b64decode(raw_text)
@@ -38,7 +41,26 @@ def openflow(filepath: str, as_xml: bool = False) -> Any:
     if as_xml:
         return url_decode
     retn = xmltodict.parse(url_decode)
-    return retn
+    return retn, root
+
+def saveflow(filepath: str, dct: Any, original: Any) -> Any:
+    """
+    Save a flow to a DrawIO document
+    :param filepath: The full path (including extension) of the file.
+    :param dct: The ordered dictionary that contains the flow content.
+    :param original: the original file content
+    """
+    retn = xmltodict.unparse(dct)
+    retn = urllib.parse.quote(retn).replace("/", "%2F")
+    retn = zlib.compress(retn.encode('unicode_escape'))
+    retn = retn[2:]
+    content = base64.b64encode(retn).decode('utf-8')
+    original[0].text = content
+    # Open an existing document.
+    newcontent = ET.tostring(original)
+    xml_file = open(filepath, "w")
+    xml_file.write(newcontent.decode('utf8'))
+    xml_file.close()
 
 
 def get_flow(ordered_dict: Any) -> Any:
@@ -105,7 +127,7 @@ def get_step_from_shape(shape: Any) -> Any:
     for key, value in shape.items():
         attr = str(key).lower().replace("@", "")
         if attr == "class":
-            attr = "classname"  # 'çlass' is a reserved keyword, so use 'çlassname'
+            attr = "classname"  # 'class' is a reserved keyword, so use 'classname'
         setattr(retn, attr, value)
     if shape.get("@source") is not None or shape.get("@target") is not None:
         retn.type = "connector"
@@ -133,7 +155,7 @@ def check_flow_for_usage(flow: str, search_module: str = "", search_class: str =
     :param search_function: Optional. The function name to search.
     :return: A list of explenations in which step the code is used.
     """
-    doc = openflow(flow)
+    doc, _ = openflow(flow)
     flowname = flow.split("\\")[-1]
     steps = get_flow(doc)
     retn = []
@@ -234,9 +256,9 @@ def shape_encode(shape_xml: str) -> str:
     return retn
 
 
-def add_comments_to_library(filepath: str):
+def add_descriptions_to_library(filepath: str):
     """
-    Add (or update) comments  to all shapes in a library.
+    Add (or update) descriptions from code to all shapes in a library.
     :param filepath: The full path to the library file.
     """
     dct = get_library(filepath)
@@ -280,6 +302,14 @@ def add_comments_to_library(filepath: str):
 
 
 def library_has_shape(filepath: str, module: str, function: str, classname: str = "") -> bool:
+    """
+    Chewck if a library has a shape that uses a specific code.
+    :param filepath: The full patyh of the library.
+    :param module: The full path of the module.
+    :param function: The function name.
+    :param classname: The class name.
+    :return: True or False
+    """
     dct = get_library(filepath)
     retn = False
     for shape in dct:
@@ -316,46 +346,53 @@ def get_docstring_from_code(module: str, function: str, filepath: str, classname
     doc = None
     callobject = None
     method_to_call = None
-    if module is None and len(classname) == 0:
-        module = str("\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
-        classname = "WorkflowEngine"
-    if module is not None:
-        if len(module) == 0 and len(classname) == 0:
+    try:
+        if classname is not None:
+            if module is None and len(classname) == 0:
+                module = str("\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
+                classname = "WorkflowEngine"
+        if module is not None:
+            if len(module) == 0 and len(classname) == 0:
+                module = str("\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
+                classname = "WorkflowEngine"
+        else:
             module = str("\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
             classname = "WorkflowEngine"
-    if classname is not None:
-        if classname.startswith("%") and classname.endswith("%"):
-            if module is not None:
-                if not module.startswith("%") and not module.endswith("%"):
-                    classname = module.split("\\")[-1].replace(".py", "")
-            else:
-                module, classname = get_module_from_variable_name(classname, filepath)
-    if not module.endswith(".py"):
-        path = "\\".join(sys.executable.split("\\")[:-1]) + "\\Lib\\"
-        if os.path.exists(path + module + ".py"):
-            module = path + module + ".py"
-    else:
-        path = "\\".join(sys.executable.split("\\")[:-1]) + "\\Lib\\site-packages\\BPMN_RPA\\Scripts\\" + module
-        if os.path.exists(path):
-            module = path
-    spec = util.spec_from_file_location(module, module)
-    if spec is not None:
-        module_object = util.module_from_spec(spec)
-        spec.loader.exec_module(module_object)
-        callobject = module_object
         if classname is not None:
-            if len(classname) > 0:
-                classobject = getattr(module_object, classname)
-                callobject = classobject
-    if function is not None:
-        if len(function) > 0:
-            method_to_call = getattr(callobject, function)
-    else:
-        method_to_call = getattr(classobject, "__init__")
-    doc = inspect.getdoc(method_to_call)
-    if doc is not None:
-        doc = doc.replace(":param ", "\n").replace(":return: ", "\nReturn: ").replace(":returns: ", "\nReturn: ")
-    return doc
+            if classname.startswith("%") and classname.endswith("%"):
+                if module is not None:
+                    if not module.startswith("%") and not module.endswith("%"):
+                        classname = module.split("\\")[-1].replace(".py", "")
+                else:
+                    module, classname = get_module_from_variable_name(classname, filepath)
+        if not module.endswith(".py"):
+            path = "\\".join(sys.executable.split("\\")[:-1]) + "\\Lib\\"
+            if os.path.exists(path + module + ".py"):
+                module = path + module + ".py"
+        else:
+            path = "\\".join(sys.executable.split("\\")[:-1]) + "\\Lib\\site-packages\\BPMN_RPA\\Scripts\\" + module
+            if os.path.exists(path):
+                module = path
+        spec = util.spec_from_file_location(module, module)
+        if spec is not None:
+            module_object = util.module_from_spec(spec)
+            spec.loader.exec_module(module_object)
+            callobject = module_object
+            if classname is not None:
+                if len(classname) > 0:
+                    classobject = getattr(module_object, classname)
+                    callobject = classobject
+        if function is not None:
+            if len(function) > 0:
+                method_to_call = getattr(callobject, function)
+        else:
+            method_to_call = getattr(classobject, "__init__")
+        doc = inspect.getdoc(method_to_call)
+        if doc is not None:
+            doc = doc.replace(":param ", "\n").replace(":return: ", "\nReturn: ").replace(":returns: ", "\nReturn: ")
+        return doc
+    except:
+        return None
 
 
 def sort_library(filepath: str) -> Any:
@@ -392,6 +429,21 @@ def get_module_from_variable_name(variable: str, filepath: str) -> Any:
                 return module, classname
     return None
 
+def search_modulename_in_flow(variable: str, flowsteps: Any) -> Any:
+    """
+    Search for the module path from a variable name.
+    :param variable: The name of the variable.
+    :param flowsteps: The steps of the flow (objects).
+    :return: Tuple: The full path of the module and the classname.
+    """
+    for shape in flowsteps:
+        classname = shape.get("@Class")
+        module = shape.get("@Module")
+        function = shape.get("@Function")
+        output_variable = shape.get("@Output_variable")
+        if output_variable == variable:
+            return module, classname
+    return None
 
 def add_shape_from_function_to_library(filepath: str, module: str, function: str, classname: str = "", title: str = ""):
     """
@@ -467,5 +519,41 @@ def add_shape_from_function_to_library(filepath: str, module: str, function: str
                                                                                                          " ").replace(
         " .", "."))
 
+
+def add_descriptions_to_flow(filepath: str):
+    """
+    Add (or update) descriptions from code to all shapes in a library.
+    :param filepath: The full path to the library file.
+    """
+    dct, original = openflow(filepath)
+    graph = dct.get("mxGraphModel")
+    root = graph.get("root")
+    steps = root.get("object")
+    fileupdate = False
+    if steps is not None:
+        for shape in steps:
+            classname = shape.get("@Class")
+            module = shape.get("@Module")
+            function = shape.get("@Function")
+            variable = shape.get("@Output_variable")
+            label = shape.get("@label")
+            if classname is not None:
+                if classname.startswith("%") and classname.endswith("%"):
+                    module, classname = search_modulename_in_flow(classname, steps)
+            doc = get_docstring_from_code(module, function, filepath, classname)
+            if doc is None: doc = ""
+            shape.update({'@Description': doc})
+            if classname is not None:
+                if len(classname) == 0:
+                    shape.pop("@Class")
+            if variable is not None:
+                if len(variable) == 0 and label.lower() != "template":
+                    shape.pop("@Output_variable")
+            # found.set('tooltip', doc)
+    saveflow(filepath, dct, original)
+
+
+
+
 # add_shape_from_function_to_library(module=r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Code.py", function="get_docstring_from_code", title="Get comments from Python code", filepath=r"..\Shapes.xml")
-# add_comments_to_library(r"..\Shapes.xml")
+# add_descriptions_to_flow(r"D:\temp\taranis_query.xml")
