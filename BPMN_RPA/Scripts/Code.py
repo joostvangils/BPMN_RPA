@@ -2,6 +2,7 @@ import base64
 import inspect
 import json
 import os
+import pkgutil
 import sys
 import urllib
 import zlib
@@ -13,7 +14,7 @@ import xmltodict
 from lxml import etree as ET
 
 
-class dynamic_object(object):
+class DynamicObject(object):
     pass
 
 
@@ -118,8 +119,7 @@ def get_step_from_shape(shape: Any) -> Any:
     :param shape: The Shape-object
     :returns: A Step-object
     """
-    retn = dynamic_object()
-    row = 0
+    retn = DynamicObject()
     retn.id = shape.get("@id")
     for key, value in shape.items():
         attr = str(key).lower().replace("@", "")
@@ -196,10 +196,6 @@ def get_library(filepath: str) -> Any:
     # Open an existing document.
     xml_file = open(filepath, "r")
     xml_root = ET.fromstring(xml_file.read())
-    raw_text = xml_root.text
-    # base64_decode = base64.b64decode(raw_text)
-    # inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
-    # url_decode = urllib.parse.unquote(inflated_xml)
     retn = json.loads(xml_root.text)
     return retn
 
@@ -227,15 +223,9 @@ def shape_decode(shape: Any):
     :param shape: The shape to decode the content of.
     :return: Decoded xml of the shape.
     """
-    original = shape.get("xml")
     base64_decode = base64.b64decode(shape.get("xml"))
     inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
     retn = urllib.parse.unquote(inflated_xml)
-    # test = shape_encode(retn)
-    # if test != original:
-    #     print(original)
-    #     print(test)
-    #     print("Err")
     return retn
 
 
@@ -259,11 +249,8 @@ def add_descriptions_to_library(filepath: str):
     :param filepath: The full path to the library file.
     """
     dct = get_library(filepath)
-    fileupdate = False
     for shape in dct:
-        updated = False
         xml = shape_decode(shape)
-        oldxml = xml
         root = ET.ElementTree(ET.fromstring(xml))
         found = root.find('.//root/object')
         if found is not None:
@@ -310,9 +297,9 @@ def library_has_shape(filepath: str, module: str, function: str, classname: str 
     dct = get_library(filepath)
     retn = False
     for shape in dct:
-        updated = False
+        if str(shape) == "{'xml': ''}":
+            break
         xml = shape_decode(shape)
-        oldxml = xml
         root = ET.ElementTree(ET.fromstring(xml))
         found = root.find('.//root/object')
         if found is not None:
@@ -339,10 +326,9 @@ def get_docstring_from_code(module: str, function: str, filepath: str, classname
     :param classname: Optional. The Classname.
     :return: A string with the comments from code.
     """
-
-    doc = None
     callobject = None
     method_to_call = None
+    classobject = None
     try:
         if classname is not None:
             if module is None and len(classname) == 0:
@@ -394,6 +380,9 @@ def get_docstring_from_code(module: str, function: str, filepath: str, classname
         return None
 
 
+
+
+
 def sort_library(filepath: str) -> Any:
     """
     Sort a DrawIo library of shapes.
@@ -421,8 +410,6 @@ def get_module_from_variable_name(variable: str, filepath: str) -> Any:
             fields = found.attrib
             classname = fields.get("Class")
             module = fields.get("Module")
-            function = fields.get("Function")
-            mapping = fields.get("Mapping")
             output_variable = fields.get("Output_variable")
             if output_variable == variable:
                 return module, classname
@@ -439,7 +426,6 @@ def search_modulename_in_flow(variable: str, flowsteps: Any) -> Any:
     for shape in flowsteps:
         classname = shape.get("@Class")
         module = shape.get("@Module")
-        function = shape.get("@Function")
         output_variable = shape.get("@Output_variable")
         if output_variable == variable:
             return module, classname
@@ -493,7 +479,6 @@ def add_shape_from_function_to_library(filepath: str, module: str, function: str
                         callobject = classobject
                 method_to_call = getattr(callobject, function)
                 sig = inspect.signature(method_to_call)
-                xml = {}
                 for key, value in sig.parameters.items():
                     if str(value).__contains__("="):
                         val = str(value).split("=")[1].replace("\'", "").strip()
@@ -504,8 +489,11 @@ def add_shape_from_function_to_library(filepath: str, module: str, function: str
                             val = ""
                     found.set(str(key.split(":")[0]).capitalize(), str(val))
                 doc = get_docstring_from_code(module, function, classname)
-                if not doc.__contains__("Return: "):
+                if not doc.__contains__("Return: ") or str(sig.return_annotation).lower() == "<class 'bool'>":
                     del found.attrib["Output_variable"]
+                    title += "?"
+                    newentry.update({"label": title})
+                    found.set("label", title)
                 found.set("Description", doc)
                 if len(classname) == 0:
                     del found.attrib["Class"]
@@ -514,7 +502,10 @@ def add_shape_from_function_to_library(filepath: str, module: str, function: str
                 root.find('.//root/object')
                 newentry.update({"xml": str(xml)})
                 dct.append(newentry)
-    dct.sort(key=lambda x: x["title"], reverse=False)
+    try:
+        dct.sort(key=lambda x: x["title"], reverse=False)
+    except:
+        pass
     save_library(filepath, dct)
     print(f"Shape {module} {classname} {title} added to Library {filepath}.".replace("..\\", "").replace("  ",
                                                                                                          " ").replace(
@@ -530,7 +521,6 @@ def add_descriptions_to_flow(filepath: str):
     graph = dct.get("mxGraphModel")
     root = graph.get("root")
     steps = root.get("object")
-    fileupdate = False
     if steps is not None:
         for shape in steps:
             classname = shape.get("@Class")
@@ -542,7 +532,8 @@ def add_descriptions_to_flow(filepath: str):
                 if classname.startswith("%") and classname.endswith("%"):
                     module, classname = search_modulename_in_flow(classname, steps)
             doc = get_docstring_from_code(module, function, filepath, classname)
-            if doc is None: doc = ""
+            if doc is None:
+                doc = ""
             shape.update({'@Description': doc})
             if classname is not None:
                 if len(classname) == 0:
@@ -553,5 +544,42 @@ def add_descriptions_to_flow(filepath: str):
             # found.set('tooltip', doc)
     saveflow(filepath, dct, original)
 
+def get_functions_from_module(module: str) -> str:
+    """
+    Retreive the comments from code.
+    :param module: The module name, including the path.
+    :param function: The function name.
+    :param filepath: The full path of the library file.
+    :param classname: Optional. The Classname.
+    :return: A string with the comments from code.
+    """
+    callobject = None
+    method_to_call = None
+    classobject = None
+    spec = util.spec_from_file_location(module, module)
+    if spec is not None:
+        module_object = util.module_from_spec(spec)
+        spec.loader.exec_module(module_object)
+    return [x for x in module_object.__dir__() if ((x not in sys.modules) and not x.startswith("__") and (x not in globals()))]
+
+def module_to_library(modulepath: str, libraryfolder: str):
+    """
+    WCreate a DrawIo library from a module. For each function in the module a Task will be created in the library.
+    :param modulepath: The path of the module to create the library for.
+    :param libraryfolder: The folder in which the library will be created.
+    """
+    modulename = modulepath.split("\\")[-1].lower().replace(".py", "")
+    libpath = fr"{libraryfolder}\{modulename}.xml"
+    if not os.path.exists(libpath):
+        f = open(libpath,"w")
+        f.write("<mxlibrary>[{\"xml\": \"\"}]</mxlibrary>")
+        f.close()
+    functions_list = get_functions_from_module(modulepath)
+    for funct in functions_list:
+        add_shape_from_function_to_library(filepath=libpath, module=modulepath, function=funct)
+
+
+
 # add_shape_from_function_to_library(module=r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Code.py", function="get_docstring_from_code", title="Get comments from Python code", filepath=r"..\Shapes.xml")
 # add_descriptions_to_flow(r"D:\temp\taranis_query.xml")
+module_to_library("C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Compare.py", r"c:\temp\libs")
