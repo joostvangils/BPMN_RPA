@@ -582,4 +582,4 @@ def module_to_library(modulepath: str, libraryfolder: str):
 
 # add_shape_from_function_to_library(module=r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Code.py", function="get_docstring_from_code", title="Get comments from Python code", filepath=r"..\Shapes.xml")
 # add_descriptions_to_flow(r"D:\temp\taranis_query.xml")
-module_to_library("C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Compare.py", r"c:\temp\libs")
+# module_to_library("C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Compare.py", r"c:\temp\libs")
