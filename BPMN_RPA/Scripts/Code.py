@@ -375,7 +375,9 @@ def get_docstring_from_code(module: str, function: str, filepath: str, classname
         doc = inspect.getdoc(method_to_call)
         if doc is not None:
             doc = doc.replace(":param ", "\n").replace(":return: ", "\nReturn: ").replace(":returns: ", "\nReturn: ")
-        return doc
+            return doc
+        else:
+            return ""
     except:
         return ""
 
