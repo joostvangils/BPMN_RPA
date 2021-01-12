@@ -2,11 +2,11 @@ import tkinter, tkinter.messagebox
 
 def main(title: any, message: any, option ="ok") -> int:
     """
-    Show a Messagebox on the screen with a specific Title, Message and buttons
-    :param title: The title of the MessageBox
-    :param message: The message of the MessageBox
-    :param option: Optional: 'ok', 'warning', 'error', 'yesno', 'yesnocancel', 'retrycancel', 'askyesnocancel', 'askokcancel'
-    :return: The pushed button
+    Show a Messagebox on the screen with a specific Title, Message and buttons.
+    :param title: The title of the MessageBox.
+    :param message: The message of the MessageBox.
+    :param option: Optional: 'ok', 'warning', 'error', 'yesno', 'yesnocancel', 'retrycancel', 'askyesnocancel', 'askokcancel'.
+    :return: The pushed button.
     """
     root = tkinter.Tk()
     root.withdraw()

@@ -1,17 +1,16 @@
 import base64
 import copy
-import importlib.util as util
 import importlib
+import importlib.util as util
 import inspect
 import json
 import multiprocessing
 import os
-import re
 import site
+import socket
 import sqlite3
 import urllib
 import winreg
-import socket
 import xml.etree.ElementTree as ET
 import zlib
 from datetime import datetime, timedelta

@@ -377,10 +377,7 @@ def get_docstring_from_code(module: str, function: str, filepath: str, classname
             doc = doc.replace(":param ", "\n").replace(":return: ", "\nReturn: ").replace(":returns: ", "\nReturn: ")
         return doc
     except:
-        return None
-
-
-
+        return ""
 
 
 def sort_library(filepath: str) -> Any:
@@ -544,6 +541,7 @@ def add_descriptions_to_flow(filepath: str):
             # found.set('tooltip', doc)
     saveflow(filepath, dct, original)
 
+
 def get_functions_from_module(module: str) -> str:
     """
     Retreive the comments from code.
@@ -560,7 +558,9 @@ def get_functions_from_module(module: str) -> str:
     if spec is not None:
         module_object = util.module_from_spec(spec)
         spec.loader.exec_module(module_object)
-    return [x for x in module_object.__dir__() if ((x not in sys.modules) and not x.startswith("__") and (x not in globals()))]
+    return [x for x in module_object.__dir__() if
+            ((x not in sys.modules) and not x.startswith("__") and (x not in globals()))]
+
 
 def module_to_library(modulepath: str, libraryfolder: str):
     """
@@ -571,14 +571,12 @@ def module_to_library(modulepath: str, libraryfolder: str):
     modulename = modulepath.split("\\")[-1].lower().replace(".py", "")
     libpath = fr"{libraryfolder}\{modulename}.xml"
     if not os.path.exists(libpath):
-        f = open(libpath,"w")
+        f = open(libpath, "w")
         f.write("<mxlibrary>[{\"xml\": \"\"}]</mxlibrary>")
         f.close()
     functions_list = get_functions_from_module(modulepath)
     for funct in functions_list:
         add_shape_from_function_to_library(filepath=libpath, module=modulepath, function=funct)
-
-
 
 # add_shape_from_function_to_library(module=r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Code.py", function="get_docstring_from_code", title="Get comments from Python code", filepath=r"..\Shapes.xml")
 # add_descriptions_to_flow(r"D:\temp\taranis_query.xml")
