@@ -1,8 +1,11 @@
 from typing import Any
+from win32gui import GetForegroundWindow, GetWindowText, EnumWindows, GetWindowPlacement, GetClassName, GetParent, \
+    GetWindowLong, ShowWindow, PostMessage, SetForegroundWindow, MoveWindow, SetFocus
 
-import win32con
-import win32gui
-
+GWL_WNDPROC = (-4)
+SW_HIDE = 0
+SW_SHOWNORMAL = 1
+WM_CLOSE = 16
 
 class BPMN_RPA_Window(object):
     """
@@ -16,13 +19,13 @@ def get_foreground_window() -> Any:
     Get the foreground window object.
     :return: The foreground window object.
     """
-    hwnd = win32gui.GetForegroundWindow()
+    hwnd = GetForegroundWindow()
     return get_window_object(hwnd)
 
 
 def window_enumeration_handler(hwnd: int, top_windows: Any):
     """Add window title and ID to array."""
-    top_windows.append((hwnd, win32gui.GetWindowText(hwnd)))
+    top_windows.append((hwnd, GetWindowText(hwnd)))
 
 
 def wait_for_window(window_title: str, case_sensitive: bool = False, destroyed: bool = False) -> Any:
@@ -51,8 +54,7 @@ def find_window(title: str, case_sensitive: bool = False) -> Any:
     :return: If the window is found, the window object is returned. Otherwise a None value will be returned.
     """
     top_windows = []
-    hwnd = win32gui.FindWindow(None, title)
-    win32gui.EnumWindows(window_enumeration_handler, top_windows)
+    EnumWindows(window_enumeration_handler, top_windows)
     if case_sensitive:
         windows = [window for window in top_windows if title in window[1]]
     else:
@@ -77,12 +79,12 @@ def get_window_object(hwnd: int) -> Any:
     """
     win = BPMN_RPA_Window()
     win.Hwnd = hwnd
-    win.Title = win32gui.GetWindowText(hwnd)
+    win.Title = GetWindowText(hwnd)
     try:
-        win.Rect = win32gui.GetWindowPlacement(hwnd)
-        win.ClassName = win32gui.GetClassName(hwnd)
-        win.ParentHwnd = win32gui.GetParent(hwnd)
-        win.WndProc = win32gui.GetWindowLong(hwnd, win32con.GWL_WNDPROC)
+        win.Rect = GetWindowPlacement(hwnd)
+        win.ClassName = GetClassName(hwnd)
+        win.ParentHwnd = GetParent(hwnd)
+        win.WndProc = GetWindowLong(hwnd, GWL_WNDPROC)
     except:
         pass
     return win
@@ -95,9 +97,9 @@ def show_window(window: Any) -> bool:
     :return: True if the window can be showed, False otherwise.
     """
     try:
-        win32gui.ShowWindow(window.Hwnd, win32con.SW_SHOWNORMAL)
+        ShowWindow(window.Hwnd, SW_SHOWNORMAL)
         return True
-    except win32gui.error:
+    except:
         return False
 
 
@@ -108,9 +110,9 @@ def hide_window(window: Any) -> bool:
     :return: True if the window can be hidden, False otherwise.
     """
     try:
-        win32gui.ShowWindow(window.Hwnd, win32con.SW_HIDE)
+        ShowWindow(window.Hwnd, SW_HIDE)
         return True
-    except win32gui.error:
+    except:
         return False
 
 
@@ -121,9 +123,9 @@ def close_window(window: Any) -> bool:
     :return: True if the window can be closed, False otherwise.
     """
     try:
-        win32gui.PostMessage(window.Hwnd, win32con.WM_CLOSE, 0, 0)
+        PostMessage(window.Hwnd, WM_CLOSE, 0, 0)
         return True
-    except win32gui.error:
+    except:
         return False
 
 
@@ -134,9 +136,9 @@ def set_foreground_window(window: Any) -> bool:
     :return: True if the window can be set to the foreground, False otherwise.
     """
     try:
-        win32gui.SetForegroundWindow(window.Hwnd)
+        SetForegroundWindow(window.Hwnd)
         return True
-    except win32gui.error:
+    except:
         return False
 
 
@@ -147,10 +149,10 @@ def set_window_position(window: Any, position: Any) -> bool:
     :return: True if the window can be moved, False otherwise.
     """
     try:
-        win32gui.MoveWindow(window.Hwnd, position[0], position[1], position[2] - position[0], position[3] - position[1],
+        MoveWindow(window.Hwnd, position[0], position[1], position[2] - position[0], position[3] - position[1],
                             True)
         return True
-    except win32gui.error:
+    except:
         return False
 
 
@@ -159,4 +161,4 @@ def focus_window(window: Any):
     Set the focus to a window.
     :param window: The window object to set focus to.
     """
-    win32gui.SetFocus(window.Hwnd)
+    SetFocus(window.Hwnd)
