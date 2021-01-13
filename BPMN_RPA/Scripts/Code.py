@@ -6,6 +6,7 @@ import pkgutil
 import sys
 import urllib
 import zlib
+import ast
 from importlib import util
 from pathlib import Path
 from typing import List, Any
@@ -298,7 +299,7 @@ def library_has_shape(filepath: str, module: str, function: str, classname: str 
     retn = False
     for shape in dct:
         if str(shape) == "{'xml': ''}":
-            break
+            continue
         xml = shape_decode(shape)
         root = ET.ElementTree(ET.fromstring(xml))
         found = root.find('.//root/object')
@@ -311,6 +312,12 @@ def library_has_shape(filepath: str, module: str, function: str, classname: str 
             if module_ is None:
                 module_ = ""
             function_ = fields.get("Function")
+            if function_ is None:
+                function_ = ""
+            if len(function) == 0:
+                if module_.lower() == module.lower() and classname_.lower() == classname.lower():
+                    retn = True
+                    break
             if module_.lower() == module.lower() and classname_.lower() == classname.lower() and function_.lower() == function.lower():
                 retn = True
                 break
@@ -329,6 +336,8 @@ def get_docstring_from_code(module: str, function: str, filepath: str, classname
     callobject = None
     method_to_call = None
     classobject = None
+    module_ = module
+    classname_ = classname
     try:
         if classname is not None:
             if module is None and len(classname) == 0:
@@ -348,8 +357,11 @@ def get_docstring_from_code(module: str, function: str, filepath: str, classname
                 if module is not None:
                     if not module.startswith("%") and not module.endswith("%"):
                         classname = module.split("\\")[-1].replace(".py", "")
-                else:
-                    module, classname = get_module_from_variable_name(classname, filepath)
+            else:
+                module, classname = get_module_from_variable_name(classname, filepath)
+                if module is None and classname is None:
+                    module = module_
+                    classname = classname_
         if not module.endswith(".py"):
             path = "\\".join(sys.executable.split("\\")[:-1]) + "\\Lib\\"
             if os.path.exists(path + module + ".py"):
@@ -402,6 +414,9 @@ def get_module_from_variable_name(variable: str, filepath: str) -> Any:
     """
     dct = get_library(filepath)
     for shape in dct:
+        if "xml" in shape:
+            if len(shape.get("xml")) == 0:
+                return None, None
         xml = shape_decode(shape)
         root = ET.ElementTree(ET.fromstring(xml))
         found = root.find('.//root/object')
@@ -412,7 +427,7 @@ def get_module_from_variable_name(variable: str, filepath: str) -> Any:
             output_variable = fields.get("Output_variable")
             if output_variable == variable:
                 return module, classname
-    return None
+    return None, None
 
 
 def search_modulename_in_flow(variable: str, flowsteps: Any) -> Any:
@@ -431,22 +446,27 @@ def search_modulename_in_flow(variable: str, flowsteps: Any) -> Any:
     return None
 
 
-def add_shape_from_function_to_library(filepath: str, module: str, function: str, classname: str = "", title: str = ""):
+def add_shape_from_function_to_library(filepath: str, module: str, function: str, classname: str = "", title: str = "", variable: str = ""):
     """
     Create a shape from code and add it to a shape library.
     :param filepath: The path to the library file.
     :param module: The full path of the module.
     :param function: The name of the function.
-    :param classname: The class name.
-    :param title: The title of the new created shape in the library.
+    :param classname: Optional. The class name.
+    :param title: Optional. The title of the new created shape in the library.
+    :param variable: Optional. The name of the class variable to set as class in the function shape.
     """
+    if function == "__init__":
+        function = ""
     if library_has_shape(filepath, module, function, classname):
         print(f"Library {filepath} already has a shape for {module} {classname} {function}.".replace("  ", " ").replace(
             " .", "."))
         return
     dct = get_library(filepath)
-    if len(title) == 0:
+    if len(title) == 0 and len(function) > 0:
         title = function.capitalize().replace("_", " ")
+    if len(function) == 0:
+        title = f"Create {classname} object"
     newentry = {'xml': '', 'w': 120, 'h': 80, 'aspect': 'fixed', 'title': title}
     newshape = f"<mxGraphModel><root><mxCell id=\"0\"/><mxCell id=\"1\" parent=\"0\"/><object label=\"{title}\" Module=\"{module}\" Class=\"{classname}\" Function=\"{function}\" Output_variable=\"\" id=\"2\" Description=\"\"><mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"><mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/></mxCell></object></root></mxGraphModel>"
     root = ET.ElementTree(ET.fromstring(newshape))
@@ -466,19 +486,23 @@ def add_shape_from_function_to_library(filepath: str, module: str, function: str
             if os.path.exists(path + module + ".py"):
                 module = path + module + ".py"
     if function is not None:
-        if len(function) > 0:
-            spec = util.spec_from_file_location(title, module)
-            if spec is not None:
-                module_object = util.module_from_spec(spec)
-                spec.loader.exec_module(module_object)
-                callobject = module_object
-                if classname is not None:
-                    if len(classname) > 0:
-                        classobject = getattr(module_object, classname)
-                        callobject = classobject
+
+        spec = util.spec_from_file_location(title, module)
+        if spec is not None:
+            module_object = util.module_from_spec(spec)
+            spec.loader.exec_module(module_object)
+            callobject = module_object
+            if classname is not None:
+                if len(classname) > 0:
+                    classobject = getattr(module_object, classname)
+                    callobject = classobject
+            if len(function) > 0:
                 method_to_call = getattr(callobject, function)
-                sig = inspect.signature(method_to_call)
-                for key, value in sig.parameters.items():
+            else:
+                method_to_call = classobject
+            sig = inspect.signature(method_to_call)
+            for key, value in sig.parameters.items():
+                if key.lower()!="self":
                     if str(value).__contains__("="):
                         val = str(value).split("=")[1].replace("\'", "").strip()
                     else:
@@ -487,20 +511,30 @@ def add_shape_from_function_to_library(filepath: str, module: str, function: str
                         else:
                             val = ""
                     found.set(str(key.split(":")[0]).capitalize(), str(val))
-                doc = get_docstring_from_code(module, function, classname)
-                if not doc.__contains__("Return: ") or str(sig.return_annotation).lower() == "<class 'bool'>":
+            doc = get_docstring_from_code(module=module, function=function,filepath=filepath, classname=classname)
+            if len(doc) == 0 and len(function) == 0:
+                doc = title
+            if not doc.lower().__contains__("return: ") and str(sig.return_annotation).lower() != "<class 'bool'>":
+                if len(function) > 0:
                     del found.attrib["Output_variable"]
+                else:
+                    found.set("Output_variable", f"%{classname}%")
+                if str(sig.return_annotation).lower() == "<class 'bool'>":
                     title += "?"
                     newentry.update({"label": title})
                     found.set("label", title)
-                found.set("Description", doc)
-                if len(classname) == 0:
-                    del found.attrib["Class"]
-                xml = ET.tostring(root.getroot()).decode('utf-8')
-                xml = shape_encode(xml)
-                root.find('.//root/object')
-                newentry.update({"xml": str(xml)})
-                dct.append(newentry)
+            if len(function) == 0:
+                del found.attrib["Function"]
+            found.set("Description", doc)
+            if len(classname) == 0 and len(variable) == 0:
+                del found.attrib["Class"]
+            if len(variable) > 0:
+                found.set("Class", f"%{variable}%")
+            xml = ET.tostring(root.getroot()).decode('utf-8')
+            xml = shape_encode(xml)
+            root.find('.//root/object')
+            newentry.update({"xml": str(xml)})
+            dct.append(newentry)
     try:
         dct.sort(key=lambda x: x["title"], reverse=False)
     except:
@@ -544,24 +578,17 @@ def add_descriptions_to_flow(filepath: str):
     saveflow(filepath, dct, original)
 
 
-def get_functions_from_module(module: str) -> str:
+def get_functions_from_module(module: str) -> Any:
     """
     Retreive the comments from code.
     :param module: The module name, including the path.
-    :param function: The function name.
-    :param filepath: The full path of the library file.
-    :param classname: Optional. The Classname.
-    :return: A string with the comments from code.
+    :return: A Tuple with class and function objects.
     """
-    callobject = None
-    method_to_call = None
-    classobject = None
-    spec = util.spec_from_file_location(module, module)
-    if spec is not None:
-        module_object = util.module_from_spec(spec)
-        spec.loader.exec_module(module_object)
-    return [x for x in module_object.__dir__() if
-            ((x not in sys.modules) and not x.startswith("__") and (x not in globals()))]
+    with open(module, "r") as file:
+        node = ast.parse(file.read())
+    functions = [n for n in node.body if isinstance(n, ast.FunctionDef)]
+    classes = [n for n in node.body if isinstance(n, ast.ClassDef)]
+    return classes, functions
 
 
 def module_to_library(modulepath: str, libraryfolder: str):
@@ -576,9 +603,21 @@ def module_to_library(modulepath: str, libraryfolder: str):
         f = open(libpath, "w")
         f.write("<mxlibrary>[{\"xml\": \"\"}]</mxlibrary>")
         f.close()
-    functions_list = get_functions_from_module(modulepath)
-    for funct in functions_list:
-        add_shape_from_function_to_library(filepath=libpath, module=modulepath, function=funct)
+    classes, functions = get_functions_from_module(modulepath)
+    classname = ""
+    for cls in classes:
+        for fn in cls.body:
+            if hasattr(fn, "name"):
+                if fn.name == "__init__":
+                    add_shape_from_function_to_library(filepath=libpath, module=modulepath, function=fn.name, classname=cls.name)
+                    classname = cls.name
+                if not fn.name.startswith("__"):
+                    add_shape_from_function_to_library(filepath=libpath, module=modulepath, function=fn.name, classname=cls.name, variable=classname)
+    for f in functions:
+        for fn in f.body:
+            if hasattr(fn, "name"):
+                if not fn.name.startswith("__"):
+                    add_shape_from_function_to_library(filepath=libpath, module=modulepath, function=fn.name, classname="")
 
 # add_shape_from_function_to_library(module=r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Code.py", function="get_docstring_from_code", title="Get comments from Python code", filepath=r"..\Shapes.xml")
 # add_descriptions_to_flow(r"D:\temp\taranis_query.xml")
