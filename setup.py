@@ -25,7 +25,7 @@ if __name__ == "__main__":
         packages=setuptools.find_packages(),
         package_dir={'BPMN_RPA': 'BPMN_RPA'},
         include_package_data=True,
-        #install_requires=parse_requirements("requirements.txt"),
+        # install_requires=parse_requirements("requirements.txt"),
         classifiers=[
             "Programming Language :: Python :: 3",
             "License :: OSI Approved :: GNU Affero General Public License v3",
