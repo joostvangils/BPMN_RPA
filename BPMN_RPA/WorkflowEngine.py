@@ -935,7 +935,7 @@ class WorkflowEngine():
             if str(getattr(step, value)).__contains__("%__now__%"):
                 self.variables.update({'%__now__%': datetime.now()})
             if str(getattr(step, value)).__contains__("%__now_formatted__%"):
-                self.variables.update({'%__now_formatted__%': datetime.today().date().strftime("%d-%m-%Y_%H%M%S")})
+                self.variables.update({'%__now_formatted__%': datetime.today().date().strftime("%d-%m-%Y") + "_" + datetime.now().time().strftime("%H%M%S")})
             if str(getattr(step, value)).__contains__("%__folder_desktop__%"):
                 self.variables.update({'%__folder_desktop__%': os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')})
             if str(getattr(step, value)).__contains__("%__folder_downloads__%"):
