@@ -83,6 +83,7 @@ System variables are pre-defined variables that provide information that can be 
 * __%\_\_folder_system\_\_%__: returns the windows system folder
 * __%\_\_month\_\_%__: returns the current month
 * __%\_\_now\_\_%__: returns the datetime now() object
+* __%\_\_now_formatted\_\_%__: returns today with time in the format 'dd-mm-yyyy_hhmmss'
 * __%\_\_system_name\_\_%__: returns the fully qualified domain name (FQDN) of the system 
 * __%\_\_time\_\_%__: returns the current time
 * __%\_\_time_formatted\_\_%__: returns the current time in 'hh:mm:ss' format
