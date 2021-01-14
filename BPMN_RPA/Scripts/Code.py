@@ -296,7 +296,6 @@ def library_has_shape(filepath: str, module: str, function: str, classname: str 
     :return: True or False
     """
     dct = get_library(filepath)
-    retn = False
     for shape in dct:
         if str(shape) == "{'xml': ''}":
             continue
@@ -316,12 +315,12 @@ def library_has_shape(filepath: str, module: str, function: str, classname: str 
                 function_ = ""
             if len(function) == 0:
                 if module_.lower() == module.lower() and classname_.lower() == classname.lower():
-                    retn = True
+                    return True
                     break
             if module_.lower() == module.lower() and classname_.lower() == classname.lower() and function_.lower() == function.lower():
-                retn = True
+                return True
                 break
-    return retn
+    return False
 
 
 def get_docstring_from_code(module: str, function: str, filepath: str, classname: str = "") -> str:
@@ -458,10 +457,6 @@ def add_shape_from_function_to_library(filepath: str, module: str, function: str
     """
     if function == "__init__":
         function = ""
-    if library_has_shape(filepath, module, function, classname):
-        print(f"Library {filepath} already has a shape for {module} {classname} {function}.".replace("  ", " ").replace(
-            " .", "."))
-        return
     dct = get_library(filepath)
     if len(title) == 0 and len(function) > 0:
         title = function.capitalize().replace("_", " ")
@@ -534,7 +529,10 @@ def add_shape_from_function_to_library(filepath: str, module: str, function: str
             xml = shape_encode(xml)
             root.find('.//root/object')
             newentry.update({"xml": str(xml)})
-            dct.append(newentry)
+            if newentry not in dct:
+                dct.append(newentry)
+            else:
+                print("already in library")
     try:
         dct.sort(key=lambda x: x["title"], reverse=False)
     except:
