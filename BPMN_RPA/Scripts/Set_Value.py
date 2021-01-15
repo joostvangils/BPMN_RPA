@@ -7,15 +7,16 @@ def value_to_variable(value: Any) -> Any:
     :param value: Any value.
     :return: The original input value.
     """
-    if ',' in str(value) and isinstance(value,str):
-        values=[]
-        value=value.split(',')
+    if ',' in str(value) and isinstance(value, str):
+        values = []
+        value = value.split(',')
         for v in value:
             values.append(v.strip())
-        value=values
+        value = values
     return value
 
-def split_string_to_list(string: str, separator: str = " ", maxsplit:int = -1) -> List:
+
+def split_string_to_list(string: str, separator: str = " ", maxsplit: int = -1) -> List:
     """
     Convert a string with a separator to a list.
     :param string: The string to convert.

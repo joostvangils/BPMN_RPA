@@ -25,17 +25,17 @@ def mouse_drag(x: int, y: int):
     :param x: The horizontal position on the screen.
     :param y: The vertical position on the screen.
     """
-    pyautogui.dragTo(100, 200)
+    pyautogui.dragTo(x, y)
 
 
-def mouse_click(button: str='right', clicks: int=1, interval: float=0.25):
+def mouse_click(button: str = 'right', clicks: int = 1, interval: float = 0.25):
     """
     Simulate a click on a mouse button.
     :param button: Optional. The button to click (left, right).
     :param clicks: Optional. The number of times the button should be clicked.
     :param interval: Optional. The interval between clicks.
     """
-    pyautogui.click(button=button,clicks=clicks,interval=interval)
+    pyautogui.click(button=button, clicks=clicks, interval=interval)
 
 
 def mouse_doubleclick():
@@ -45,7 +45,7 @@ def mouse_doubleclick():
     pyautogui.doubleClick()
 
 
-def mouse_button_down(button: str='right'):
+def mouse_button_down(button: str = 'right'):
     """
     Simulate mouse button down.
     :param button: Optional. The button to press (left, right).
@@ -53,7 +53,7 @@ def mouse_button_down(button: str='right'):
     pyautogui.mouseDown(button=button)
 
 
-def mouse_button_up(button: str='right'):
+def mouse_button_up(button: str = 'right'):
     """
     Simulate mouse button up.
     :param button: Optional. The button to relesase (left, right).

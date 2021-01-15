@@ -1,6 +1,8 @@
-import tkinter, tkinter.messagebox
+import tkinter
+import tkinter.messagebox
 
-def main(title: any, message: any, option ="ok") -> int:
+
+def main(title: any, message: any, option="ok") -> int:
     """
     Show a Messagebox on the screen with a specific Title, Message and buttons.
     :param title: The title of the MessageBox.
@@ -33,4 +35,3 @@ def main(title: any, message: any, option ="ok") -> int:
         retn = None
     root.destroy()
     return retn
-

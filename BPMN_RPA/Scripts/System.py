@@ -9,8 +9,8 @@ def screenshot(path: str) -> str:
     :param path: The full path of the location and filename (including the PNG extension) to save the screenshot.
     :returns: The pathname of the screenshot file.
     """
-    myScreenshot = pyautogui.screenshot()
-    myScreenshot.save(path)
+    my_screenshot = pyautogui.screenshot()
+    my_screenshot.save(path)
     return path
 
 
@@ -25,4 +25,3 @@ def run_python_code(code: str) -> Any:
         return ret
     except Exception as ex:
         return ex
-

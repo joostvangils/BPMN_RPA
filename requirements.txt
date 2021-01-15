@@ -1,12 +1,11 @@
 ###### Requirements without Version Specifiers ######
-datetime
-importlib
-keyboard
-lxml
-pathlib
-pyautogui
-typing
-xmltodict
-
-
-
+datetime~=4.3
+importlib~=1.0.4
+keyboard~=0.13.5
+lxml~=4.6.2
+pathlib~=1.0.1
+pyautogui~=0.9.52
+typing~=3.7.4.3
+xmltodict~=0.12.0
+future~=0.18.2
+setuptools~=50.3.2

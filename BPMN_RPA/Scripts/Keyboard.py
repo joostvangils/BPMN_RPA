@@ -30,10 +30,12 @@ def wait_for_hotkey(key: str, ctrl: bool = False, alt: bool = False, shift: bool
     :param shift: Optional. Boolean: indicator whether the shift button should be pressed.
     """
     hotkey = key
-    if ctrl: hotkey += "+ctrl"
-    if alt: hotkey += "+alt"
-    if shift: hotkey += "+shift"
+    if ctrl:
+        hotkey += "+ctrl"
+    if alt:
+        hotkey += "+alt"
+    if shift:
+        hotkey += "+shift"
     while True:
         if keyboard.is_pressed(hotkey):
             return True
-    return False
