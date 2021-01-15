@@ -202,8 +202,14 @@ class Code:
         # Open an existing document.
         xml_file = open(filepath, "r")
         xml_root = eltree.fromstring(xml_file.read())
-        retn = json.loads(xml_root.text)
-        return retn
+        if xml_root.text is not None:
+            retn = json.loads(xml_root.text)
+            return retn
+        else:
+            dct = self.openflow(filepath, False)
+            shapes = dct[0].get("mxGraphModel").get("root").get("object")
+            return shapes
+
 
     def save_library(self):
         """
@@ -343,39 +349,30 @@ class Code:
         classobject = None
         module_ = module
         classname_ = classname
+        checks = [module is None, classname is None]
         try:
-            if classname is not None:
-                if module is None and len(classname) == 0:
+            if all(checks):
                     module = str(
                         "\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
                     classname = "WorkflowEngine"
-            if module is not None:
-                if len(module) == 0 and len(classname) == 0:
-                    module = str(
-                        "\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
-                    classname = "WorkflowEngine"
-            else:
+            if len(module) == 0 and len(classname) == 0:
                 module = str(
                     "\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
                 classname = "WorkflowEngine"
-            if classname is not None:
+            if classname.startswith("%") and classname.endswith("%"):
+                if module is not None:
+                    if not module.startswith("%") and not module.endswith("%"):
+                        classname = module.split("\\")[-1].replace(".py", "")
+            else:
                 if classname.startswith("%") and classname.endswith("%"):
-                    if module is not None:
-                        if not module.startswith("%") and not module.endswith("%"):
-                            classname = module.split("\\")[-1].replace(".py", "")
-                else:
                     module, classname = self.get_module_from_variable_name(classname, filepath)
-                    if module is None and classname is None:
-                        module = module_
-                        classname = classname_
+                if module is None and classname is None:
+                    module = module_
+                    classname = classname_
             if not module.endswith(".py"):
                 path = "\\".join(sys.executable.split("\\")[:-1]) + "\\Lib\\"
                 if os.path.exists(path + module + ".py"):
                     module = path + module + ".py"
-            else:
-                path = "\\".join(sys.executable.split("\\")[:-1]) + "\\Lib\\site-packages\\BPMN_RPA\\Scripts\\" + module
-                if os.path.exists(path):
-                    module = path
             spec = util.spec_from_file_location(module, module)
             if spec is not None:
                 module_object = util.module_from_spec(spec)
@@ -425,16 +422,20 @@ class Code:
             if "xml" in shape:
                 if len(shape.get("xml")) == 0:
                     return None, None
-            xml = self.shape_decode(shape)
-            root = eltree.ElementTree(eltree.fromstring(xml))
-            found = root.find('.//root/object')
-            if found is not None:
-                fields = found.attrib
-                classname = fields.get("Class")
-                module = fields.get("Module")
-                output_variable = fields.get("Output_variable")
-                if output_variable == variable:
-                    return module, classname
+                xml = self.shape_decode(shape)
+                root = eltree.ElementTree(eltree.fromstring(xml))
+                found = root.find('.//root/object')
+                if found is not None:
+                    fields = found.attrib
+                    classname = fields.get("Class")
+                    module = fields.get("Module")
+                    output_variable = fields.get("Output_variable")
+            else:
+                classname = shape.get("@Class")
+                module = shape.get("@Module")
+                output_variable = shape.get("@Output_variable")
+            if output_variable == variable:
+                return module, classname
         return None, None
 
     def search_modulename_in_flow(self, variable: str, flowsteps: Any) -> Any:
