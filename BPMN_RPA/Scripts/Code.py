@@ -408,6 +408,9 @@ class Code:
         """
         dct = self.get_library(filepath)
         dct.sort(key=lambda x: x["title"], reverse=False)
+        self.current_dict = dct
+        self.libpath = filepath
+        self.save_library()
         return dct
 
     def get_module_from_variable_name(self, variable: str, filepath: str) -> Any:
@@ -647,10 +650,11 @@ class Code:
         self.save_library()
 
 
-# c = Code()
+c = Code()
 # c.add_shape_from_function_to_library(module=r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Code.py",
-#                                      function="get_docstring_from_code", title="Get comments from Python code",
-#                                      filepath=r"..\Shapes.xml")
+#                                       function="get_docstring_from_code", title="Get comments from Python code",
+#                                       filepath=r"..\Shapes.xml")
 # add_descriptions_to_flow(r"D:\temp\taranis_query.xml")
-# c.module_to_library("C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Compare.py", r"c:\temp\libs")
+# c.module_to_library("C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Set_value.py", r"c:\temp\libs")
+c.sort_library(r"c:\temp\libs\shapes.xml")
 # c.save_library()
