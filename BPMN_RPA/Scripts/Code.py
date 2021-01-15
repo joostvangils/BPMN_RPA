@@ -567,7 +567,7 @@ class Code:
             pass
         # self.save_library(filepath, dct)
         # Update dict in list
-        tmp_dct.dict = dct
+        tmp_dct.dict = [x for x in dct if len(x["xml"]) > 0]
         self.libs[idx] = tmp_dct
         self.current_dict = dct
         print(f"Shape {module} {classname} {title} added to Library {filepath}.".replace("..\\", "").replace("  ",
@@ -648,6 +648,7 @@ class Code:
                         self.add_shape_from_function_to_library(filepath=libpath, module=modulepath, function=f.name,
                                                                 classname="")
         self.save_library()
+        self.sort_library(filepath=libpath)
 
 
 c = Code()
@@ -655,6 +656,6 @@ c = Code()
 #                                       function="get_docstring_from_code", title="Get comments from Python code",
 #                                       filepath=r"..\Shapes.xml")
 # add_descriptions_to_flow(r"D:\temp\taranis_query.xml")
-# c.module_to_library("C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Set_value.py", r"c:\temp\libs")
-c.sort_library(r"c:\temp\libs\shapes.xml")
+c.module_to_library("C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\compare.py", r"c:\temp\libs")
+# c.sort_library(r"c:\temp\libs\shapes.xml")
 # c.save_library()
