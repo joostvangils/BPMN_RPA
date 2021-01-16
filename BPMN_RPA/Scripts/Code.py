@@ -687,9 +687,9 @@ class Code:
             raise Exception(f'Error: flow {flow} not found.')
 
 
-c = Code()
-c.libpath = r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Shapes.xml"
-c.sort_library(r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Shapes.xml")
+# c = Code()
+# c.libpath = r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Shapes.xml"
+# c.sort_library(r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Shapes.xml")
 # c.run_flow(r"c:\temp\msgbox.xml", "hey!")
 # c.add_shape_from_function_to_library(module=r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Code.py",
 #                                       function="get_docstring_from_code", title="Get comments from Python code",
