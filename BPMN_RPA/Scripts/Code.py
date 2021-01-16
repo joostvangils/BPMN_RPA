@@ -639,6 +639,8 @@ class Code:
         :param modulepath: The path of the module to create the library for.
         :param libraryfolder: The folder in which the library will be created.
         """
+        modulepath = modulepath.replace("/", "\\")
+        libraryfolder = libraryfolder.replace("/", "\\")
         modulename = modulepath.split("\\")[-1].lower().replace(".py", "")
         libpath = fr"{libraryfolder}\{modulename}.xml"
         if not os.path.exists(libpath):
