@@ -13,6 +13,8 @@ from typing import List, Any
 import xmltodict
 from lxml import etree as eltree
 
+from BPMN_RPA.WorkflowEngine import WorkflowEngine
+
 
 class DynamicObject(object):
     pass
@@ -28,7 +30,8 @@ class Code:
         self.libpath = ""
         self.current_dict = None
 
-    def openflow(self, filepath: str, as_xml: bool = False) -> Any:
+    @staticmethod
+    def openflow(filepath: str, as_xml: bool = False) -> Any:
         """
         Open a DrawIO document
         :param filepath: The full path (including extension) of the diagram file
@@ -50,7 +53,8 @@ class Code:
         retn = xmltodict.parse(url_decode)
         return retn, root
 
-    def saveflow(self, filepath: str, dct: Any, original: Any) -> Any:
+    @staticmethod
+    def saveflow(filepath: str, dct: Any, original: Any) -> Any:
         """
         Save a flow to a DrawIO document
         :param filepath: The full path (including extension) of the file.
@@ -120,7 +124,8 @@ class Code:
         retn = shapes + connectors
         return retn
 
-    def get_step_from_shape(self, shape: Any) -> Any:
+    @staticmethod
+    def get_step_from_shape(shape: Any) -> Any:
         """
         Build a Step-object from the Shape-object
         :param shape: The Shape-object
@@ -210,7 +215,6 @@ class Code:
             shapes = dct[0].get("mxGraphModel").get("root").get("object")
             return shapes
 
-
     def save_library(self):
         """
         Save the current library to a file.
@@ -225,7 +229,8 @@ class Code:
         xml_file.write(content)
         xml_file.close()
 
-    def shape_decode(self, shape: Any):
+    @staticmethod
+    def shape_decode(shape: Any):
         """
         Decode the content of a shape to xml.
         :param shape: The shape to decode the content of.
@@ -236,7 +241,8 @@ class Code:
         retn = parse.unquote(inflated_xml)
         return retn
 
-    def shape_encode(self, shape_xml: str) -> str:
+    @staticmethod
+    def shape_encode(shape_xml: str) -> str:
         """
         Encode the xml of a shape.
         :param shape_xml: The xml to encode.
@@ -352,9 +358,9 @@ class Code:
         checks = [module is None, classname is None]
         try:
             if all(checks):
-                    module = str(
-                        "\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
-                    classname = "WorkflowEngine"
+                module = str(
+                    "\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
+                classname = "WorkflowEngine"
             if len(module) == 0 and len(classname) == 0:
                 module = str(
                     "\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
@@ -404,7 +410,10 @@ class Code:
         :return: The sorted library as a list of dictionaries.
         """
         dct = self.get_library(filepath)
-        dct.sort(key=lambda x: x["title"], reverse=False)
+        try:
+            dct.sort(key=lambda x: x["title"], reverse=False)
+        except (ValueError, Exception):
+            raise Exception("Cannot sort the library: one of the shapes in the library has no title.")
         self.current_dict = dct
         self.libpath = filepath
         self.save_library()
@@ -417,6 +426,9 @@ class Code:
         :param filepath: The full path of the library file.
         :return: Tuple: The full path of the module and the classname.
         """
+        classname = None
+        module = None
+        output_variable = None
         dct = self.get_library(filepath)
         for shape in dct:
             if "xml" in shape:
@@ -438,7 +450,8 @@ class Code:
                 return module, classname
         return None, None
 
-    def search_modulename_in_flow(self, variable: str, flowsteps: Any) -> Any:
+    @staticmethod
+    def search_modulename_in_flow(variable: str, flowsteps: Any) -> Any:
         """
         Search for the module path from a variable name.
         :param variable: The name of the variable.
@@ -607,7 +620,8 @@ class Code:
                 # found.set('tooltip', doc)
         self.saveflow(filepath, dct, original)
 
-    def get_functions_from_module(self, module: str) -> Any:
+    @staticmethod
+    def get_functions_from_module(module: str) -> Any:
         """
         Retreive the comments from code.
         :param module: The module name, including the path.
@@ -644,15 +658,39 @@ class Code:
                         self.add_shape_from_function_to_library(filepath=libpath, module=modulepath, function=fn.name,
                                                                 classname=cls.name, variable=classname)
         for f in functions:
-                if hasattr(f, "name"):
-                    if not f.name.startswith("__"):
-                        self.add_shape_from_function_to_library(filepath=libpath, module=modulepath, function=f.name,
-                                                                classname="")
+            if hasattr(f, "name"):
+                if not f.name.startswith("__"):
+                    self.add_shape_from_function_to_library(filepath=libpath, module=modulepath, function=f.name,
+                                                            classname="")
         self.save_library()
         self.sort_library(filepath=libpath)
 
+    @staticmethod
+    def run_flow(flow_path: str, flow_input: Any = None):
+        """
+        Run another WorkFlow.
+        :param flow_path: The full path to the flow xml file.
+        :param flow_input: Optional. Any input (object or string).
+        """
+        flow = flow_path.lower().replace(".xml", "") + ".xml"
+        if os.path.exists(flow):
+            with open(flow, 'r') as f:
+                content = f.read()
+            if content.startswith("<mxfile "):
+                engine = WorkflowEngine(input_parameter=flow_input)
+                doc = engine.open(flow_path)
+                steps = engine.get_flow(doc)
+                engine.run_flow(steps)
+            else:
+                raise Exception(f'Error: flow {flow} does not contain a valid xml definition')
+        else:
+            raise Exception(f'Error: flow {flow} not found.')
 
-# c = Code()
+
+c = Code()
+c.libpath = r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Shapes.xml"
+c.sort_library(r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Shapes.xml")
+# c.run_flow(r"c:\temp\msgbox.xml", "hey!")
 # c.add_shape_from_function_to_library(module=r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Code.py",
 #                                       function="get_docstring_from_code", title="Get comments from Python code",
 #                                       filepath=r"..\Shapes.xml")

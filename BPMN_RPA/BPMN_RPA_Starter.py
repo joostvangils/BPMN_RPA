@@ -1,18 +1,17 @@
 from BPMN_RPA.WorkflowEngine import WorkflowEngine
 import os
 import sys
-if len(sys.argv) != 2:
-    print(f'Error: Unexpected number of arguments given.')
-    exit(-1)
 pad = sys.argv[1]
-print(pad)
+input_parameter = None
+if len(sys.argv) == 3:
+    input_parameter = sys.argv[2]
 flow = pad.lower().replace(".xml", "") + ".xml"
 if os.path.exists(flow):
-    with open(flow,'r') as f:
-        inhoud=f.read()
-    if inhoud.startswith("<mxfile "):
-        engine = WorkflowEngine()
-        doc = engine.open(pad)
+    with open(flow, 'r') as f:
+        content = f.read()
+    if content.startswith("<mxfile "):
+        engine = WorkflowEngine(input_parameter=input_parameter)
+        doc = engine.open(fr"{flow}")
         steps = engine.get_flow(doc)
         engine.run_flow(steps)
     else:

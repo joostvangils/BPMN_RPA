@@ -4,61 +4,60 @@ import importlib
 import importlib.util as util
 import inspect
 import json
-import multiprocessing
 import os
 import site
 import socket
 import sqlite3
-import urllib
 import winreg
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ElTree
 import zlib
 from datetime import datetime, timedelta
 from inspect import signature
 from shutil import copyfile
 from typing import List, Any
+from urllib import parse
 
 import xmltodict
 
 
-class WorkflowEngine():
+class WorkflowEngine:
 
     def __init__(self, input_parameter: Any = None, pythonpath: str = "", installation_directory: str = ""):
         """
         Class for automating DrawIO diagrams
-        :param input_parameter: An object holding arguments to be passed as input to the WorkflowEngine.  in a flow, use get_input_parameter to retreive the value.
+        :param input_parameter: An object holding arguments to be passed as input to the WorkflowEngine.  in a flow, use get_input_parameter to retrieve the value.
         :param pythonpath: The full path to the python.exe file
         :param installation_directory: The folder where your BPMN_RPA files are installed. This folder will be used for the orchestrator database.
         """
         settings = {}
         if len(pythonpath) != 0:
             if os.name == 'nt':
-                self.set_PythonPath(pythonpath)
+                self.set_python_path(pythonpath)
             else:
-                settings.update('pythonpath', pythonpath)
+                settings.update({'pythonpath': pythonpath})
         else:
             if os.name == 'nt':
-                pythonpath = self.get_pythonPath()
+                pythonpath = self.get_python_path()
             else:
                 with open('settings') as json_file:
                     data = json.load(json_file)
                     pythonpath = data["pythonpath"]
-                    settings.update('pythonpath', pythonpath)
+                    settings.update({'pythonpath': pythonpath})
         if len(installation_directory) != 0:
             if os.name == 'nt':
-                self.set_dbPath(installation_directory)
+                self.set_db_path(installation_directory)
             else:
-                settings.update('dbpath', installation_directory)
-            dbFolder = installation_directory
+                settings.update({'dbpath': installation_directory})
+            db_folder = installation_directory
         else:
             if os.name == 'nt':
-                dbFolder = self.get_dbPath()
+                db_folder = self.get_db_path()
             else:
                 with open('settings') as json_file:
                     data = json.load(json_file)
-                    dbFolder = data["dbpath"]
-                    settings.update('dbpath', dbFolder)
-        if dbFolder is None:
+                    db_folder = data["dbpath"]
+                    settings.update({'dbpath': db_folder})
+        if db_folder is None:
             installdir = input(
                 "\nYour installation directory is unknown. Please enter the path of your installation directory: ")
             if not str(installdir).endswith("\\"):
@@ -69,31 +68,31 @@ class WorkflowEngine():
                 return
             else:
                 if os.name == 'nt':
-                    self.set_dbPath(installdir)
+                    self.set_db_path(installdir)
                 else:
-                    settings.update('dbpath', installdir)
-                dbFolder = installdir
+                    settings.update({'dbpath': installdir})
+                db_folder = installdir
         if pythonpath is None:
             pythonpath = input(
                 "\nThe path to your Python.exe file is unknown. Please enter the path to your Python.exe file: ")
             if not os.path.exists(pythonpath):
                 if os.name == 'nt':
-                    self.set_PythonPath(pythonpath)
+                    self.set_python_path(pythonpath)
                 else:
-                    settings.update('pythonpath', pythonpath)
+                    settings.update({'pythonpath': pythonpath})
             if len(pythonpath) == 0:
                 return
             else:
                 if os.name == 'nt':
-                    self.set_PythonPath(pythonpath)
+                    self.set_python_path(pythonpath)
                 else:
-                    settings.update('pythonpath', pythonpath)
+                    settings.update({'pythonpath': pythonpath})
         if os.name != 'nt':
             with open('settings', 'w') as outfile:
                 json.dump(settings, outfile)
         self.input_parameter = input_parameter
         self.pythonPath = pythonpath
-        self.db = SQL(dbFolder)
+        self.db = SQL(db_folder)
         self.db.orchestrator()  # Run the orchestrator database
         self.id = -1  # Holds the ID for our flow
         self.error = False  # Indicator if the flow has any errors in its execution
@@ -125,25 +124,26 @@ class WorkflowEngine():
             self.flowpath = filepath
         xml_file = open(filepath, "r")
         self.flowname = filepath.split("\\")[-1].lower().replace(".xml", "")
-        xml_root = ET.fromstring(xml_file.read())
+        xml_root = ElTree.fromstring(xml_file.read())
         raw_text = xml_root[0].text
         base64_decode = base64.b64decode(raw_text)
         inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
-        url_decode = urllib.parse.unquote(inflated_xml)
+        url_decode = parse.unquote(inflated_xml)
         if as_xml:
-            return  url_decode
+            return url_decode
         retn = xmltodict.parse(url_decode)
         return retn
 
-    def set_dbPath(self, value: str):
+    @staticmethod
+    def set_db_path(value: str):
         """
         Write the orchestrator database path to the registry.
         :param value: The path of the orchestrator database that has to be written to the registry
         """
         try:
-            REG_PATH = r"SOFTWARE\BPMN_RPA"
-            winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH)
-            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0,
+            reg_path = r"SOFTWARE\BPMN_RPA"
+            winreg.CreateKey(winreg.HKEY_CURRENT_USER, reg_path)
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path, 0,
                                           winreg.KEY_WRITE)
             winreg.SetValueEx(registry_key, "dbPath", 0, winreg.REG_SZ, value)
             winreg.CloseKey(registry_key)
@@ -151,43 +151,46 @@ class WorkflowEngine():
         except WindowsError:
             return False
 
-    def get_dbPath(self):
+    @staticmethod
+    def get_db_path() -> Any:
         """
         Get the path to the orchestrator database
         :return: The path to the orchestrator database
         """
         try:
-            REG_PATH = r"SOFTWARE\BPMN_RPA"
-            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0, winreg.KEY_READ)
+            reg_path = r"SOFTWARE\BPMN_RPA"
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path, 0, winreg.KEY_READ)
             value, regtype = winreg.QueryValueEx(registry_key, 'dbPath')
             winreg.CloseKey(registry_key)
             return value
         except WindowsError:
             return None
 
-    def get_pythonPath(self):
+    @staticmethod
+    def get_python_path() -> Any:
         """
         Get the path to the Python.exe file
         :return: The path to the Python.exe file
         """
         try:
-            REG_PATH = r"SOFTWARE\BPMN_RPA"
-            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0, winreg.KEY_READ)
+            reg_path = r"SOFTWARE\BPMN_RPA"
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path, 0, winreg.KEY_READ)
             value, regtype = winreg.QueryValueEx(registry_key, 'PythonPath')
             winreg.CloseKey(registry_key)
             return value
         except WindowsError:
             return None
 
-    def set_PythonPath(self, value: str):
+    @staticmethod
+    def set_python_path(value: str):
         """
         Write the oPython path to the registry.
         :param value: The path of the Python.exe file that has to be written to the registry
         """
         try:
-            REG_PATH = r"SOFTWARE\BPMN_RPA"
-            winreg.CreateKey(winreg.HKEY_CURRENT_USER, REG_PATH)
-            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, REG_PATH, 0,
+            reg_path = r"SOFTWARE\BPMN_RPA"
+            winreg.CreateKey(winreg.HKEY_CURRENT_USER, reg_path)
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path, 0,
                                           winreg.KEY_WRITE)
             winreg.SetValueEx(registry_key, "PythonPath", 0, winreg.REG_SZ, value)
             winreg.CloseKey(registry_key)
@@ -195,9 +198,9 @@ class WorkflowEngine():
         except WindowsError:
             return False
 
-    def get_flow(self, ordered_dict) -> Any:
+    def get_flow(self, ordered_dict: dict) -> Any:
         """
-        Retreiving the elements of the flow in the Document.
+        Retrieving the elements of the flow in the Document.
         :param ordered_dict: The document object containing the flow elements.
         :returns: A List of flow elements
         """
@@ -248,25 +251,24 @@ class WorkflowEngine():
         retn = shapes + connectors
         return retn
 
-    def get_step_from_shape(self, shape):
+    def get_step_from_shape(self, shape: Any) -> Any:
         """
         Build a Step-object from the Shape-object
         :param shape: The Shape-object
         :returns: A Step-object
         """
         retn = self.dynamic_object()
-        row = 0
         retn.id = shape.get("@id")
         for key, value in shape.items():
             attr = str(key).lower().replace("@", "")
             if attr == "class":
-                attr = "classname"  # 'çlass' is a reserved keyword, so use 'çlassname'
+                attr = "classname"  # 'class' is a reserved keyword, so use 'classname'
             setattr(retn, attr, value)
         if shape.get("@source") is not None or shape.get("@target") is not None:
             retn.type = "connector"
         if shape.get("@label") is not None:
             if not hasattr(retn, "name"):
-                retn.name = retn.label
+                retn.name = getattr(retn, "label")
         if shape.get("@source") is None and shape.get("@target") is None:
             if hasattr(retn, "type"):
                 if not retn.type.lower().__contains__("gateway"):
@@ -278,7 +280,8 @@ class WorkflowEngine():
             retn.IsStart = False
         return retn
 
-    def get_variables_from_text(self, text: str) -> List[str]:
+    @staticmethod
+    def get_variables_from_text(text: str) -> Any:
         """
         Get variable names (like '%variable%') from text.
         :param text: The text to get the variables from
@@ -305,17 +308,17 @@ class WorkflowEngine():
             retn = None
         return retn
 
-    def get_parameters_from_shapevalues(self, step: Any, signature: Any) -> str:
+    def get_parameters_from_shapevalues(self, step: Any, input_signature: Any) -> Any:
         """
-        If input values are provided in the Shapevalues, then create a mapping
-        :param step: The step to use the Shapevalues of to create the mapping
-        :param signature: The imput parametes of the function that needs to be called
+        If input values are provided in the Shape values, then create a mapping
+        :param step: The step to use the Shape values of to create the mapping
+        :param input_signature: The input parameters of the function that needs to be called
         :return: A mapping string
         """
         mapping = {}
-        returnNone = True
+        return_none = True
         tmp = None
-        if signature is None:
+        if input_signature is None:
             if hasattr(self.previous_step, "output_variable"):
                 var = self.variables.get(self.previous_step.output_variable)
                 if var is not None:
@@ -323,12 +326,12 @@ class WorkflowEngine():
                 else:
                     return None
             return None
-        for key, value in signature.parameters.items():
+        for key, value in input_signature.parameters.items():
             attr = None
             if str(key).lower() != "self":
                 try:
                     val = str(getattr(step, str(key).lower()))
-                except Exception as e:
+                except (ValueError, Exception):
                     if str(value).__contains__("="):
                         val = value.default
                     else:
@@ -343,7 +346,7 @@ class WorkflowEngine():
                             else:
                                 val = "''"
                     else:
-                        returnNone = False
+                        return_none = False
                 if isinstance(val, str):
                     if val == "True":
                         val = True
@@ -380,27 +383,29 @@ class WorkflowEngine():
                                                     val = val.replace(tv, replace_value[0])
                                                 else:
                                                     if len(replace_value) == 0:
-                                                        self.print_log(status="Ending loop", result=f"No items to loop...")
-                                                        #self.exitcode_ok()
+                                                        self.print_log(status="Ending loop",
+                                                                       result=f"No items to loop...")
+                                                        # self.exitcode_ok()
                                                     else:
                                                         if loopvars[0].counter < len(replace_value):
                                                             if isinstance(replace_value[loopvars[0].counter], str):
-                                                                val = val.replace(tv, replace_value[loopvars[0].counter])
+                                                                val = val.replace(tv,
+                                                                                  replace_value[loopvars[0].counter])
                                                             else:
                                                                 val = list(replace_value[loopvars[0].counter])
-                                                                if len(lst)>1:
-                                                                    for l in lst[1:]:
-                                                                        val = val[int(l.replace("]",""))]
+                                                                if len(lst) > 1:
+                                                                    for lt in lst[1:]:
+                                                                        val = val[int(lt.replace("]", ""))]
                                                         else:
                                                             if isinstance(replace_value[0], str):
                                                                 val = val.replace(tv, replace_value[0])
                                                             else:
                                                                 val = replace_value[0]
-                                                                if len(lst)>1:
-                                                                    for l in lst[1:]:
-                                                                        val = val[int(l.replace("]",""))]
+                                                                if len(lst) > 1:
+                                                                    for ls in lst[1:]:
+                                                                        val = val[int(ls.replace("]", ""))]
 
-                                                        if  str(getattr(step, str(key).lower())) != tv:
+                                                        if str(getattr(step, str(key).lower())) != tv:
                                                             if loopvars[0].counter < len(replace_value):
                                                                 replace_value = replace_value[loopvars[0].counter]
                                                             else:
@@ -413,7 +418,8 @@ class WorkflowEngine():
                                                                     if repl.__contains__("]"):
                                                                         nr = str(repl).replace("]", "").replace("%", "")
                                                                         if nr.isnumeric():
-                                                                            tmp = tmp.replace(tv, str(replace_value[int(nr)]))
+                                                                            tmp = tmp.replace(tv, str(
+                                                                                replace_value[int(nr)]))
                                                                     val = tmp
 
                                             else:
@@ -466,9 +472,10 @@ class WorkflowEngine():
                                                                 else:
                                                                     if len(repl_list) > 1:
                                                                         tmp2 = replace_value[int(nr)]
-                                                                        for l in repl_list[2:]:
-                                                                            tmp2 = tmp2[int(l.replace("]","").replace("%", ""))]
-                                                                        if isinstance(tmp, str) and tmp!=tv:
+                                                                        for lst in repl_list[2:]:
+                                                                            tmp2 = tmp2[int(
+                                                                                lst.replace("]", "").replace("%", ""))]
+                                                                        if isinstance(tmp, str) and tmp != tv:
                                                                             tmp = tmp.replace(tv, tmp2)
                                                                         else:
                                                                             tmp = tmp2
@@ -493,12 +500,13 @@ class WorkflowEngine():
                                             else:
                                                 val = replace_value
                 mapping[str(key)] = val
-        if returnNone:
+        if return_none:
             return None
         else:
             return mapping
 
-    def get_attribute_value(self, lst: list, replace_value: Any) -> Any:
+    @staticmethod
+    def get_attribute_value(lst: str, replace_value: Any) -> Any:
         """
         Get an attribute value from a replace value (object)
         :param lst: The attribute list
@@ -507,7 +515,7 @@ class WorkflowEngine():
         """
         val = None
         lst_ = lst.split(".")[1:]
-        if len(lst_)==0:
+        if len(lst_) == 0:
             lst_ = lst
         if isinstance(lst_, list):
             for attr in lst_:
@@ -524,11 +532,12 @@ class WorkflowEngine():
             val = replace_value
         return val
 
-    def step_has_direct_variables(self, step: Any) -> bool:
+    @staticmethod
+    def step_has_direct_variables(step: Any) -> bool:
         """
         Check if a step uses any variables as input for any of the Shapevalue fields
         :param step: The step to check
-        :return: True or Flase
+        :return: True or False
        """
         attrs = vars(step)
         col = [key for key, val in attrs.items() if
@@ -538,22 +547,21 @@ class WorkflowEngine():
         else:
             return False
 
-    def run_flow(self, steps):
+    def run_flow(self, steps: Any):
         """
         Execute a Flow.
         :params steps: The steps that must be executed in the flow
         """
-        dbPath = self.get_dbPath()
-        if dbPath == "\\":
-            raise Exception('Your installation directory is unknown.')
+        db_path = self.get_db_path()
+        if db_path == "\\":
             self.error = True
-            return
+            raise Exception('Your installation directory is unknown.')
         # Save the flow if not already saved
         if not os.path.exists(f'{self.db}\\Registered Flows\\{self.flowname}.xml') and not os.path.exists(
                 self.flowpath):
             # Move the file to the registered directory if not exists
-            copyfile(self.flowpath, f'{dbPath}\\Registered Flows\\{self.flowname}.xml')
-        self.flowpath = f'{dbPath}\\Registered Flows\\{self.flowname}.xml'
+            copyfile(self.flowpath, f'{db_path}\\Registered Flows\\{self.flowname}.xml')
+        self.flowpath = f'{db_path}\\Registered Flows\\{self.flowname}.xml'
         sql = f"SELECT id FROM Flows WHERE name ='{self.flowname}' AND location='{self.flowpath}'"
         flow_id = self.db.run_sql(sql=sql, tablename="Flows")
         if flow_id is None:
@@ -562,14 +570,14 @@ class WorkflowEngine():
         self.previous_step = None
         output_previous_step = None
         shape_steps = [x for x in steps if x.type == "shape"]
-        step = [x for x in shape_steps if x.IsStart == True][0]
-        step_time = datetime.now().strftime("%H:%M:%S")
+        step = [x for x in shape_steps if x.IsStart][0]
 
         # Log the start in the orchestrator database
         sql = f"INSERT INTO Runs (name, flow_id) VALUES ('{self.flowname}', {flow_id});"
         self.id = self.db.run_sql(sql=sql, tablename="Runs")
         print("\n")
-        self.print_log(status="Starting", result=f"{datetime.today().strftime('%d-%m-%Y')} Starting flow '{self.flowname}'...")
+        self.print_log(status="Starting",
+                       result=f"{datetime.today().strftime('%d-%m-%Y')} Starting flow '{self.flowname}'...")
         self.step_nr = 0
         while True:
             try:
@@ -578,11 +586,9 @@ class WorkflowEngine():
                 module_object = None
                 method_to_call = None
                 this_step = None
-                sig = None
-                input = None
-                IsInLoop = False
+                step_input = None
+                is_in_loop = False
                 if hasattr(step, "name"):
-                    step_time = datetime.now().strftime("%H:%M:%S")
                     self.step_nr += 1
                     self.step_name = step.name
                     if len(step.name) == 0:
@@ -599,7 +605,7 @@ class WorkflowEngine():
                     loopkvp = [kvp for kvp in self.loopvariables if kvp.id == step.id]
                     if loopkvp:
                         if loopkvp[0].counter > 0 and loopkvp[0].counter > loopkvp[0].start:
-                            IsInLoop = True
+                            is_in_loop = True
                 if hasattr(step, "module"):
                     # region get function call
                     method_to_call = None
@@ -610,10 +616,10 @@ class WorkflowEngine():
                             if inspect.isclass(var):
                                 method_to_call = getattr(self.variables.get(step.output_variable), step.function)
                     if method_to_call is None:
-                        input = None
+                        step_input = None
                         if hasattr(step, "module"):
                             if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(".py"):
-                                step.module = f"{site.getsitepackages()[1]}\\\BPMN_RPA\\Scripts\\{step.module}"
+                                step.module = f"{site.getsitepackages()[1]}\\BPMN_RPA\\Scripts\\{step.module}"
                             if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(
                                     step.module).__contains__(".py"):
                                 step.module = f"{site.getsitepackages()[1]}\\{step.module}"
@@ -624,7 +630,7 @@ class WorkflowEngine():
                                     step_time = datetime.now().strftime("%H:%M:%S")
                                     raise Exception(
                                         f"{step_time}: The module '{step.module}' could not be loaded. Check the path...")
-                                spec.loader.exec_module(module_object)
+                                getattr(spec.loader, "exec_module")(module_object)
                             else:
                                 if len(step.module) == 0:
                                     module_object = self
@@ -665,30 +671,30 @@ class WorkflowEngine():
                             method_to_call = getattr(module_object, step.function)
 
                 if method_to_call is not None:
-                    input = self.get_input_from_signature(step, method_to_call)
+                    step_input = self.get_input_from_signature(step, method_to_call)
                 if method_to_call is None and class_object is not None:
-                    input = self.get_input_from_signature(step, class_object)
+                    step_input = self.get_input_from_signature(step, class_object)
 
                 # execute function call and get returned values
-                if input is not None and not IsInLoop:
+                if step_input is not None and not is_in_loop:
                     if hasattr(step, "function"):
                         if len(step.function) > 0:
                             if isinstance(class_object, type):
                                 class_object = class_object()
                                 method_to_call = getattr(class_object, step.function)
-                            if isinstance(input, dict):
-                                output_previous_step = method_to_call(**input)
+                            if isinstance(step_input, dict):
+                                output_previous_step = method_to_call(**step_input)
                             else:
                                 try:
-                                    output_previous_step = method_to_call(input)
-                                except Exception as e:
+                                    output_previous_step = method_to_call(step_input)
+                                except (ValueError, Exception):
                                     pass
                         else:
-                            output_previous_step = class_object(**input)
+                            output_previous_step = class_object(**step_input)
                     else:
-                        output_previous_step = class_object(**input)
+                        output_previous_step = class_object(**step_input)
                 else:
-                    if IsInLoop:
+                    if is_in_loop:
                         output_previous_step = [x for x in self.loopvariables if id == step.id]
                     else:
                         if hasattr(step, "function"):
@@ -703,7 +709,7 @@ class WorkflowEngine():
                                 else:
                                     output_previous_step = class_object()
                                     called = True
-                            if output_previous_step is None and called == False:
+                            if output_previous_step is None and not called:
                                 output_previous_step = class_object()
                         else:
                             if class_object is not None:
@@ -713,7 +719,7 @@ class WorkflowEngine():
                 # set loop variable
                 if output_previous_step is not None:
                     this_step = self.loopcounter(step, output_previous_step)
-                if IsInLoop:
+                if is_in_loop:
                     output_previous_step = [this_step]
 
                 # Update the result
@@ -762,7 +768,7 @@ class WorkflowEngine():
         :param result: The result of the step
         """
         result = str(result).replace("<br>", " ")
-        result = str(result[0]).capitalize()+result[1:]
+        result = str(result[0]).capitalize() + result[1:]
         status = str(status)
         if not result.endswith("."):
             result += "."
@@ -814,31 +820,37 @@ class WorkflowEngine():
         sql = f"UPDATE Runs SET result= '{ok}' where id = {self.id};"
         self.db.run_sql(sql=sql, tablename="Runs")
 
-    def get_input_from_signature(self, step, method_to_call):
+    def get_input_from_signature(self, step: Any, method_to_call: Any) -> Any:
+        sig = None
         try:
             sig = signature(method_to_call)
         except Exception as e:
-            print(f"Error in getting input from signature: {e}")
+            print(f"Error in getting input from input_signature: {e}")
         if str(sig) != "()":
-            input = self.get_parameters_from_shapevalues(step=step, signature=sig)
-            return input
+            step_input = self.get_parameters_from_shapevalues(step=step, input_signature=sig)
+            return step_input
         return None
 
-    def reset_loopcounter(self, reset_for_loop_variable, directcall = True):
+    def reset_loopcounter(self, reset_for_loop_variable, directcall=True):
         """
         Reset the loopcounter for a loop variable
+        :param directcall: Optional. Indication whether a direct call should be made.
         :param reset_for_loop_variable: The name of the loop variable.
         """
         loopvars = [x for x in self.loopvariables if x.name == reset_for_loop_variable]
-        if loopvars is not None and len(loopvars)>0:
+        if loopvars is not None and len(loopvars) > 0:
             loopvar = loopvars[0]
         else:
             loopvar = None
-            if directcall: self.print_log(f"Loopcounter '{reset_for_loop_variable}' has not yet been initiated. No reset needed.", "Running")
+            if directcall:
+                self.print_log(
+                    f"Loopcounter '{reset_for_loop_variable}' has not yet been initiated. No reset needed.", "Running")
         if loopvar is not None:
             if loopvar.total_listitems <= loopvar.counter:
                 self.loopvariables.remove(loopvar)
-                if directcall: self.print_log(f"Loopcounter reset for loopvariable '{reset_for_loop_variable}'", "Running")
+                if directcall:
+                    self.print_log(f"Loopcounter reset for loopvariable '{reset_for_loop_variable}'",
+                                   "Running")
 
     def loopcounter(self, step: Any, output_previous_step: Any) -> Any:
         """
@@ -847,7 +859,6 @@ class WorkflowEngine():
         :param output_previous_step: The output of the previous step as object
         :return: An item from the list that is looped
         """
-        loopvar = None
         if hasattr(step, "loopcounter"):
             # Update the total list count
             try:
@@ -864,19 +875,19 @@ class WorkflowEngine():
                         if loopvar.total_listitems > 0 and type(output_previous_step[0]).__name__ == "Row":
                             for t in range(0, loopvar.total_listitems):
                                 output_previous_step[t] = list(output_previous_step[t])
-                        if isinstance(output_previous_step, str) and not str(output_previous_step).__contains__("%") and not isinstance(output_previous_step, list):
+                        if isinstance(output_previous_step, str) and not str(output_previous_step).__contains__(
+                                "%") and not isinstance(output_previous_step, list):
                             loopvar.items = [output_previous_step]
                         else:
                             loopvar.items = output_previous_step
                     if loopvar.total_listitems == 0:
                         self.print_log("There are no more items to loop", "Ending loop")
-                        #self.exitcode_ok()
+                        # self.exitcode_ok()
                     loopvar.start = int(step.loopcounter)  # set start of counter
                 if int(loopvar.counter) <= loopvar.start:
                     loopvar.counter = int(loopvar.start)
                     loopvar.name = step.output_variable
                 # It's a loop! Overwrite the output_previous_step with the right element
-                step_time = datetime.now().strftime("%H:%M:%S")
                 if len(loopvar.items) > 0:
                     name = loopvar.items[loopvar.counter]
                     if not isinstance(name, str):
@@ -923,11 +934,13 @@ class WorkflowEngine():
             if str(getattr(step, value)).__contains__("%__tomorrow__%"):
                 self.variables.update({'%__tomorrow__%': datetime.today() + timedelta(days=1)})
             if str(getattr(step, value)).__contains__("%__tomorrow_formatted__%"):
-                self.variables.update({'%__tomorrow_formatted__%': (datetime.today() + timedelta(days=1)).strftime("%d-%m-%Y")})
+                self.variables.update(
+                    {'%__tomorrow_formatted__%': (datetime.today() + timedelta(days=1)).strftime("%d-%m-%Y")})
             if str(getattr(step, value)).__contains__("%__yesterday__%"):
                 self.variables.update({'%__yesterday__%': datetime.today() + timedelta(days=-1)})
             if str(getattr(step, value)).__contains__("%__yesterday_formatted__%"):
-                self.variables.update({'%__yesterday_formatted__%': (datetime.today() + timedelta(days=-1)).strftime("%d-%m-%Y")})
+                self.variables.update(
+                    {'%__yesterday_formatted__%': (datetime.today() + timedelta(days=-1)).strftime("%d-%m-%Y")})
             if str(getattr(step, value)).__contains__("%__time__%"):
                 self.variables.update({'%__time__%': datetime.now().time()})
             if str(getattr(step, value)).__contains__("%__time_formatted__%"):
@@ -935,11 +948,14 @@ class WorkflowEngine():
             if str(getattr(step, value)).__contains__("%__now__%"):
                 self.variables.update({'%__now__%': datetime.now()})
             if str(getattr(step, value)).__contains__("%__now_formatted__%"):
-                self.variables.update({'%__now_formatted__%': datetime.today().date().strftime("%d-%m-%Y") + "_" + datetime.now().time().strftime("%H%M%S")})
+                self.variables.update({'%__now_formatted__%': datetime.today().date().strftime(
+                    "%d-%m-%Y") + "_" + datetime.now().time().strftime("%H%M%S")})
             if str(getattr(step, value)).__contains__("%__folder_desktop__%"):
-                self.variables.update({'%__folder_desktop__%': os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')})
+                self.variables.update(
+                    {'%__folder_desktop__%': os.path.join(os.path.join(os.environ['USERPROFILE']), 'Desktop')})
             if str(getattr(step, value)).__contains__("%__folder_downloads__%"):
-                self.variables.update({'%__folder_downloads__%': os.path.join(os.path.join(os.environ['USERPROFILE']), 'Downloads')})
+                self.variables.update(
+                    {'%__folder_downloads__%': os.path.join(os.path.join(os.environ['USERPROFILE']), 'Downloads')})
             if str(getattr(step, value)).__contains__("%__folder_system__%"):
                 self.variables.update({'%__folder_system__%': os.environ['WINDIR'] + "\\System\\"})
             if str(getattr(step, value)).__contains__("%__system_name__%"):
@@ -968,11 +984,11 @@ class WorkflowEngine():
         :param loop_variable: The name of the loopvariable to check.
         :return: True: the variable has more items to loop, False: the loop must end
         """
-        retn = None
+        retn = False
         try:
             loop = [x for x in self.loopvariables if x.name == loop_variable][0]
             loop.counter += 1
-        except:
+        except (ValueError, Exception):
             print(
                 f"Error: probably isn't the variable name '{loop_variable}' the right variable to check for more loop-items...")
             return retn
@@ -990,6 +1006,7 @@ class WorkflowEngine():
     def get_next_step(self, current_step, steps, output_previous_step: Any) -> Any:
         """
         Get the next step in the flow
+        :param output_previous_step: The output of the previous step.
         :param current_step: The step object of the current step
         :param steps: The steps collection
         :return: The next step object
@@ -1002,7 +1019,7 @@ class WorkflowEngine():
                 outgoing_connector = [x for x in connectors if x.source == current_step.id]
             else:
                 outgoing_connector = [x for x in connectors if x.source == current_step.id][0]
-        except Exception as e:
+        except (ValueError, Exception):
             return None
         if outgoing_connector is None:
             return None
@@ -1021,18 +1038,18 @@ class WorkflowEngine():
                     conn = \
                         [x for x in outgoing_connector if
                          (str(x.value).lower() == "true" and x.source == current_step.id)][0]
-                except:
+                except (ValueError, Exception):
                     raise Exception("Your Exclusive Gateway doesn't contain a 'True' or 'False' sequence arrow output.")
             else:
                 try:
                     conn = \
                         [x for x in outgoing_connector if
                          (str(x.value).lower() == "false" and x.source == current_step.id)][0]
-                except:
+                except (ValueError, Exception):
                     raise Exception("Your Exclusive Gateway doesn't contain a 'True' or 'False' sequence arrow output.")
             try:
                 retn = [x for x in steps if x.id == conn.target][0]
-            except:
+            except (ValueError, Exception):
                 print(
                     "Error: probably one of the Exclusive Gateways has some Sequence Flow Arrows that aren't connected properly...")
                 return None
@@ -1056,15 +1073,13 @@ class WorkflowEngine():
         pass
 
 
-class SQL():
+class SQL:
 
     def __init__(self, dbfolder: str):
         """
         Class for SQLite actions on the Orchestrator database.
         :param dbfolder: The folder of the SQLite orchestrator database
-        :param connection: Optional. The sqlite3.connect connection.
         """
-        queue = multiprocessing.JoinableQueue()
         if dbfolder == "\\":
             return
         if not dbfolder.endswith("\\"):
@@ -1087,7 +1102,7 @@ class SQL():
         if len(tablename) > 0:
             try:
                 return self.get_inserted_id(tablename)
-            except:
+            except (ValueError, Exception):
                 return None
         else:
             return None
@@ -1124,11 +1139,13 @@ class SQL():
             ret.append(f"{rw[0]}.xml")
         return ret
 
-    def remove_saved_flows(self, lst: List = []):
+    def remove_saved_flows(self, lst: List = None):
         """
-        Removes saved flows from the orchestrator database by maching on the given list of flow-names
+        Removes saved flows from the orchestrator database by matching on the given list of flow-names
         :param lst: The list with flow names to remove from the database
         """
+        if lst is None:
+            lst = []
         names = "'" + "', '".join(lst) + "'"
         sql = f"DELETE FROM Flows WHERE name IN ({names});"
         curs = self.connection.cursor()
