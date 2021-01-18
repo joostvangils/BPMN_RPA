@@ -599,11 +599,26 @@ class Code:
         steps = root.get("object")
         if steps is not None:
             for shape in steps:
-                classname = shape.get("@Class")
-                module = shape.get("@Module")
-                function = shape.get("@Function")
-                variable = shape.get("@Output_variable")
-                label = shape.get("@label")
+                if hasattr(shape,"@Class"):
+                    classname = shape.get("@Class")
+                else:
+                    classname = None
+                if hasattr(shape, "@Module"):
+                    module = shape.get("@Module")
+                else:
+                    module = None
+                if hasattr(shape, "@Function"):
+                    function = shape.get("@Function")
+                else:
+                    function = None
+                if hasattr(shape, "@Output_variable"):
+                    variable = shape.get("@Output_variable")
+                else:
+                    variable = None
+                if hasattr(shape, "@label"):
+                    label = shape.get("@label")
+                else:
+                    label = None
                 if classname is not None:
                     if classname.startswith("%") and classname.endswith("%"):
                         module, classname = self.search_modulename_in_flow(classname, steps)

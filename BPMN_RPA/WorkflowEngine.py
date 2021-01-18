@@ -1127,7 +1127,7 @@ class SQL:
 
     def get_saved_flows(self):
         """
-        Get a list from all saved flows in the orchestrator database.
+        Get a list of all saved flows in the orchestrator database.
         :return: A list of flow names that are saved in the orchestrator database.
         """
         sql = "SELECT name FROM Flows;"
@@ -1137,6 +1137,38 @@ class SQL:
         ret = []
         for rw in rows:
             ret.append(f"{rw[0]}.xml")
+        return ret
+
+    def get_runned_flows(self, flow_id = None):
+        """
+        Get a list of all runned flows in the orchestrator database.
+        :param flow_id: Optional. The flow ID to get the runned data of.
+        :return: A list of flow data of flows that have runned.
+        """
+        if flow_id is None:
+            sql = "SELECT * FROM Runs;"
+        else:
+            sql = f"SELECT * FROM Runs WHERE flow_id = {flow_id};"
+        curs = self.connection.cursor()
+        curs.execute(sql)
+        rows = curs.fetchall()
+        ret = []
+        for rw in rows:
+            ret.append([rw[0], rw[1], rw[2], rw[3], rw[4], rw[5]])
+        return ret
+
+    def get_flows(self):
+        """
+        Get a list of all flows in the orchestrator database.
+        :return: A list of flow names.
+        """
+        sql = "SELECT * FROM Flows;"
+        curs = self.connection.cursor()
+        curs.execute(sql)
+        rows = curs.fetchall()
+        ret = []
+        for rw in rows:
+            ret.append([rw[0], rw[1], rw[2], rw[3], rw[4]])
         return ret
 
     def remove_saved_flows(self, lst: List = None):
