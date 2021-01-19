@@ -11,7 +11,7 @@ def let_user_select_from_listbox(title: str, subtitle: str = ""):
     # Creating the root window
     root = Tk()
     root.title(title)
-    # root.iconphoto(False, PhotoImage(file='icon.png'))
+    root.iconphoto(False, PhotoImage(file='icon.png'))
     # Devide window with grid
     root.columnconfigure([0, 1, 2, 3], minsize=40)
     root.rowconfigure([0, 1, 2, 3, 4, 5], minsize=40)
