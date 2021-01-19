@@ -541,6 +541,8 @@ class Code:
                     if key.lower() != "self":
                         if str(value).__contains__("="):
                             val = str(value).split("=")[1].replace("\'", "").strip()
+                            if val.lower() == "none":
+                                val = ""
                         else:
                             if str(value).lower().__contains__("bool"):
                                 val = False
@@ -597,43 +599,46 @@ class Code:
         graph = dct.get("mxGraphModel")
         root = graph.get("root")
         steps = root.get("object")
-        if steps is not None:
-            for shape in steps:
-                if hasattr(shape,"@Class"):
-                    classname = shape.get("@Class")
-                else:
-                    classname = None
-                if hasattr(shape, "@Module"):
-                    module = shape.get("@Module")
-                else:
-                    module = None
-                if hasattr(shape, "@Function"):
-                    function = shape.get("@Function")
-                else:
-                    function = None
-                if hasattr(shape, "@Output_variable"):
-                    variable = shape.get("@Output_variable")
-                else:
-                    variable = None
-                if hasattr(shape, "@label"):
-                    label = shape.get("@label")
-                else:
-                    label = None
-                if classname is not None:
-                    if classname.startswith("%") and classname.endswith("%"):
-                        module, classname = self.search_modulename_in_flow(classname, steps)
-                doc = self.get_docstring_from_code(module, function, filepath, classname)
-                if doc is None:
-                    doc = ""
-                shape.update({'@Description': doc})
-                if classname is not None:
-                    if len(classname) == 0:
-                        shape.pop("@Class")
-                if variable is not None:
-                    if len(variable) == 0 and label.lower() != "template":
-                        shape.pop("@Output_variable")
-                # found.set('tooltip', doc)
-        self.saveflow(filepath, dct, original)
+        try:
+            if steps is not None:
+                for shape in steps:
+                    if hasattr(shape,"@Class"):
+                        classname = shape.get("@Class")
+                    else:
+                        classname = None
+                    if hasattr(shape, "@Module"):
+                        module = shape.get("@Module")
+                    else:
+                        module = None
+                    if hasattr(shape, "@Function"):
+                        function = shape.get("@Function")
+                    else:
+                        function = None
+                    if hasattr(shape, "@Output_variable"):
+                        variable = shape.get("@Output_variable")
+                    else:
+                        variable = None
+                    if hasattr(shape, "@label"):
+                        label = shape.get("@label")
+                    else:
+                        label = None
+                    if classname is not None:
+                        if classname.startswith("%") and classname.endswith("%"):
+                            module, classname = self.search_modulename_in_flow(classname, steps)
+                    doc = self.get_docstring_from_code(module, function, filepath, classname)
+                    if doc is None:
+                        doc = ""
+                    shape.update({'@Description': doc})
+                    if classname is not None:
+                        if len(classname) == 0:
+                            shape.pop("@Class")
+                    if variable is not None:
+                        if len(variable) == 0 and label.lower() != "template":
+                            shape.pop("@Output_variable")
+                    # found.set('tooltip', doc)
+            self.saveflow(filepath, dct, original)
+        except (ValueError, Exception):
+            raise Exception("Error. Probably the file is not a BPMN-RPA flow or the flow is incorrect.")
 
     @staticmethod
     def get_functions_from_module(module: str) -> Any:
