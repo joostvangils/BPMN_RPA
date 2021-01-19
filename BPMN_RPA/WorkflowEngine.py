@@ -1148,7 +1148,7 @@ class SQL:
         if flow_id is None:
             sql = "SELECT * FROM Runs;"
         else:
-            sql = f"SELECT * FROM Runs WHERE flow_id = {flow_id};"
+            sql = "SELECT * FROM Runs WHERE flow_;"
         curs = self.connection.cursor()
         curs.execute(sql)
         rows = curs.fetchall()
