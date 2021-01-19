@@ -6,7 +6,7 @@ from BPMN_RPA.Scripts.Code import Code
 
 window = Tk()
 window.title("Module to DrawIO Library")
-window.iconphoto(False, PhotoImage(file='icon.png'))
+# window.iconphoto(False, PhotoImage(file='icon.png'))
 window.resizable(0, 0)
 
 

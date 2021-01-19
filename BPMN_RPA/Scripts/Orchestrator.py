@@ -8,7 +8,7 @@ from BPMN_RPA.WorkflowEngine import WorkflowEngine, SQL
 
 window = Tk()
 window.title("BPMN-RPA Orchestrator")
-window.iconphoto(False, PhotoImage(file='icon.png'))
+# window.iconphoto(False, PhotoImage(file='icon.png'))
 
 # Devide window with grid
 # window.columnconfigure([0, 1, 2, 3], minsize=10)
