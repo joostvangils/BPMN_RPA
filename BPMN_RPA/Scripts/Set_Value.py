@@ -1,13 +1,14 @@
 from typing import List, Any
 
 
-def value_to_variable(value: Any) -> Any:
+def value_to_variable(value: Any, convert_to_list = False) -> Any:
     """
     Function for returning a value to the WorkflowEngine.
     :param value: Any value.
+    :param convert_to_list: Optional. Indicator whether to try to convert the value to a List.
     :return: The original input value.
     """
-    if ',' in str(value) and isinstance(value, str):
+    if ',' in str(value) and isinstance(value, str) and convert_to_list:
         values = []
         value = value.split(',')
         for v in value:
