@@ -32,7 +32,7 @@ Draw.loadPlugin(function(ui) {
 		var img = new mxImage(mxClient.imageBasePath + '/error.gif', 15,16);
 		var _err = 0;
 		var has_start = -1;
-		var has_end = -1;
+		var has_end = 0;
 		var has_loopcounter = -1;
 		var has_loopitemscheck = -1;
 		var startnode;
@@ -193,11 +193,11 @@ Draw.loadPlugin(function(ui) {
 			 mxUtils.error("Your Flow has no Start!", 250, true, mxUtils.errorImage);
 			 _err = -1;
 		}
-		else if(has_end==-1 && has_start==0)
-		{
-			 mxUtils.error("Your Flow has no End!", 250, true, mxUtils.errorImage);
-			 _err = -1;
-		}
+		//else if(has_end==-1 && has_start==0)
+		//{
+			 //mxUtils.error("Your Flow has no End!", 250, true, mxUtils.errorImage);
+			 //_err = -1;
+		//}
 		else if(has_end==-1 && has_start==-1)
 		{
 			 mxUtils.error("Your Flow has no Start and no End!", 250, true, mxUtils.errorImage);

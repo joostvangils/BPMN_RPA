@@ -541,6 +541,8 @@ class Code:
                     if key.lower() != "self":
                         if str(value).__contains__("="):
                             val = str(value).split("=")[1].replace("\'", "").strip()
+                            if val.lower() == "none":
+                                val = ""
                         else:
                             if str(value).lower().__contains__("bool"):
                                 val = False
