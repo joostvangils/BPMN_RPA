@@ -464,7 +464,7 @@ class Code:
             output_variable = shape.get("@Output_variable")
             if output_variable == variable:
                 return module, classname
-        return None
+        return None, None
 
     class TempDict:
 
@@ -595,6 +595,8 @@ class Code:
         Add (or update) descriptions from code to all shapes in a library.
         :param filepath: The full path to the library file.
         """
+        if filepath == r"d:\runtime\prd\BPMN\flows\Monitor_24x7_Exchange.xml":
+            print("")
         dct, original = self.openflow(filepath)
         graph = dct.get("mxGraphModel")
         root = graph.get("root")
@@ -602,30 +604,19 @@ class Code:
         try:
             if steps is not None:
                 for shape in steps:
-                    if hasattr(shape,"@Class"):
-                        classname = shape.get("@Class")
-                    else:
-                        classname = None
-                    if hasattr(shape, "@Module"):
-                        module = shape.get("@Module")
-                    else:
-                        module = None
-                    if hasattr(shape, "@Function"):
-                        function = shape.get("@Function")
-                    else:
-                        function = None
-                    if hasattr(shape, "@Output_variable"):
-                        variable = shape.get("@Output_variable")
-                    else:
-                        variable = None
-                    if hasattr(shape, "@label"):
-                        label = shape.get("@label")
-                    else:
-                        label = None
+                    shapetype = shape.get("@Type")
+                    classname = shape.get("@Class")
+                    module = shape.get("@Module")
+                    function = shape.get("@Function")
+                    variable = shape.get("@Output_variable")
+                    label = shape.get("@label")
                     if classname is not None:
                         if classname.startswith("%") and classname.endswith("%"):
                             module, classname = self.search_modulename_in_flow(classname, steps)
-                    doc = self.get_docstring_from_code(module, function, filepath, classname)
+                    if function is not None or classname is not None or module is not None:
+                        doc = self.get_docstring_from_code(module, function, filepath, classname)
+                    else:
+                        doc = None
                     if doc is None:
                         doc = ""
                     shape.update({'@Description': doc})
@@ -638,7 +629,7 @@ class Code:
                     # found.set('tooltip', doc)
             self.saveflow(filepath, dct, original)
         except (ValueError, Exception):
-            raise Exception("Error. Probably the file is not a BPMN-RPA flow or the flow is incorrect.")
+            raise Exception(f"Error. Probably the file {filepath} is not a BPMN-RPA flow or the flow is incorrect.")
 
     @staticmethod
     def get_functions_from_module(module: str) -> Any:
