@@ -288,7 +288,7 @@ class Code:
                 doc = self.get_docstring_from_code(module, function, filepath, classname)
                 if doc is None:
                     doc = ""
-                found.set('Description', doc)
+                found.set('Shape_description', doc)
                 if classname is not None:
                     if len(classname) == 0:
                         del found.attrib["Class"]
@@ -504,7 +504,7 @@ class Code:
         if len(function) == 0:
             title = f"Create {classname} object"
         newentry = {'xml': '', 'w': 120, 'h': 80, 'aspect': 'fixed', 'title': title}
-        newshape = f"<mxGraphModel><root><mxCell id=\"0\"/><mxCell id=\"1\" parent=\"0\"/><object label=\"{title}\" Module=\"{module}\" Class=\"{classname}\" Function=\"{function}\" Output_variable=\"\" id=\"2\" Description=\"\"><mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"><mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/></mxCell></object></root></mxGraphModel>"
+        newshape = f"<mxGraphModel><root><mxCell id=\"0\"/><mxCell id=\"1\" parent=\"0\"/><object label=\"{title}\" Module=\"{module}\" Class=\"{classname}\" Function=\"{function}\" Output_variable=\"\" id=\"2\" Shape_description=\"\"><mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"><mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/></mxCell></object></root></mxGraphModel>"
         root = eltree.ElementTree(eltree.fromstring(newshape))
         found = root.find('.//root/object')
         if module is None:
@@ -564,7 +564,7 @@ class Code:
                         found.set("label", title)
                 if len(function) == 0:
                     del found.attrib["Function"]
-                found.set("Description", doc)
+                found.set("Shape_description", doc)
                 if len(classname) == 0 and len(variable) == 0:
                     del found.attrib["Class"]
                 if len(variable) > 0:
@@ -619,7 +619,11 @@ class Code:
                         doc = None
                     if doc is None:
                         doc = ""
-                    shape.update({'@Description': doc})
+                    shape.update({'@Shape_description': doc})
+                    # try:
+                    #     shape.pop("@Description")
+                    # except:
+                    #     pass
                     if classname is not None:
                         if len(classname) == 0:
                             shape.pop("@Class")
