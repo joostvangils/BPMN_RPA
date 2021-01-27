@@ -339,7 +339,7 @@ class WorkflowEngine:
                 if val is not None:
                     if len(str(val)) == 0:
                         if input is not None:
-                            if str(value.default)=="None":
+                            if str(value.default) == "None":
                                 val = None
                             else:
                                 val = ""
@@ -1142,7 +1142,7 @@ class SQL:
             ret.append(f"{rw[0]}.xml")
         return ret
 
-    def get_runned_flows(self, flow_id = None):
+    def get_runned_flows(self, flow_id=None):
         """
         Get a list of all runned flows in the orchestrator database.
         :param flow_id: Optional. The flow ID to get the runned data of.
