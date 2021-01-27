@@ -339,7 +339,10 @@ class WorkflowEngine:
                 if val is not None:
                     if len(str(val)) == 0:
                         if input is not None:
-                            val = ""
+                            if str(value.default)=="None":
+                                val = None
+                            else:
+                                val = ""
                         else:
                             if str(value).__contains__("="):
                                 val = value.default
