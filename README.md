@@ -137,6 +137,11 @@ engine = WorkflowEngine(input_parameter=myObject)
 Call the internal 'get_input_parameter' function to retreive this input value and assign it to a variable name for later use in your flow:<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Get_input_parameter.PNG" height="100" width="400" ></a><br>
 
+When starting a Workflow from the commandline, you may use the 'As_ditcionary' option with the value 'True' to convert the string input to a dictionary object. P.e.: 
+```console
+c:\> python BPMN_RPA_Starter.py test.xml "{\"key1\": \"value1\",\"key2\": \"value2\"}"
+```
+
 #### Logging
 The WorkflowEngine logs all executed steps in a SQLite database, called 'Orchestrator.db'. This database is located in the install directory. If the install directory is unknown when starting the WorkflowEngine, the WorkflowEngine will ask you for the folder. This path then will be saved in the registry and the Orchestrator database will be created in that folder.
 
