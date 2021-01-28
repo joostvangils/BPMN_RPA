@@ -137,7 +137,7 @@ engine = WorkflowEngine(input_parameter=myObject)
 Call the internal 'get_input_parameter' function to retreive this input value and assign it to a variable name for later use in your flow:<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Get_input_parameter.PNG" height="100" width="400" ></a><br>
 
-When starting a Workflow from the commandline, you may use the 'As_ditcionary' option with the value 'True' to convert the string input to a dictionary object. P.e.: 
+When starting a Workflow from the commandline, you may use the 'As_ditcionary' option in the 'Get input paramater' Shape of your Flow with the value 'True' to convert the string input to a dictionary object. P.e.: 
 ```console
 c:\> python BPMN_RPA_Starter.py test.xml "{\"key1\": \"value1\",\"key2\": \"value2\"}"
 ```
