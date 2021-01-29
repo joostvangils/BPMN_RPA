@@ -27,3 +27,27 @@ def split_string_to_list(string: str, separator: str = " ", maxsplit: int = -1) 
     """
     separator = separator.replace('\\n', '\n').replace('\\r', '\r').replace('\\t', '\t')
     return string.split(separator, maxsplit=int(maxsplit))
+
+
+def increment_counter(counter: any, step: int=1) -> Any:
+    """
+    Increment a counter variable by step (default = 1)
+    :param counter: the variable to add step to
+    :param step: the increase value
+    :return: Any: the value after increase (int or float)
+    """
+
+    # handle int and float
+    if isinstance(counter, int) or isinstance(counter, float):
+        newcounter = counter + step
+    # handle string, might convert to int of float or might not
+    elif isinstance(counter, str):
+        try:
+            newcounter = int(counter) + step
+        except:
+            newcounter = 0
+    # handle all data types other than int, float and str
+    else:
+        newcounter = 0
+
+    return newcounter
