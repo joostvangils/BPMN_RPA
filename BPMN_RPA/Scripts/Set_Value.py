@@ -1,7 +1,7 @@
 from typing import List, Any
 
 
-def value_to_variable(value: Any, convert_to_list = False) -> Any:
+def value_to_variable(value: Any, convert_to_list=False) -> Any:
     """
     Function for returning a value to the WorkflowEngine.
     :param value: Any value.
@@ -29,7 +29,7 @@ def split_string_to_list(string: str, separator: str = " ", maxsplit: int = -1) 
     return string.split(separator, maxsplit=int(maxsplit))
 
 
-def increment_counter(counter: any, step: int=1) -> Any:
+def increment_counter(counter: any, step: int = 1) -> Any:
     """
     Increment a counter variable by step (default = 1)
     :param counter: the variable to add step to
@@ -44,7 +44,7 @@ def increment_counter(counter: any, step: int=1) -> Any:
     elif isinstance(counter, str):
         try:
             newcounter = int(counter) + step
-        except:
+        except (ValueError, Exception):
             newcounter = 0
     # handle all data types other than int, float and str
     else:

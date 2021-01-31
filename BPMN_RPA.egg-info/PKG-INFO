@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: BPMN-RPA
-Version: 2.1.8
+Version: 2.1.82
 Summary: Robotic Process Automation by running BPMN diagram flows.
 Home-page: https://github.com/joostvangils/BPMN_RPA
 Author: Joost van Gils
@@ -58,7 +58,7 @@ Description: # BPMN_RPA
              * Output_variable: The name of the variable that must store the output of the current action. If you don't use this field (or delete it), the current Task will have no output that can be used by other Tasks.
             
            * Optional attributes:
-             * You can specify any input value for the called function directly by adding an extra attribute to the shape with **exactly the same name** as the expected input parameter(s) of the function. If you add these extra attributes, but decide to leave these value(s) blank, then the mapping values (output values from previous step) will be used. In this way you can combine direct values with mapping values.
+             * You can specify any input value for the called function directly by adding an extra attribute to the shape with **exactly the same name** as the expected input parameter(s) of the function.
               
               P.e.: to call 
               ```Python
@@ -130,10 +130,10 @@ Description: # BPMN_RPA
         If you would like to retreive an attribute of a stored object or dictionary in a variable, then you must use the %VariableName.attributeName% notation. Just use the %VariableName% notation to retreive the full object or dictionary.
         
         #### Instantiate a Class and use in Flow
-        You can instantiate a Python class by using ony these attributes (leave the 'Function' attribute blank):<br>
+        You can instantiate a Python class by using ony these attributes (leave the 'Function' attribute blank or delete it):<br>
         <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Instantiate_class1.PNG" height="100" width="400" ></a><br>
         This instantiates the class and saves the instance in the variable %test%.
-        You can call any function of the class object by use of these attributes in Tasks following the instantiation Task (leave the 'Module' attribute blank):<br>
+        You can call any function of the class object by use of these attributes in Tasks following the instantiation Task (leave the 'Module' attribute blank or delete it):<br>
         <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Instantiate_class2.PNG" height="100" width="400" ></a><br>
         
         #### Passing input to the WorkflowEngine
@@ -144,6 +144,11 @@ Description: # BPMN_RPA
         ```
         Call the internal 'get_input_parameter' function to retreive this input value and assign it to a variable name for later use in your flow:<br>
         <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Get_input_parameter.PNG" height="100" width="400" ></a><br>
+        
+        When starting a Workflow from the commandline, you may use the 'As_ditcionary' option in the 'Get input paramater' Shape of your Flow with the value 'True' to convert the string input to a dictionary object. P.e.: 
+        ```console
+        c:\> python BPMN_RPA_Starter.py test.xml "{\"key1\": \"value1\",\"key2\": \"value2\"}"
+        ```
         
         #### Logging
         The WorkflowEngine logs all executed steps in a SQLite database, called 'Orchestrator.db'. This database is located in the install directory. If the install directory is unknown when starting the WorkflowEngine, the WorkflowEngine will ask you for the folder. This path then will be saved in the registry and the Orchestrator database will be created in that folder.

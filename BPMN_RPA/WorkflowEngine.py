@@ -10,6 +10,7 @@ import socket
 import sqlite3
 import winreg
 import xml.etree.ElementTree as ElTree
+import zipfile
 import zlib
 from datetime import datetime, timedelta
 from inspect import signature
@@ -126,16 +127,23 @@ class WorkflowEngine:
         if filepath is not None:
             self.flowpath = filepath
         xml_file = open(filepath, "r")
-        self.flowname = filepath.split("\\")[-1].lower().replace(".xml", "")
-        xml_root = ElTree.fromstring(xml_file.read())
-        raw_text = xml_root[0].text
-        base64_decode = base64.b64decode(raw_text)
-        inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
-        url_decode = parse.unquote(inflated_xml)
-        if as_xml:
-            return url_decode
-        retn = xmltodict.parse(url_decode)
-        return retn
+        if not filepath.__contains__(".vsdx"):
+            self.flowname = filepath.split("\\")[-1].lower().replace(".xml", "")
+            xml_root = ElTree.fromstring(xml_file.read())
+            raw_text = xml_root[0].text
+            base64_decode = base64.b64decode(raw_text)
+            inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
+            url_decode = parse.unquote(inflated_xml)
+            if as_xml:
+                return url_decode
+            retn = xmltodict.parse(url_decode)
+            return retn
+        else:
+            # It is a MsVisio file!
+            visio = Visio()
+            self.flowname = filepath.split("\\")[-1].lower().replace(".vsdx", "")
+            visio.open_vsdx_file(filepath)
+            return visio
 
     @staticmethod
     def set_db_path(value: str):
@@ -201,12 +209,16 @@ class WorkflowEngine:
         except WindowsError:
             return False
 
-    def get_flow(self, ordered_dict: dict) -> Any:
+    def get_flow(self, ordered_dict: Any) -> Any:
         """
         Retrieving the elements of the flow in the Document.
         :param ordered_dict: The document object containing the flow elements.
         :returns: A List of flow elements
         """
+        if str(ordered_dict).__contains__("Visio object"):
+            # It is a Visio Object!
+            visio = ordered_dict
+            return visio.get_flow()
         connectors = []
         shapes = []
         connectorvalues = {}
@@ -567,7 +579,8 @@ class WorkflowEngine:
                 self.flowpath):
             # Move the file to the registered directory if not exists
             copyfile(self.flowpath, f'{db_path}\\Registered Flows\\{self.flowname}.xml')
-        self.flowpath = f'{db_path}\\Registered Flows\\{self.flowname}.xml'
+        if not self.flowpath.lower().__contains__(".vsdx"):
+            self.flowpath = f'{db_path}\\Registered Flows\\{self.flowname}.xml'
         sql = f"SELECT id FROM Flows WHERE name ='{self.flowname}' AND location='{self.flowpath}'"
         flow_id = self.db.run_sql(sql=sql, tablename="Flows")
         if flow_id is None:
@@ -1203,8 +1216,240 @@ class SQL:
         # sql = "CREATE TABLE IF NOT EXISTS Triggers (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, flow_id INTEGER NOT NULL, trigger_info, CONSTRAINT flows_saved_trigger FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
         # self.run_sql(sql)
 
+
+class Visio:
+
+    def __init__(self):
+        """
+        Class for reading a flow in MsVisio format (vsdx).
+        """
+        self.root = None
+
+    @staticmethod
+    def point_in_shape(x: float, y: float, shape: Any) -> bool:
+        """
+        Check if the x-y coordinate is in the Shape.
+        :param x: The X parameter of the point to check.
+        :param y: The Y parameter of the point to check.
+        :param shape: The shape object.
+        :return: True or False.
+        """
+        margin = 0.00000000000001
+        if str(shape.get("@NameU")).lower().__contains__("connector"):
+            return False
+        # x1, y1, w, h = rect
+        try:
+            x = float(x)
+            y = float(y)
+            x1 = float([x for x in shape.get("Cell") if x["@N"] == "PinX"][0].get("@V"))
+            y1 = float([x for x in shape.get("Cell") if x["@N"] == "PinY"][0].get("@V"))
+            w = float([x for x in shape.get("Cell") if x["@N"] == "Width"][0].get("@V"))
+            h = float([x for x in shape.get("Cell") if x["@N"] == "Height"][0].get("@V"))
+            x1 = x1 - (w / 2) - margin
+            y1 = y1 - (h / 2) - margin
+            x2, y2 = x1 + w + margin, y1 + h + margin
+            if x1 <= x <= x2:
+                if y1 <= y <= y2:
+                    return True
+        except (ValueError, Exception):
+            pass
+        return False
+
+    class dynamic_object(object):
+        pass
+
+    def open_vsdx_file(self, file: str):
+        """
+        Open the VSDX file and store its cointents into memory.
+        :param file: The filename to read.
+        """
+        docs = zipfile.ZipFile(file, "r")
+        self.root = {}
+        for d in docs.filelist:
+            print(d)
+            if str(d.filename).lower().endswith(".xml") or str(d.filename).lower().endswith(".rels"):
+                doc = docs.read(d)
+                dct = xmltodict.parse(doc)
+                self.root.update({d.filename: dct})
+
+    def get_start(self):
+        """
+        Return the start Shape of the flow.
+        """
+        count = 1
+        while True:
+            if f"visio/pages/page{count}.xml" in self.root:
+                for shape in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape"):
+                    if "Section" in shape:
+                        for sec in shape.get("Section"):
+                            if sec["@N"] == "Property":
+                                if not isinstance(sec["Row"], list):
+                                    if {"@N": "Label", "@V": "Type"} in sec["Row"].get("Cell") and {"@N": "Value", "@V": "Start", "@U": "STR"} in sec["Row"].get("Cell"):
+                                        setattr(shape, "IsStart", True)
+                                        return shape
+                                else:
+                                    for rw in sec["Row"]:
+                                        if {"@N": "Label", "@V": "Type"} in rw.get("Cell") and {"@N": "Value", "@V": "Start", "@U": "STR"} in rw.get("Cell"):
+                                            setattr(shape, "IsStart", True)
+                                            return shape
+                count += 1
+            else:
+                break
+        return None
+
+    def get_outgoing_connector(self, shape: Any) -> list:
+        """
+        Check if there is an outgoing connector and return its object.
+        :param shape: The shape to check for an outgoing connector.
+        :return: A list of outgoing connectors.
+        """
+        retn = []
+        count = 1
+        while True:
+            if f"visio/pages/page{count}.xml" in self.root:
+                for shp in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape"):
+                    if str(shp.get("@NameU")).lower().__contains__("connector"):
+                        x = [x for x in shp.get("Cell") if x["@N"] == "BeginX"][0].get("@V")
+                        y = [x for x in shp.get("Cell") if x["@N"] == "BeginY"][0].get("@V")
+                        if self.point_in_shape(x, y, shape):
+                            retn.append(shp)
+                count += 1
+            else:
+                break
+        return retn
+
+    def get_target_shape_from_connector(self, connector):
+        """
+        Get the target shape of the connector.
+        :param connector: The connector for which to obtain the target shape.
+        :return: The shape object of the target.
+        """
+        x = [x for x in connector.get("Cell") if x["@N"] == "EndX"][0].get("@V")
+        y = [x for x in connector.get("Cell") if x["@N"] == "EndY"][0].get("@V")
+        count = 1
+        while True:
+            if f"visio/pages/page{count}.xml" in self.root:
+                count = 1
+                while True:
+                    if f"visio/pages/page{count}.xml" in self.root:
+                        for shp in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape"):
+                            shape = self.check_dimensions(shp)
+                            if not str(shape.get("@NameU")).lower().__contains__("connector"):
+                                if self.point_in_shape(x, y, shape):
+                                    return shape
+                    count += 1
+            else:
+                break
+        return None
+
+    def check_dimensions(self, shape: Any) -> Any:
+        """
+        Get Width and Height attributes from master if not already in shape attributes.
+        :param shape: The shape object to check.
+        :return: The shape object including height and width attributes.
+        """
+        if [x for x in shape["Cell"] if x["@N"] == "Width"] and [x for x in shape["Cell"] if x["@N"] == "Height"]:
+            return shape
+        master = [x for x in self.root[f"visio/masters/masters.xml"].get("Masters").get("Master") if x["@ID"] == shape["@Master"]][0]
+        rel = master["Rel"].get("@r:id")
+        target = [x for x in self.root[f"visio/masters/_rels/masters.xml.rels"].get("Relationships").get("Relationship") if x["@Id"] == rel][0]["@Target"]
+        w = [x for x in self.root[f"visio/masters/{target}"].get("MasterContents").get("Shapes").get("Shape").get("Cell") if x["@N"] == "Width"][0]
+        h = [x for x in self.root[f"visio/masters/{target}"].get("MasterContents").get("Shapes").get("Shape").get("Cell") if x["@N"] == "Height"][0]
+        shape["Cell"].append(w)
+        shape["Cell"].append(h)
+        return shape
+
+    def get_flow(self):
+        """
+        Get the flow from the file.
+        :return: The flow object.
+        """
+        flow_ = []
+        connector = None
+        shape = self.get_start()
+        shape = self.check_dimensions(shape)
+        flow_.append(shape)
+        while True:
+            connectors = self.get_outgoing_connector(shape)
+            if not connectors:
+                break
+            for connector in connectors:
+                connector.update({"source": shape["@ID"]})
+                flow_.append(connector)
+            shape = self.get_target_shape_from_connector(connector)
+            if shape is None:
+                break
+            for connector in connectors:
+                connector.update({"target": shape["@ID"]})
+            flow_.append(shape)
+        retn = []
+        for s in flow_:
+            step = self.get_step_from_shape(s)
+            retn.append(step)
+        return retn
+
+    def get_step_from_shape(self, shape: Any) -> Any:
+        """
+        Build a Step-object from the Shape-object
+        :param shape: The Shape-object
+        :returns: A Step-object
+        """
+        retn = self.dynamic_object()
+        retn.id = shape.get("@ID")
+        if "Section" in shape:
+            if not isinstance(shape["Section"], list):
+                col = [shape["Section"]]
+            else:
+                col = [x for x in shape["Section"] if x["@N"] == "Property"]
+            if [x for x in col if x["@N"] == "Property"]:
+                col = [x for x in col if x["@N"] == "Property"][0].get("Row")
+                for rw in col:
+                    cells = rw.get("Cell")
+                    key = None
+                    value = None
+                    for cell in cells:
+                        if cell["@N"] == "Label":
+                            key = cell["@V"]
+                        if cell["@N"] == "Value":
+                            value = cell["@V"]
+                        if key is not None and value is not None:
+                            if str(key).lower() == "class":
+                                key = "classname"  # 'class' is a reserved keyword, so use 'classname'
+                            if str(key).lower() != "name":
+                                setattr(retn, str(key).replace("@", "").lower(), value)
+                            break
+            else:
+                for att in shape:
+                    setattr(retn, str(att).replace("@", "").lower(), shape[att])
+        else:
+            for att in shape:
+                setattr(retn, str(att).replace("@", "").lower(), shape[att])
+
+        if str(shape.get("@NameU")).__contains__("connector"):
+            retn.type = "connector"
+        else:
+            if not str(shape.get("@NameU")).__contains__("gateway"):
+                retn.type = "shape"
+            else:
+                retn.type = str(shape.get("@NameU")).lower()
+
+        if "Text" in shape:
+            retn.name = shape["Text"]
+        else:
+            retn.name = shape["@NameU"]
+        if "IsStart" in shape:
+            retn.IsStart = shape["IsStart"]
+        else:
+            retn.IsStart = False
+        return retn
+
+# app = Visio()
+# app.open_vsdx_file(r"c:\temp\test.vsdx")
+# flow = app.get_flow()
+
+
 # Test
-# engine = WorkflowEngine()
-# doc = engine.open(fr"c:\\temp\\test2.xml")  # c:\\temp\\test.xml
-# steps = engine.get_flow(doc)
-# engine.run_flow(steps)
+engine = WorkflowEngine()
+doc = engine.open(fr"c:\\temp\\test.vsdx")  # c:\\temp\\test.xml
+steps = engine.get_flow(doc)
+engine.run_flow(steps)
