@@ -1224,6 +1224,8 @@ class Visio:
         Class for reading a flow in MsVisio format (vsdx).
         """
         self.root = None
+        self.master_connection = []
+        self.master_shape = []
 
     @staticmethod
     def point_in_shape(x: float, y: float, shape: Any) -> bool:
@@ -1234,20 +1236,20 @@ class Visio:
         :param shape: The shape object.
         :return: True or False.
         """
-        margin = 0.00000000000001
+        margin = 0.0000000001
         if str(shape.get("@NameU")).lower().__contains__("connector"):
             return False
         # x1, y1, w, h = rect
         try:
-            x = float(x)
-            y = float(y)
-            x1 = float([x for x in shape.get("Cell") if x["@N"] == "PinX"][0].get("@V"))
-            y1 = float([x for x in shape.get("Cell") if x["@N"] == "PinY"][0].get("@V"))
-            w = float([x for x in shape.get("Cell") if x["@N"] == "Width"][0].get("@V"))
-            h = float([x for x in shape.get("Cell") if x["@N"] == "Height"][0].get("@V"))
-            x1 = x1 - (w / 2) - margin
-            y1 = y1 - (h / 2) - margin
-            x2, y2 = x1 + w + margin, y1 + h + margin
+            x = round(float(x), 10)
+            y = round(float(y), 10)
+            x1 = round(float([x for x in shape.get("Cell") if x["@N"] == "PinX"][0].get("@V")), 10)
+            y1 = round(float([x for x in shape.get("Cell") if x["@N"] == "PinY"][0].get("@V")), 10)
+            w = round(float([x for x in shape.get("Cell") if x["@N"] == "Width"][0].get("@V")), 10)
+            h = round(float([x for x in shape.get("Cell") if x["@N"] == "Height"][0].get("@V")), 10)
+            x1 = round(x1 - (w / 2) - margin, 10)
+            y1 = round(y1 - (h / 2) - margin, 10)
+            x2, y2 = round(x1 + w + margin, 10), round(y1 + h + margin, 10)
             if x1 <= x <= x2:
                 if y1 <= y <= y2:
                     return True
@@ -1308,11 +1310,16 @@ class Visio:
         while True:
             if f"visio/pages/page{count}.xml" in self.root:
                 for shp in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape"):
-                    if str(shp.get("@NameU")).lower().__contains__("connector"):
+                    if str(shp.get("@NameU")).lower().__contains__("connector") or shp["@Master"] in self.master_connection:
+                        if not shp["@Master"] in self.master_connection:
+                            self.master_connection.append(shp["@Master"])
                         x = [x for x in shp.get("Cell") if x["@N"] == "BeginX"][0].get("@V")
                         y = [x for x in shp.get("Cell") if x["@N"] == "BeginY"][0].get("@V")
                         if self.point_in_shape(x, y, shape):
                             retn.append(shp)
+                    else:
+                        if not shp["@Master"] in self.master_shape:
+                            self.master_shape.append(shp["@Master"])
                 count += 1
             else:
                 break
@@ -1334,7 +1341,7 @@ class Visio:
                     if f"visio/pages/page{count}.xml" in self.root:
                         for shp in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape"):
                             shape = self.check_dimensions(shp)
-                            if not str(shape.get("@NameU")).lower().__contains__("connector"):
+                            if not str(shape.get("@NameU")).lower().__contains__("connector") and not shp["@Master"] == self.master_connection:
                                 if self.point_in_shape(x, y, shape):
                                     return shape
                     count += 1
@@ -1436,12 +1443,21 @@ class Visio:
         if "Text" in shape:
             retn.name = shape["Text"]
         else:
-            retn.name = shape["@NameU"]
-        if "IsStart" in shape:
-            retn.IsStart = shape["IsStart"]
+            if shape["@Master"] in self.master_connection:
+                retn.name = "connector"
+            else:
+                if "@NameU" in shape:
+                    retn.name = shape["@NameU"]
+                else:
+                    retn.name = "end"
+        if hasattr(shape, "IsStart"):
+            retn.IsStart = shape.IsStart
+            if retn.IsStart:
+                retn.name = "start"
         else:
             retn.IsStart = False
         return retn
+
 
 # app = Visio()
 # app.open_vsdx_file(r"c:\temp\test.vsdx")
@@ -1449,7 +1465,7 @@ class Visio:
 
 
 # Test
-engine = WorkflowEngine()
-doc = engine.open(fr"c:\\temp\\test.vsdx")  # c:\\temp\\test.xml
-steps = engine.get_flow(doc)
-engine.run_flow(steps)
+# engine = WorkflowEngine()
+# doc = engine.open(fr"c:\\temp\\test.vsdx")  # c:\\temp\\test.xml
+# steps = engine.get_flow(doc)
+# engine.run_flow(steps)
