@@ -17,7 +17,8 @@ from inspect import signature
 from shutil import copyfile
 from typing import List, Any
 from urllib import parse
-
+from decimal import Decimal
+from decimal import getcontext
 import xmltodict
 
 
@@ -1227,36 +1228,6 @@ class Visio:
         self.master_connection = []
         self.master_shape = []
 
-    @staticmethod
-    def point_in_shape(x: float, y: float, shape: Any) -> bool:
-        """
-        Check if the x-y coordinate is in the Shape.
-        :param x: The X parameter of the point to check.
-        :param y: The Y parameter of the point to check.
-        :param shape: The shape object.
-        :return: True or False.
-        """
-        margin = 0.0000000001
-        if str(shape.get("@NameU")).lower().__contains__("connector"):
-            return False
-        # x1, y1, w, h = rect
-        try:
-            x = round(float(x), 10)
-            y = round(float(y), 10)
-            x1 = round(float([x for x in shape.get("Cell") if x["@N"] == "PinX"][0].get("@V")), 10)
-            y1 = round(float([x for x in shape.get("Cell") if x["@N"] == "PinY"][0].get("@V")), 10)
-            w = round(float([x for x in shape.get("Cell") if x["@N"] == "Width"][0].get("@V")), 10)
-            h = round(float([x for x in shape.get("Cell") if x["@N"] == "Height"][0].get("@V")), 10)
-            x1 = round(x1 - (w / 2) - margin, 10)
-            y1 = round(y1 - (h / 2) - margin, 10)
-            x2, y2 = round(x1 + w + margin, 10), round(y1 + h + margin, 10)
-            if x1 <= x <= x2:
-                if y1 <= y <= y2:
-                    return True
-        except (ValueError, Exception):
-            pass
-        return False
-
     class dynamic_object(object):
         pass
 
@@ -1299,55 +1270,35 @@ class Visio:
                 break
         return None
 
-    def get_outgoing_connector(self, shape: Any) -> list:
+    def get_connectors(self) -> list:
         """
-        Check if there is an outgoing connector and return its object.
-        :param shape: The shape to check for an outgoing connector.
-        :return: A list of outgoing connectors.
+        Get all connectors from the flow.
+        :return: A list of connectors.
         """
         retn = []
         count = 1
         while True:
             if f"visio/pages/page{count}.xml" in self.root:
-                for shp in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape"):
-                    if str(shp.get("@NameU")).lower().__contains__("connector") or shp["@Master"] in self.master_connection:
-                        if not shp["@Master"] in self.master_connection:
-                            self.master_connection.append(shp["@Master"])
-                        x = [x for x in shp.get("Cell") if x["@N"] == "BeginX"][0].get("@V")
-                        y = [x for x in shp.get("Cell") if x["@N"] == "BeginY"][0].get("@V")
-                        if self.point_in_shape(x, y, shape):
-                            retn.append(shp)
+                for shp in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect"):
+                    blnupdate = False
+                    if [x for x in retn if x["@ID"]==shp["@FromSheet"]]:
+                        conn = [x for x in retn if x["@ID"]==shp["@FromSheet"]][0]
+                        blnupdate = True
                     else:
-                        if not shp["@Master"] in self.master_shape:
-                            self.master_shape.append(shp["@Master"])
+                        conn = {"@ID": shp["@FromSheet"], "type": "connector"}
+                        text = [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape") if x["@ID"]==shp["@FromSheet"]][0]["Text"]
+                        if text is not None:
+                            conn.update({"value": text})
+                    if shp["@FromCell"] == "EndX":
+                        conn.update({"target": shp["@ToSheet"]})
+                    else:
+                        conn.update({"source": shp["@ToSheet"]})
+                    if not blnupdate:
+                        retn.append(conn)
                 count += 1
             else:
                 break
         return retn
-
-    def get_target_shape_from_connector(self, connector):
-        """
-        Get the target shape of the connector.
-        :param connector: The connector for which to obtain the target shape.
-        :return: The shape object of the target.
-        """
-        x = [x for x in connector.get("Cell") if x["@N"] == "EndX"][0].get("@V")
-        y = [x for x in connector.get("Cell") if x["@N"] == "EndY"][0].get("@V")
-        count = 1
-        while True:
-            if f"visio/pages/page{count}.xml" in self.root:
-                count = 1
-                while True:
-                    if f"visio/pages/page{count}.xml" in self.root:
-                        for shp in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape"):
-                            shape = self.check_dimensions(shp)
-                            if not str(shape.get("@NameU")).lower().__contains__("connector") and not shp["@Master"] == self.master_connection:
-                                if self.point_in_shape(x, y, shape):
-                                    return shape
-                    count += 1
-            else:
-                break
-        return None
 
     def check_dimensions(self, shape: Any) -> Any:
         """
@@ -1376,19 +1327,20 @@ class Visio:
         shape = self.get_start()
         shape = self.check_dimensions(shape)
         flow_.append(shape)
+        count = 1
         while True:
-            connectors = self.get_outgoing_connector(shape)
-            if not connectors:
+            if f"visio/pages/page{count}.xml" in self.root:
+                for shape in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape"):
+                    if str(shape["@NameU"]).lower().__contains__("connector"):
+                        if shape["@Master"] not in self.master_connection:
+                            self.master_connection.append(shape["@Master"])
+                    if not flow_.__contains__(shape) and not shape["@Master"] in self.master_connection:
+                        flow_.append(shape)
+                count += 1
+            else:
                 break
-            for connector in connectors:
-                connector.update({"source": shape["@ID"]})
-                flow_.append(connector)
-            shape = self.get_target_shape_from_connector(connector)
-            if shape is None:
-                break
-            for connector in connectors:
-                connector.update({"target": shape["@ID"]})
-            flow_.append(shape)
+        connectors = self.get_connectors()
+        flow_ += connectors
         retn = []
         for s in flow_:
             step = self.get_step_from_shape(s)
@@ -1403,6 +1355,8 @@ class Visio:
         """
         retn = self.dynamic_object()
         retn.id = shape.get("@ID")
+        retn.type = "Shape"
+        retn.IsStart = False
         if "Section" in shape:
             if not isinstance(shape["Section"], list):
                 col = [shape["Section"]]
@@ -1411,7 +1365,10 @@ class Visio:
             if [x for x in col if x["@N"] == "Property"]:
                 col = [x for x in col if x["@N"] == "Property"][0].get("Row")
                 for rw in col:
-                    cells = rw.get("Cell")
+                    if "Cell" in rw:
+                        cells = rw.get("Cell")
+                    else:
+                        cells = col
                     key = None
                     value = None
                     for cell in cells:
@@ -1434,29 +1391,32 @@ class Visio:
 
         if str(shape.get("@NameU")).__contains__("connector"):
             retn.type = "connector"
+            if not shape["Text"] is None:
+                retn.value = shape["Text"]
+                retn.name = shape["Text"]
         else:
-            if not str(shape.get("@NameU")).__contains__("gateway"):
-                retn.type = "shape"
-            else:
-                retn.type = str(shape.get("@NameU")).lower()
-
-        if "Text" in shape:
-            retn.name = shape["Text"]
-        else:
-            if shape["@Master"] in self.master_connection:
-                retn.name = "connector"
-                retn.type = "connector"
-            else:
-                if "@NameU" in shape:
-                    retn.name = shape["@NameU"]
+            if "Section" in shape:
+                for rw in shape["Section"]:
+                    if str(rw).lower().__contains__("('@v', 'exclusive gateway')") and str(rw).lower().__contains__("('@n', 'type')"):
+                        retn.type = "exclusive gateway"
+                        retn.name = ""
+                    if str(rw).lower().__contains__("('@v', 'parallel gateway')") and str(rw).lower().__contains__("('@n', 'type')"):
+                        retn.type = "parallel gateway"
+                        retn.name = ""
+        if not "type" in shape:
+            count = 1
+            while True:
+                if f"visio/pages/page{count}.xml" in self.root:
+                    if not [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect") if x["@FromCell"]=="EndX" and x["@ToSheet"]==shape["@ID"]] :
+                        retn.IsStart = True
+                        retn.name = "Start"
+                        retn.type = "shape"
+                    if not [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect") if x["@FromCell"]=="BeginX" and x["@ToSheet"]==shape["@ID"]] :
+                        retn.name = "End"
+                        retn.type = "shape"
+                    count += 1
                 else:
-                    retn.name = "end"
-        if hasattr(shape, "IsStart"):
-            retn.IsStart = shape.IsStart
-            if retn.IsStart:
-                retn.name = "start"
-        else:
-            retn.IsStart = False
+                    break
         return retn
 
 
