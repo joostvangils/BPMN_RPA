@@ -1445,6 +1445,7 @@ class Visio:
         else:
             if shape["@Master"] in self.master_connection:
                 retn.name = "connector"
+                retn.type = "connector"
             else:
                 if "@NameU" in shape:
                     retn.name = shape["@NameU"]
@@ -1458,10 +1459,6 @@ class Visio:
             retn.IsStart = False
         return retn
 
-
-# app = Visio()
-# app.open_vsdx_file(r"c:\temp\test.vsdx")
-# flow = app.get_flow()
 
 
 # Test
