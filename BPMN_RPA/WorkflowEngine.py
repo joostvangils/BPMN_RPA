@@ -17,8 +17,6 @@ from inspect import signature
 from shutil import copyfile
 from typing import List, Any
 from urllib import parse
-from decimal import Decimal
-from decimal import getcontext
 import xmltodict
 
 
@@ -1281,12 +1279,12 @@ class Visio:
             if f"visio/pages/page{count}.xml" in self.root:
                 for shp in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect"):
                     blnupdate = False
-                    if [x for x in retn if x["@ID"]==shp["@FromSheet"]]:
-                        conn = [x for x in retn if x["@ID"]==shp["@FromSheet"]][0]
+                    if [x for x in retn if x["@ID"] == shp["@FromSheet"]]:
+                        conn = [x for x in retn if x["@ID"] == shp["@FromSheet"]][0]
                         blnupdate = True
                     else:
                         conn = {"@ID": shp["@FromSheet"], "type": "connector"}
-                        text = [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape") if x["@ID"]==shp["@FromSheet"]][0]["Text"]
+                        text = [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape") if x["@ID"] == shp["@FromSheet"]][0]["Text"]
                         if text is not None:
                             conn.update({"value": text})
                     if shp["@FromCell"] == "EndX":
@@ -1323,7 +1321,6 @@ class Visio:
         :return: The flow object.
         """
         flow_ = []
-        connector = None
         shape = self.get_start()
         shape = self.check_dimensions(shape)
         flow_.append(shape)
@@ -1403,23 +1400,21 @@ class Visio:
                     if str(rw).lower().__contains__("('@v', 'parallel gateway')") and str(rw).lower().__contains__("('@n', 'type')"):
                         retn.type = "parallel gateway"
                         retn.name = ""
-        if not "type" in shape:
+        if "type" not in shape:
             count = 1
             while True:
                 if f"visio/pages/page{count}.xml" in self.root:
-                    if not [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect") if x["@FromCell"]=="EndX" and x["@ToSheet"]==shape["@ID"]] :
+                    if not [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect") if x["@FromCell"] == "EndX" and x["@ToSheet"] == shape["@ID"]]:
                         retn.IsStart = True
                         retn.name = "Start"
                         retn.type = "shape"
-                    if not [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect") if x["@FromCell"]=="BeginX" and x["@ToSheet"]==shape["@ID"]] :
+                    if not [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect") if x["@FromCell"] == "BeginX" and x["@ToSheet"] == shape["@ID"]]:
                         retn.name = "End"
                         retn.type = "shape"
                     count += 1
                 else:
                     break
         return retn
-
-
 
 # Test
 # engine = WorkflowEngine()
