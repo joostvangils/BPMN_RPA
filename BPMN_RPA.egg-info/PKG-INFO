@@ -1,16 +1,16 @@
 Metadata-Version: 2.1
 Name: BPMN-RPA
-Version: 3.0.0
+Version: 3.0.1
 Summary: Robotic Process Automation by running BPMN diagram flows.
 Home-page: https://github.com/joostvangils/BPMN_RPA
 Author: Joost van Gils
 Author-email: joostvangils@1ic.nl
 License: UNKNOWN
 Description: # BPMN_RPA
-        Robotic Process Automation in Windows and Linux by using Diagrams.net BPMN diagrams.
+        Robotic Process Automation in Windows and Linux by using BPMN diagrams.
         
         With this Framework you can draw Business Process Model Notation based Diagrams and run those diagrams with a WorkflowEngine.
-        It is based on the mxGraph model notation of https://app.diagrams.net/.
+        You can run flows that were made in DrawIO (based on the mxGraph model notation of https://app.diagrams.net/) or with Ms Visio. There is no need for installing DrawIO or Visio to run the flows. Installing these applications is only needed for creating the flows.
         
         ### Content:
         * [Quick Start](#Quick-start)
@@ -33,10 +33,10 @@ Description: # BPMN_RPA
         
         
         #### Quick start
-        - Open the diagram.net (or DrawIO desktop) app
-        - Import the BPMN RPA Shape library ( file -> open library, which you can download [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.xml))
-        - Create your Diagram in https://app.diagrams.net/ or in the Desktop application by using the BPMN_RPA Shape-set
-        - Save your diagram as XML
+        - Open the application for creating the flow (diagram.net, DrawIO desktop app or Ms Visio)
+        - Import the BPMN RPA Shape library ( file -> open library, which you can download for DrawIO [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.xml) and for MsVisio [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.vssx))
+        - Create your Diagram in https://app.diagrams.net/ or in the Desktop application (DrawIO or Ms Visio) by using the appropriate BPMN_RPA Shape-set
+        - Save your diagram (as XML for DrawIO or as vsdx for Visio)
         - Run your workflow by using the [BPMN_RPA_Starter.py](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/BPMN_RPA_Starter.py) or the WorkflowEngine by code
         
         #### First start

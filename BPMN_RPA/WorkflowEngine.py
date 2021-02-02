@@ -111,8 +111,7 @@ class WorkflowEngine:
         :return: The input_parameter that was given when creating an instance of the WorkflowEngine
         """
         if as_dictionary:
-            if not isinstance(self.input_parameter, dict):
-                self.input_parameter = eval(self.input_parameter)
+            self.input_parameter = eval(self.input_parameter)
         self.print_log(f"Got input parameter {str(self.input_parameter)}")
         return self.input_parameter
 
@@ -1253,7 +1252,10 @@ class Visio:
             if f"visio/pages/page{count}.xml" in self.root:
                 for shape in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape"):
                     if "Section" in shape:
-                        for sec in shape.get("Section"):
+                        section = shape.get("Section")
+                        if not isinstance(section, list):
+                            section = [section]
+                        for sec in section:
                             if sec["@N"] == "Property":
                                 if not isinstance(sec["Row"], list):
                                     if {"@N": "Label", "@V": "Type"} in sec["Row"].get("Cell") and {"@N": "Value", "@V": "Start", "@U": "STR"} in sec["Row"].get("Cell"):
@@ -1285,7 +1287,10 @@ class Visio:
                         blnupdate = True
                     else:
                         conn = {"@ID": shp["@FromSheet"], "type": "connector"}
-                        text = [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape") if x["@ID"] == shp["@FromSheet"]][0]["Text"]
+                        obj = [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape") if x["@ID"] == shp["@FromSheet"]][0]
+                        text = None
+                        if "Text" in obj:
+                            text = obj["Text"]
                         if text is not None:
                             conn.update({"value": text})
                     if shp["@FromCell"] == "EndX":
@@ -1328,12 +1333,14 @@ class Visio:
         count = 1
         while True:
             if f"visio/pages/page{count}.xml" in self.root:
-                for shape in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape"):
-                    if str(shape["@NameU"]).lower().__contains__("connector"):
-                        if shape["@Master"] not in self.master_connection:
-                            self.master_connection.append(shape["@Master"])
-                    if not flow_.__contains__(shape) and not shape["@Master"] in self.master_connection:
-                        flow_.append(shape)
+                shapes = self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape")
+                for shp in shapes:
+                    if "@NameU" in shp:
+                        if str(shp["@NameU"]).lower().__contains__("connector"):
+                            if shp["@Master"] not in self.master_connection:
+                                self.master_connection.append(shp["@Master"])
+                    if not flow_.__contains__(shp) and not shp["@Master"] in self.master_connection:
+                        flow_.append(shp)
                 count += 1
             else:
                 break
@@ -1355,6 +1362,41 @@ class Visio:
         retn.id = shape.get("@ID")
         retn.type = "Shape"
         retn.IsStart = False
+        # Get default attributes if any
+        master = None
+        standard_attributes = []
+        target_id = None
+        if "@Master" in shape:
+            master = shape["@Master"]
+            obj = [x for x in self.root[f"visio/masters/masters.xml"].get("Masters").get("Master") if x["@ID"]==master]
+            if obj:
+                r_id = obj[0]["Rel"]["@r:id"]
+                obj = [x for x in self.root[f"visio/masters/_rels/masters.xml.rels"].get("Relationships").get("Relationship") if x["@Id"] == r_id]
+                if obj:
+                    target_id = obj[0]["@Target"]
+                    obj = [x for x in self.root[f"visio/masters/{target_id}"]["MasterContents"]["Shapes"]["Shape"]["Section"] if x["@N"]=="Property"]
+                    if obj:
+                        if "Cell" in obj[0]["Row"]:
+                            standard_attributes= obj[0]["Row"]["Cell"]
+                        else:
+                            for rw in obj[0]["Row"]:
+                                    for attr in rw["Cell"]:
+                                        standard_attributes.append(attr)
+        key = None
+        value = None
+        for rw in standard_attributes:
+            if rw["@N"] == "Label":
+                key = rw["@V"]
+            if rw["@N"] == "Value":
+                value = rw["@V"]
+            if key is not None and value is not None:
+                setattr(retn, str(key).replace("@", "").lower(), value)
+                # reset key and value
+                key, value = None, None
+        if target_id is not None:
+            labels = [x for x in self.root[f"visio/masters/{target_id}"]["MasterContents"]["Shapes"]["Shape"]["Section"] if x["@N"] == "Property"][0]["Row"]
+        else:
+            labels = []
         if "Section" in shape:
             if not isinstance(shape["Section"], list):
                 col = [shape["Section"]]
@@ -1362,24 +1404,41 @@ class Visio:
                 col = [x for x in shape["Section"] if x["@N"] == "Property"]
             if [x for x in col if x["@N"] == "Property"]:
                 col = [x for x in col if x["@N"] == "Property"][0].get("Row")
-                for rw in col:
-                    if "Cell" in rw:
-                        cells = rw.get("Cell")
-                    else:
-                        cells = col
-                    key = None
-                    value = None
-                    for cell in cells:
-                        if cell["@N"] == "Label":
-                            key = cell["@V"]
-                        if cell["@N"] == "Value":
-                            value = cell["@V"]
-                        if key is not None and value is not None:
-                            if str(key).lower() == "class":
-                                key = "classname"  # 'class' is a reserved keyword, so use 'classname'
-                            if str(key).lower() != "name":
+                row_id = None
+                if labels:
+                    if isinstance(labels, list):
+
+                            if "Cell" in col:
+                                row_id = col["@N"]
+                                col = col["Cell"]
+                            if not isinstance(col, list):
+                                test = [x for x in labels if x["@N"] == row_id]
+                                if test:
+                                    label = [y for y in [x for x in labels if x["@N"] == row_id][0]["Cell"] if y["@N"] == "Label"][0]["@V"]
+                                key = label
+                                value = col["@V"]
                                 setattr(retn, str(key).replace("@", "").lower(), value)
-                            break
+                                # reset key and value
+                                key, value = None, None
+                            else:
+                                for rw in col:
+                                    row_id = rw["@N"]
+                                    if "Cell" in rw:
+                                        rw = rw["Cell"]
+                                    test = [x for x in labels if x["@N"] == row_id]
+                                    if test:
+                                        label = [y for y in [x for x in labels if x["@N"] == row_id][0]["Cell"] if y["@N"] == "Label"][0]["@V"]
+                                    key = label
+                                    if rw["@N"] == "Value":
+                                        value = rw["@V"]
+                                    if key is not None and value is not None:
+                                        if str(key).lower() == "class":
+                                            key = "classname"  # 'class' is a reserved keyword, so use 'classname'
+                                        if str(key).lower() != "name":
+                                            setattr(retn, str(key).replace("@", "").lower(), value)
+                                            # reset key and value
+                                            key, value = None, None
+                                        continue
             else:
                 for att in shape:
                     setattr(retn, str(att).replace("@", "").lower(), shape[att])
@@ -1418,7 +1477,7 @@ class Visio:
         return retn
 
 # Test
-# engine = WorkflowEngine()
-# doc = engine.open(fr"c:\\temp\\test.vsdx")  # c:\\temp\\test.xml
-# steps = engine.get_flow(doc)
-# engine.run_flow(steps)
+engine = WorkflowEngine()
+doc = engine.open(fr"c:\\temp\\test2.vsdx")  # c:\\temp\\test.xml
+steps = engine.get_flow(doc)
+engine.run_flow(steps)
