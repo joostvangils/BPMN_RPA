@@ -1237,7 +1237,7 @@ class Visio:
         docs = zipfile.ZipFile(file, "r")
         self.root = {}
         for d in docs.filelist:
-            print(d)
+            # print(d)
             if str(d.filename).lower().endswith(".xml") or str(d.filename).lower().endswith(".rels"):
                 doc = docs.read(d)
                 dct = xmltodict.parse(doc)
