@@ -1,8 +1,8 @@
 # BPMN_RPA
-Robotic Process Automation in Windows and Linux by using Diagrams.net BPMN diagrams.
+Robotic Process Automation in Windows and Linux by using BPMN diagrams.
 
 With this Framework you can draw Business Process Model Notation based Diagrams and run those diagrams with a WorkflowEngine.
-It is based on the mxGraph model notation of https://app.diagrams.net/.
+You can run flows that were made in DrawIO (based on the mxGraph model notation of https://app.diagrams.net/) or with Ms Visio. There is no need for installing DrawIO or Visio to run the flows. Installing these applications is only needed for creating the flows.
 
 ### Content:
 * [Quick Start](#Quick-start)
@@ -25,7 +25,7 @@ It is based on the mxGraph model notation of https://app.diagrams.net/.
 
 
 #### Quick start
-- Open the diagram.net (or DrawIO desktop) app
+- Open the diagram.net (or DrawIO desktop) app or MsVisio
 - Import the BPMN RPA Shape library ( file -> open library, which you can download [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.xml))
 - Create your Diagram in https://app.diagrams.net/ or in the Desktop application by using the BPMN_RPA Shape-set
 - Save your diagram as XML
