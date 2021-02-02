@@ -25,7 +25,7 @@ You can run flows that were made in DrawIO (based on the mxGraph model notation 
 
 
 #### Quick start
-- Open the diagram.net (or DrawIO desktop) app or MsVisio
+- Open the application for creating the flow (diagram.net, DrawIO desktop app or Ms Visio)
 - Import the BPMN RPA Shape library ( file -> open library, which you can download for DrawIO [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.xml) and for MsVisio [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.vssx))
 - Create your Diagram in https://app.diagrams.net/ or in the Desktop application (DrawIO or Ms Visio) by using the appropriate BPMN_RPA Shape-set
 - Save your diagram (as XML for DrawIO or as vsdx for Visio)
