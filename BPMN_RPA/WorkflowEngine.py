@@ -1263,9 +1263,10 @@ class Visio:
                                         return shape
                                 else:
                                     for rw in sec["Row"]:
-                                        if {"@N": "Label", "@V": "Type"} in rw.get("Cell") and {"@N": "Value", "@V": "Start", "@U": "STR"} in rw.get("Cell"):
-                                            setattr(shape, "IsStart", True)
-                                            return shape
+                                        if "Cell" in rw:
+                                            if {"@N": "Label", "@V": "Type"} in rw.get("Cell") and {"@N": "Value", "@V": "Start", "@U": "STR"} in rw.get("Cell"):
+                                                setattr(shape, "IsStart", True)
+                                                return shape
                 count += 1
             else:
                 break
@@ -1300,22 +1301,7 @@ class Visio:
                 break
         return retn
 
-    def check_dimensions(self, shape: Any) -> Any:
-        """
-        Get Width and Height attributes from master if not already in shape attributes.
-        :param shape: The shape object to check.
-        :return: The shape object including height and width attributes.
-        """
-        if [x for x in shape["Cell"] if x["@N"] == "Width"] and [x for x in shape["Cell"] if x["@N"] == "Height"]:
-            return shape
-        master = [x for x in self.root[f"visio/masters/masters.xml"].get("Masters").get("Master") if x["@ID"] == shape["@Master"]][0]
-        rel = master["Rel"].get("@r:id")
-        target = [x for x in self.root[f"visio/masters/_rels/masters.xml.rels"].get("Relationships").get("Relationship") if x["@Id"] == rel][0]["@Target"]
-        w = [x for x in self.root[f"visio/masters/{target}"].get("MasterContents").get("Shapes").get("Shape").get("Cell") if x["@N"] == "Width"][0]
-        h = [x for x in self.root[f"visio/masters/{target}"].get("MasterContents").get("Shapes").get("Shape").get("Cell") if x["@N"] == "Height"][0]
-        shape["Cell"].append(w)
-        shape["Cell"].append(h)
-        return shape
+
 
     def get_flow(self):
         """
@@ -1324,7 +1310,6 @@ class Visio:
         """
         flow_ = []
         shape = self.get_start()
-        shape = self.check_dimensions(shape)
         flow_.append(shape)
         count = 1
         while True:
@@ -1344,8 +1329,9 @@ class Visio:
         flow_ += connectors
         retn = []
         for s in flow_:
-            step = self.get_step_from_shape(s)
-            retn.append(step)
+            if s is not None:
+                step = self.get_step_from_shape(s)
+                retn.append(step)
         return retn
 
     def get_step_from_shape(self, shape: Any) -> Any:
@@ -1357,10 +1343,7 @@ class Visio:
         properties = {"id": shape.get("@ID")}
         properties.update({"type": "shape"})
         if "@Name" in shape:
-            if "Text" in shape:
-                properties.update({"name": shape["Text"]})
-            else:
-                properties.update({"name": shape["@Name"]})
+           properties.update({"name": shape["@Name"]})
         properties.update({"IsStart": False})
         retn = self.dynamic_object()
         if "type" in shape:
@@ -1480,6 +1463,9 @@ class Visio:
                     count += 1
                 else:
                     break
+        properties.update({"id": shape.get("@ID")})
+        if "Text" in shape:
+            properties.update({"name": str(shape["Text"]).lower()})
         if str(properties["name"]).lower().__contains__("gateway"):
             properties.update({"name": ""})
         properties.update({"type": str(properties["type"]).lower()})
