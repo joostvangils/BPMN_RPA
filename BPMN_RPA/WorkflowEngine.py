@@ -1280,26 +1280,22 @@ class Visio:
         count = 1
         while True:
             if f"visio/pages/page{count}.xml" in self.root:
-                for shp in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect"):
-                    blnupdate = False
-                    if [x for x in retn if x["@ID"] == shp["@FromSheet"]]:
-                        conn = [x for x in retn if x["@ID"] == shp["@FromSheet"]][0]
-                        blnupdate = True
-                    else:
+                connects = self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect")
+                if connects:
+                    for shp in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect"):
                         conn = {"@ID": shp["@FromSheet"], "type": "connector"}
-                        obj = [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape") if x["@ID"] == shp["@FromSheet"]][0]
-                        text = None
-                        if "Text" in obj:
-                            text = obj["Text"]
-                        if text is not None:
-                            conn.update({"value": text})
-                    if shp["@FromCell"] == "EndX":
-                        conn.update({"target": shp["@ToSheet"]})
-                    else:
-                        conn.update({"source": shp["@ToSheet"]})
-                    if not blnupdate:
-                        retn.append(conn)
-                count += 1
+                        if shp["@FromCell"] == "BeginX":
+                            obj = [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape") if x["@ID"] == shp["@FromSheet"]][0]
+                            text = None
+                            if "Text" in obj:
+                                text = obj["Text"]
+                            if text is not None:
+                                conn.update({"value": text})
+                            conn.update({"source": shp["@ToSheet"]})
+                            target = [y for y in [x for x in connects if x["@FromSheet"] == shp["@FromSheet"]] if y["@FromCell"] == "EndX"][0]["@ToSheet"]
+                            conn.update({"target": target})
+                            retn.append(conn)
+                    count += 1
             else:
                 break
         return retn
@@ -1417,7 +1413,7 @@ class Visio:
             if rw["@N"] == "Value":
                 value = rw["@V"]
             if key is not None and value is not None:
-                properties.update({"row_id": "template", key: value})
+                properties.update({"row_id": "template", str(key).lower(): value})
                 # reset key and value
                 key, value = None, None
         labels = []
@@ -1468,7 +1464,7 @@ class Visio:
                         value = rw_l[0]["@V"]
                     # endregion
                 if key is not None and value is not None:
-                    properties.update({"row_id": row_id, key: value})
+                    properties.update({"row_id": row_id, str(key).lower(): value})
 
         if "Section" in shape:
             for rw in shape["Section"]:
@@ -1493,12 +1489,15 @@ class Visio:
                     count += 1
                 else:
                     break
+        if str(properties["name"]).lower().__contains__("gateway"):
+            properties.update({"name": ""})
+        properties.update({"type": str(properties["type"]).lower()})
         for k, v in properties.items():
             setattr(retn, k, v)
         return retn
 
 # Test
-engine = WorkflowEngine()
-doc = engine.open(fr"c:\\temp\\test2.vsdx")  # c:\\temp\\test.xml
-steps = engine.get_flow(doc)
-engine.run_flow(steps)
+# engine = WorkflowEngine()
+# doc = engine.open(fr"c:\\temp\\test2.vsdx")  # c:\\temp\\test.xml
+# steps = engine.get_flow(doc)
+# engine.run_flow(steps)
