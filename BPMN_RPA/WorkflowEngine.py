@@ -1358,15 +1358,41 @@ class Visio:
         :param shape: The Shape-object
         :returns: A Step-object
         """
+        # region Don't execute for connectors, return them immediately
+
+        # endregion
+        properties = {}
+        properties = {"id": shape.get("@ID")}
+        properties.update({"type": "shape"})
+        if "@Name" in shape:
+            if "Text" in shape:
+                properties.update({"name": shape["Text"]})
+            else:
+                properties.update({"name": shape["@Name"]})
+        properties.update({"IsStart": False})
         retn = self.dynamic_object()
-        retn.id = shape.get("@ID")
-        retn.type = "Shape"
-        retn.IsStart = False
+        if "type" in shape:
+            if str(shape["type"]).lower().__contains__("connector"):
+                properties.pop("IsStart")
+                properties.update({"type": "connector"})
+                properties.update({"target": shape["target"]})
+                properties.update({"source": shape["source"]})
+                if "value" in shape:
+                    properties.update({"value": shape["value"]})
+                    properties.update({"name": shape["value"]})
+                for k, v in properties.items():
+                    setattr(retn, k, v)
+                return retn
+
         # Get default attributes if any
         master = None
         standard_attributes = []
+        props = []
         target_id = None
         label = None
+
+        row_id = 0
+        # region attributes from template
         if "@Master" in shape:
             master = shape["@Master"]
             obj = [x for x in self.root[f"visio/masters/masters.xml"].get("Masters").get("Master") if x["@ID"]==master]
@@ -1391,94 +1417,84 @@ class Visio:
             if rw["@N"] == "Value":
                 value = rw["@V"]
             if key is not None and value is not None:
-                setattr(retn, str(key).replace("@", "").lower(), value)
+                properties.update({"row_id": "template", key: value})
                 # reset key and value
                 key, value = None, None
+        labels = []
         if target_id is not None:
             obj = [x for x in self.root[f"visio/masters/{target_id}"]["MasterContents"]["Shapes"]["Shape"]["Section"] if x["@N"] == "Property"]
             if obj:
                 labels = obj[0]["Row"]
-            else:
-                labels = []
-        else:
-            labels = []
+        # endregion
         if "Section" in shape:
             if not isinstance(shape["Section"], list):
-                col = [shape["Section"]]
+                sect = [shape["Section"]]
             else:
-                col = [x for x in shape["Section"] if x["@N"] == "Property"]
-            if [x for x in col if x["@N"] == "Property"]:
-                col = [x for x in col if x["@N"] == "Property"][0].get("Row")
+                sect = [x for x in shape["Section"] if x["@N"] == "Property"]
+            # sect is a list or ordered dict. Get the 'Property' section
+            if [x for x in sect if x["@N"] == "Property"]:
+                props = [x for x in sect if x["@N"] == "Property"][0].get("Row")
+            # props is now the 'Property' section of the Shape
+            # Loop the properties
+            # props is ordered_dict based on stencil, but list[ordered_dict] for manual
+            is_manual_shape = True
+            if not isinstance(props, list):
+                props = [props]
+                is_manual_shape = False
+            for prop in props:
+                # get the property row_id
                 row_id = None
-                if labels:
-                    if isinstance(labels, list):
+                if str(prop["@N"]).lower().__contains__("row_"):
+                    row_id = prop["@N"]
+                # region get the key and value
+                key, value = None, None
+                if not "Cell" in prop:
+                    continue
+                if isinstance(prop["Cell"], dict):
+                    # it is a value that belongs to a template label
+                    label = [x for x in labels if x["@N"] == row_id]
+                    if label:
+                        kvps = label[0]["Cell"]
+                    rw_k = [x for x in kvps if x["@N"] == "Label"]
+                    if rw_k:
+                        key = rw_k[0]["@V"]
+                    value = prop["Cell"]["@V"]
+                else:
+                    rw_k = [x for x in prop["Cell"] if x["@N"] == "Label"]
+                    if rw_k:
+                        key = rw_k[0]["@V"]
+                    rw_l = [x for x in prop["Cell"] if x["@N"] == "Value"]
+                    if rw_l:
+                        value = rw_l[0]["@V"]
+                    # endregion
+                if key is not None and value is not None:
+                    properties.update({"row_id": row_id, key: value})
 
-                            if "Cell" in col:
-                                row_id = col["@N"]
-                                col = col["Cell"]
-                            if not isinstance(col, list):
-                                test = [x for x in labels if x["@N"] == row_id]
-                                if test:
-                                    label = [y for y in [x for x in labels if x["@N"] == row_id][0]["Cell"] if y["@N"] == "Label"][0]["@V"]
-                                key = label
-                                value = col["@V"]
-                                setattr(retn, str(key).replace("@", "").lower(), value)
-                                # reset key and value
-                                key, value = None, None
-                            else:
-                                for rw in col:
-                                    row_id = rw["@N"]
-                                    if "Cell" in rw:
-                                        rw = rw["Cell"]
-                                    test = [x for x in labels if x["@N"] == row_id]
-                                    if test:
-                                        label = [y for y in [x for x in labels if x["@N"] == row_id][0]["Cell"] if y["@N"] == "Label"][0]["@V"]
-                                    key = label
-                                    if rw["@N"] == "Value":
-                                        value = rw["@V"]
-                                    if key is not None and value is not None:
-                                        if str(key).lower() == "class":
-                                            key = "classname"  # 'class' is a reserved keyword, so use 'classname'
-                                        if str(key).lower() != "name":
-                                            setattr(retn, str(key).replace("@", "").lower(), value)
-                                            # reset key and value
-                                            key, value = None, None
-                                        continue
-            else:
-                for att in shape:
-                    setattr(retn, str(att).replace("@", "").lower(), shape[att])
-        else:
-            for att in shape:
-                setattr(retn, str(att).replace("@", "").lower(), shape[att])
+        if "Section" in shape:
+            for rw in shape["Section"]:
+                if str(rw).lower().__contains__("('@v', 'exclusive gateway')") and str(rw).lower().__contains__("('@n', 'type')"):
+                    properties.update({"type": "exclusive gateway"})
+                    properties.update({"name": ""})
+                if str(rw).lower().__contains__("('@v', 'parallel gateway')") and str(rw).lower().__contains__("('@n', 'type')"):
+                    properties.update({"type": "parallel gateway"})
+                    properties.update({"name": ""})
 
-        if str(shape.get("@NameU")).__contains__("connector"):
-            retn.type = "connector"
-            if not shape["Text"] is None:
-                retn.value = shape["Text"]
-                retn.name = shape["Text"]
-        else:
-            if "Section" in shape:
-                for rw in shape["Section"]:
-                    if str(rw).lower().__contains__("('@v', 'exclusive gateway')") and str(rw).lower().__contains__("('@n', 'type')"):
-                        retn.type = "exclusive gateway"
-                        retn.name = ""
-                    if str(rw).lower().__contains__("('@v', 'parallel gateway')") and str(rw).lower().__contains__("('@n', 'type')"):
-                        retn.type = "parallel gateway"
-                        retn.name = ""
         if "type" not in shape:
             count = 1
             while True:
                 if f"visio/pages/page{count}.xml" in self.root:
                     if not [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect") if x["@FromCell"] == "EndX" and x["@ToSheet"] == shape["@ID"]]:
-                        retn.IsStart = True
-                        retn.name = "Start"
-                        retn.type = "shape"
+                        properties.update({"IsStart": True})
+                        properties.update({"name": "Start"})
+                        properties.update({"type": "shape"})
                     if not [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect") if x["@FromCell"] == "BeginX" and x["@ToSheet"] == shape["@ID"]]:
-                        retn.name = "End"
-                        retn.type = "shape"
+                        properties.update({"name": "End"})
+                        properties.update({"type": "shape"})
                     count += 1
                 else:
                     break
+        for k, v in properties.items():
+            setattr(retn, k, v)
         return retn
 
 # Test
