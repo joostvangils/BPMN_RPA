@@ -1354,10 +1354,6 @@ class Visio:
         :param shape: The Shape-object
         :returns: A Step-object
         """
-        # region Don't execute for connectors, return them immediately
-
-        # endregion
-        properties = {}
         properties = {"id": shape.get("@ID")}
         properties.update({"type": "shape"})
         if "@Name" in shape:
@@ -1381,30 +1377,26 @@ class Visio:
                 return retn
 
         # Get default attributes if any
-        master = None
         standard_attributes = []
         props = []
         target_id = None
-        label = None
-
-        row_id = 0
         # region attributes from template
         if "@Master" in shape:
             master = shape["@Master"]
-            obj = [x for x in self.root[f"visio/masters/masters.xml"].get("Masters").get("Master") if x["@ID"]==master]
+            obj = [x for x in self.root[f"visio/masters/masters.xml"].get("Masters").get("Master") if x["@ID"] == master]
             if obj:
                 r_id = obj[0]["Rel"]["@r:id"]
                 obj = [x for x in self.root[f"visio/masters/_rels/masters.xml.rels"].get("Relationships").get("Relationship") if x["@Id"] == r_id]
                 if obj:
                     target_id = obj[0]["@Target"]
-                    obj = [x for x in self.root[f"visio/masters/{target_id}"]["MasterContents"]["Shapes"]["Shape"]["Section"] if x["@N"]=="Property"]
+                    obj = [x for x in self.root[f"visio/masters/{target_id}"]["MasterContents"]["Shapes"]["Shape"]["Section"] if x["@N"] == "Property"]
                     if obj:
                         if "Cell" in obj[0]["Row"]:
-                            standard_attributes= obj[0]["Row"]["Cell"]
+                            standard_attributes = obj[0]["Row"]["Cell"]
                         else:
                             for rw in obj[0]["Row"]:
-                                    for attr in rw["Cell"]:
-                                        standard_attributes.append(attr)
+                                for attr in rw["Cell"]:
+                                    standard_attributes.append(attr)
         key = None
         value = None
         for rw in standard_attributes:
@@ -1433,33 +1425,32 @@ class Visio:
             # props is now the 'Property' section of the Shape
             # Loop the properties
             # props is ordered_dict based on stencil, but list[ordered_dict] for manual
-            is_manual_shape = True
             if not isinstance(props, list):
                 props = [props]
-                is_manual_shape = False
             for prop in props:
                 # get the property row_id
                 row_id = None
-                if str(prop["@N"]).lower().__contains__("row_"):
-                    row_id = prop["@N"]
+                if str(prop.get("@N")).lower().__contains__("row_"):
+                    row_id = prop.get("@N")
                 # region get the key and value
                 key, value = None, None
-                if not "Cell" in prop:
+                if "Cell" not in prop:
                     continue
-                if isinstance(prop["Cell"], dict):
+                if isinstance(prop.get("Cell"), dict):
                     # it is a value that belongs to a template label
                     label = [x for x in labels if x["@N"] == row_id]
+                    kvps = None
                     if label:
                         kvps = label[0]["Cell"]
                     rw_k = [x for x in kvps if x["@N"] == "Label"]
                     if rw_k:
                         key = rw_k[0]["@V"]
-                    value = prop["Cell"]["@V"]
+                    value = prop.get("Cell")["@V"]
                 else:
-                    rw_k = [x for x in prop["Cell"] if x["@N"] == "Label"]
+                    rw_k = [x for x in prop.get("Cell") if x["@N"] == "Label"]
                     if rw_k:
                         key = rw_k[0]["@V"]
-                    rw_l = [x for x in prop["Cell"] if x["@N"] == "Value"]
+                    rw_l = [x for x in prop.get("Cell") if x["@N"] == "Value"]
                     if rw_l:
                         value = rw_l[0]["@V"]
                     # endregion
