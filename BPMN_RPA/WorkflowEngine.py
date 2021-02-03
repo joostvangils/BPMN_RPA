@@ -1366,6 +1366,7 @@ class Visio:
         master = None
         standard_attributes = []
         target_id = None
+        label = None
         if "@Master" in shape:
             master = shape["@Master"]
             obj = [x for x in self.root[f"visio/masters/masters.xml"].get("Masters").get("Master") if x["@ID"]==master]
@@ -1394,7 +1395,11 @@ class Visio:
                 # reset key and value
                 key, value = None, None
         if target_id is not None:
-            labels = [x for x in self.root[f"visio/masters/{target_id}"]["MasterContents"]["Shapes"]["Shape"]["Section"] if x["@N"] == "Property"][0]["Row"]
+            obj = [x for x in self.root[f"visio/masters/{target_id}"]["MasterContents"]["Shapes"]["Shape"]["Section"] if x["@N"] == "Property"]
+            if obj:
+                labels = obj[0]["Row"]
+            else:
+                labels = []
         else:
             labels = []
         if "Section" in shape:
@@ -1477,7 +1482,7 @@ class Visio:
         return retn
 
 # Test
-# engine = WorkflowEngine()
-# doc = engine.open(fr"c:\\temp\\test2.vsdx")  # c:\\temp\\test.xml
-# steps = engine.get_flow(doc)
-# engine.run_flow(steps)
+engine = WorkflowEngine()
+doc = engine.open(fr"c:\\temp\\test2.vsdx")  # c:\\temp\\test.xml
+steps = engine.get_flow(doc)
+engine.run_flow(steps)
