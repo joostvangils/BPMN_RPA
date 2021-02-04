@@ -31,7 +31,7 @@ import xmltodict
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
-# Copyright 2020-2021 Joost van Gils
+# Copyright 2020-2021 Joost W.N.M. van Gils
 
 
 class WorkflowEngine:
