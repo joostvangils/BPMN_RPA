@@ -1,6 +1,18 @@
 from datetime import datetime
 from typing import Any
 
+# The BPMN-RPA Compare module is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# The BPMN-RPA Compare module is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 def is_first_item_equal_to_second_item(first_item: Any, second_item: Any) -> bool:
     """

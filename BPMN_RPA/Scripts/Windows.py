@@ -2,6 +2,20 @@ from typing import Any
 from win32gui import GetForegroundWindow, GetWindowText, EnumWindows, GetWindowPlacement, GetClassName, GetParent, \
     GetWindowLong, ShowWindow, PostMessage, SetForegroundWindow, MoveWindow, SetFocus
 
+# The BPMN-RPA Windows module is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# The BPMN-RPA Windows module is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
 GWL_WNDPROC = (-4)
 SW_HIDE = 0
 SW_SHOWNORMAL = 1
