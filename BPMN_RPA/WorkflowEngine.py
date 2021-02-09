@@ -118,7 +118,7 @@ class WorkflowEngine:
         self.step_nr = None
         self.variables = {}  # Dictionary to hold WorkflowEngine variables
 
-    def get_input_parameter(self, as_dictionary: False):
+    def get_input_parameter(self, as_dictionary: bool = False) -> Any:
         """
         Returns the input parameter that was given when creating an instance of the WorkflowEngine
         :param as_dictionary: Optional. Indicator whether to treat the given input as a dictionary object (string to dict).
