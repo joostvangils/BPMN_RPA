@@ -1518,6 +1518,6 @@ class Visio:
 
 # Test
 # engine = WorkflowEngine()
-# doc = engine.open(fr"c:\\temp\\test.xml")  # c:\\temp\\test.xml
+# doc = engine.open(fr"c:\\temp\\test.vsdx")  # c:\\temp\\test.xml
 # steps = engine.get_flow(doc)
 # engine.run_flow(steps)
