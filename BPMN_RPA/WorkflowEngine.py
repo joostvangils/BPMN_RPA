@@ -1,5 +1,6 @@
 import base64
 import copy
+import glob
 import importlib
 import importlib.util as util
 import inspect
@@ -8,6 +9,7 @@ import os
 import site
 import socket
 import sqlite3
+import sys
 import winreg
 import xml.etree.ElementTree as ElTree
 import zipfile
@@ -17,7 +19,9 @@ from inspect import signature
 from shutil import copyfile
 from typing import List, Any
 from urllib import parse
+
 import xmltodict
+
 
 # The BPMN-RPA WorkflowEngine is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -141,16 +145,25 @@ class WorkflowEngine:
             self.flowpath = filepath
         xml_file = open(filepath, "r")
         if not filepath.__contains__(".vsdx"):
-            self.flowname = filepath.split("\\")[-1].lower().replace(".xml", "")
-            xml_root = ElTree.fromstring(xml_file.read())
-            raw_text = xml_root[0].text
-            base64_decode = base64.b64decode(raw_text)
-            inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
-            url_decode = parse.unquote(inflated_xml)
-            if as_xml:
-                return url_decode
-            retn = xmltodict.parse(url_decode)
-            return retn
+            if filepath.__contains__(".flw"):
+                self.flowname = filepath.split("\\")[-1].lower().replace(".flw", "")
+                with open(filepath, encoding="utf8", errors='ignore') as f:
+                    content = f.read()
+                decoded = base64.b64decode(content).decode("utf-8", errors='ignore')
+                idx = decoded.index("}]!")
+                dict_list = json.loads(decoded[0:idx+2])
+                return dict_list
+            else:
+                self.flowname = filepath.split("\\")[-1].lower().replace(".xml", "")
+                xml_root = ElTree.fromstring(xml_file.read())
+                raw_text = xml_root[0].text
+                base64_decode = base64.b64decode(raw_text)
+                inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
+                url_decode = parse.unquote(inflated_xml)
+                if as_xml:
+                    return url_decode
+                retn = xmltodict.parse(url_decode)
+                return retn
         else:
             # It is a MsVisio file!
             visio = Visio()
@@ -232,6 +245,14 @@ class WorkflowEngine:
             # It is a Visio Object!
             visio = ordered_dict
             return visio.get_flow()
+        if isinstance(ordered_dict, list):
+            retn = []
+            for rw in ordered_dict:
+                tmp = self.dynamic_object()
+                for k, v in rw.items():
+                    setattr(tmp, k, v)
+                retn.append(tmp)
+            return retn
         connectors = []
         shapes = []
         connectorvalues = {}
@@ -625,7 +646,8 @@ class WorkflowEngine:
                     self.step_name = step.name
                     if len(step.name) == 0:
                         if hasattr(step, "type"):
-                            self.print_log(status="Running",
+                            if not hasattr(step, "function"):
+                                self.print_log(status="Running",
                                            result=f"Passing an {step.type} with value {output_previous_step}...")
                     else:
                         if hasattr(step, "function"):
@@ -1104,6 +1126,15 @@ class WorkflowEngine:
     class dynamic_object(object):
         pass
 
+    @staticmethod
+    def set_breakpoint():
+        """
+        Set a breakpoint to debug the code.
+        :param use_pycharm: Optional. Indicator whether to try and detect Pycharm, so Pycharm can be used to attach to the process and debug in Pycharm.
+        """
+        print("---------- Debug ----------")
+        breakpoint()
+
 
 class SQL:
 
@@ -1315,8 +1346,6 @@ class Visio:
                 break
         return retn
 
-
-
     def get_flow(self):
         """
         Get the flow from the file.
@@ -1357,7 +1386,7 @@ class Visio:
         properties = {"id": shape.get("@ID")}
         properties.update({"type": "shape"})
         if "@Name" in shape:
-           properties.update({"name": shape["@Name"]})
+            properties.update({"name": shape["@Name"]})
         properties.update({"IsStart": False})
         retn = self.dynamic_object()
         if "type" in shape:
@@ -1486,6 +1515,7 @@ class Visio:
         for k, v in properties.items():
             setattr(retn, k, v)
         return retn
+
 
 # Test
 # engine = WorkflowEngine()
