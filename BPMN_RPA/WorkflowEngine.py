@@ -1130,7 +1130,6 @@ class WorkflowEngine:
     def set_breakpoint():
         """
         Set a breakpoint to debug the code.
-        :param use_pycharm: Optional. Indicator whether to try and detect Pycharm, so Pycharm can be used to attach to the process and debug in Pycharm.
         """
         print("---------- Debug ----------")
         breakpoint()
@@ -1519,6 +1518,6 @@ class Visio:
 
 # Test
 # engine = WorkflowEngine()
-# doc = engine.open(fr"c:\\temp\\test2.vsdx")  # c:\\temp\\test.xml
+# doc = engine.open(fr"c:\\temp\\test.xml")  # c:\\temp\\test.xml
 # steps = engine.get_flow(doc)
 # engine.run_flow(steps)
