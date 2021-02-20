@@ -150,7 +150,7 @@ class WorkflowEngine:
                 with open(filepath, encoding="utf8", errors='ignore') as f:
                     content = f.read()
                 decoded = base64.b64decode(content).decode("utf-8", errors='ignore')
-                idx = decoded.index("}]!")
+                idx = decoded.index("}]")
                 dict_list = json.loads(decoded[0:idx+2])
                 return dict_list
             else:
@@ -1517,7 +1517,7 @@ class Visio:
 
 
 # Test
-# engine = WorkflowEngine()
-# doc = engine.open(fr"c:\\temp\\test.vsdx")  # c:\\temp\\test.xml
-# steps = engine.get_flow(doc)
-# engine.run_flow(steps)
+engine = WorkflowEngine()
+doc = engine.open(fr"c:\\temp\\test.vsdx")  # c:\\temp\\test.xml
+steps = engine.get_flow(doc)
+engine.run_flow(steps)
