@@ -492,7 +492,7 @@ class WorkflowEngine:
                                                         attr = str(lst[0].split(".")[1]).replace(".", "")
                                                     if loopvars[0].counter <= len(replace_value) - 1:
                                                         val = replace_value[loopvars[0].counter]
-                                                        if attr != None:
+                                                        if attr is not None:
                                                             if len(attr) > 0:
                                                                 val = getattr(val, attr)
                                                     else:
