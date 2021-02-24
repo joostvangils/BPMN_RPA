@@ -130,7 +130,7 @@ class WorkflowEngine:
         """
         if as_dictionary:
             if not isinstance(self.input_parameter, dict):
-                    self.input_parameter = eval(self.input_parameter)
+                self.input_parameter = eval(self.input_parameter)
         self.print_log(f"Got input parameter {str(self.input_parameter)}")
         return self.input_parameter
 
@@ -152,7 +152,7 @@ class WorkflowEngine:
                     content = f.read()
                 decoded = base64.b64decode(content).decode("utf-8", errors='ignore')
                 idx = decoded.index("}]")
-                dict_list = json.loads(decoded[0:idx+2])
+                dict_list = json.loads(decoded[0:idx + 2])
                 return dict_list
             else:
                 self.flowname = filepath.split("\\")[-1].lower().replace(".xml", "")
@@ -649,7 +649,7 @@ class WorkflowEngine:
                         if hasattr(step, "type"):
                             if not hasattr(step, "function"):
                                 self.print_log(status="Running",
-                                           result=f"Passing an {step.type} with value {output_previous_step}...")
+                                               result=f"Passing an {step.type} with value {output_previous_step}...")
                     else:
                         if hasattr(step, "function"):
                             if step.function != "print_log":
@@ -1515,7 +1515,6 @@ class Visio:
         for k, v in properties.items():
             setattr(retn, k, v)
         return retn
-
 
 # Test
 # engine = WorkflowEngine()
