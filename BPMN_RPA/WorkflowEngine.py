@@ -129,7 +129,8 @@ class WorkflowEngine:
         :return: The input_parameter that was given when creating an instance of the WorkflowEngine
         """
         if as_dictionary:
-            self.input_parameter = eval(self.input_parameter)
+            if not isinstance(self.input_parameter, dict):
+                    self.input_parameter = eval(self.input_parameter)
         self.print_log(f"Got input parameter {str(self.input_parameter)}")
         return self.input_parameter
 
