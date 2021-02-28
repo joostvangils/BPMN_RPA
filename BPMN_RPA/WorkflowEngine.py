@@ -628,7 +628,7 @@ class WorkflowEngine:
         step = [x for x in shape_steps if x.IsStart][0]
 
         # Log the start in the orchestrator database
-        sql = f"INSERT INTO Runs (name, flow_id) VALUES ('{self.flowname}', {flow_id});"
+        sql = f"INSERT INTO Runs (name, flow_id, result) VALUES ('{self.flowname}', {flow_id}, 'The flow was aborted.');"
         self.id = self.db.run_sql(sql=sql, tablename="Runs")
         print("\n")
         self.print_log(status="Starting",
@@ -869,11 +869,12 @@ class WorkflowEngine:
             ok = "The flow has ended with ERRORS."
         sql = f"INSERT INTO Steps (run, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', 'End', 'Ended', '{ok}');"
         step_time = datetime.now().strftime("%H:%M:%S")
+        finished = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         end_result = f"{step_time}: Flow '{self.flowname}': {ok}"
         print(end_result)
         self.db.run_sql(sql=sql, tablename="Steps")
         # Update the result of the flow
-        sql = f"UPDATE Runs SET result= '{ok}', finished='{step_time}' where id = {self.id};"
+        sql = f"UPDATE Runs SET result= '{ok}', finished='{finished}' where id = {self.id};"
         self.db.run_sql(sql=sql, tablename="Runs")
 
     def get_input_from_signature(self, step: Any, method_to_call: Any) -> Any:
@@ -1128,12 +1129,14 @@ class WorkflowEngine:
     class dynamic_object(object):
         pass
 
-    @staticmethod
-    def set_breakpoint():
+    def set_breakpoint(self):
         """
         Set a breakpoint to debug the code.
         """
         print("---------- Debug ----------")
+        finished = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        sql = f"UPDATE Runs SET result= 'Encounters a breakpoint.', finished='{finished}' where id = {self.id};"
+        self.db.run_sql(sql=sql, tablename="Runs")
         breakpoint()
 
 

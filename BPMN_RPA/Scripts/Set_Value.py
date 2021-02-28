@@ -1,3 +1,4 @@
+import json
 from typing import List, Any
 
 # The BPMN-RPA Set_Value module is free software: you can redistribute it and/or modify
@@ -26,6 +27,8 @@ def value_to_variable(value: Any, convert_to_list=False) -> Any:
         for v in value:
             values.append(v.strip())
         value = values
+    if isinstance(value, str) and value.startswith("{") and value.endswith("}") and not convert_to_list:
+        value = json.loads(value)
     return value
 
 
