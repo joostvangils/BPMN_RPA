@@ -873,7 +873,7 @@ class WorkflowEngine:
         print(end_result)
         self.db.run_sql(sql=sql, tablename="Steps")
         # Update the result of the flow
-        sql = f"UPDATE Runs SET result= '{ok}' where id = {self.id};"
+        sql = f"UPDATE Runs SET result= '{ok}', finished='{step_time}' where id = {self.id};"
         self.db.run_sql(sql=sql, tablename="Runs")
 
     def get_input_from_signature(self, step: Any, method_to_call: Any) -> Any:
