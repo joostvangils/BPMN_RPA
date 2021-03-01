@@ -611,12 +611,14 @@ class WorkflowEngine:
             self.error = True
             raise Exception('Your installation directory is unknown.')
         # Save the flow if not already saved
-        if not os.path.exists(f'{self.db}\\Registered Flows\\{self.flowname}.xml') and not os.path.exists(
-                self.flowpath):
+        # if not os.path.exists(f'{self.db}\\Registered Flows\\{self.flowname}.xml') and not os.path.exists(
+            #   self.flowpath):
             # Move the file to the registered directory if not exists
-            copyfile(self.flowpath, f'{db_path}\\Registered Flows\\{self.flowname}.xml')
-        if not self.flowpath.lower().__contains__(".vsdx"):
-            self.flowpath = f'{db_path}\\Registered Flows\\{self.flowname}.xml'
+            # copyfile(self.flowpath, f'{db_path}\\Registered Flows\\{self.flowname}.xml')
+        # if not self.flowpath.lower().__contains__(".vsdx"):
+        #     self.flowpath = f'{db_path}\\Registered Flows\\{self.flowname}.xml'
+        if not str(self.flowpath).__contains__("\\"):
+            self.flowpath = os.getcwd() + f"\\{self.flowpath}"
         sql = f"SELECT id FROM Flows WHERE name ='{self.flowname}' AND location='{self.flowpath}'"
         flow_id = self.db.run_sql(sql=sql, tablename="Flows")
         if flow_id is None:
