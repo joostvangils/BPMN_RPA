@@ -488,6 +488,8 @@ class WorkflowEngine:
                                                     val = replace_value
                                         else:
                                             if str(replace_value).__contains__("Message(mime_content="):
+                                                if attr is None:
+                                                    attr=""
                                                 if isinstance(replace_value, list):
                                                     if tv.__contains__("."):
                                                         attr = str(lst[0].split(".")[1]).replace(".", "")
