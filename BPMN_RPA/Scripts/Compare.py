@@ -146,7 +146,7 @@ def does_list_contain_item(list_object: list, item: Any) -> bool:
     return list_object.__contains__(item)
 
 
-def does_list_contain_any_items(list_object: list) -> bool:
+def does_list_contain_any_items(list_object: Any) -> bool:
     """
     Check if a list contains items.
     :param list_object: The list object to check.
@@ -154,6 +154,13 @@ def does_list_contain_any_items(list_object: list) -> bool:
     """
     if list_object is None:
         return False
+    # When working with email from ExchangeLib:
+    if str(inspected_object).lower().__contains__("queryset"):
+        count = int(str(inspected_object).split("=")[-1].replace(")", "").strip())
+        if count==0:
+            return True
+        else:
+            return False
     if not isinstance(list_object, list):
         list_object = [list_object]
     if len(list_object) > 0:
@@ -171,6 +178,13 @@ def is_object_empty(inspected_object: Any) -> bool:
     Check if an item is empty.
     :return: Boolean True or False.
     """
+    # When working with email from ExchangeLib:
+    if str(inspected_object).lower().__contains__("queryset"):
+        count = int(str(inspected_object).split("=")[-1].replace(")", "").strip())
+        if count==0:
+            return True
+        else:
+            return False
     if isinstance(inspected_object, str):
         return inspected_object == ""
     if isinstance(inspected_object, list):
