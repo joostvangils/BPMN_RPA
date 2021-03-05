@@ -438,6 +438,7 @@ class WorkflowEngine:
                                                     if len(replace_value) == 0:
                                                         self.print_log(status="Ending loop",
                                                                        result=f"No items to loop...")
+                                                        val = replace_value
                                                         # self.exitcode_ok()
                                                     else:
                                                         if loopvars[0].counter < len(replace_value):
