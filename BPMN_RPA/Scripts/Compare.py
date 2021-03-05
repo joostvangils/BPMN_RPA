@@ -155,13 +155,13 @@ def does_list_contain_any_items(list_object: Any) -> bool:
     if list_object is None:
         return False
     # region When working with email from ExchangeLib:
-    if str(inspected_object).lower().__contains__("queryset"):
-        count = int(str(inspected_object).split("=")[-1].replace(")", "").strip())
+    if str(list_object).lower().__contains__("queryset"):
+        count = int(str(list_object).split("=")[-1].replace(")", "").strip())
         if count == 0:
             return False
         else:
             return True
-    if str(inspected_object).lower().__contains__("message(mime_content"):
+    if str(list_object).lower().__contains__("message(mime_content"):
         return True
     # endregion
     if not isinstance(list_object, list):
