@@ -154,13 +154,16 @@ def does_list_contain_any_items(list_object: Any) -> bool:
     """
     if list_object is None:
         return False
-    # When working with email from ExchangeLib:
+    # region When working with email from ExchangeLib:
     if str(inspected_object).lower().__contains__("queryset"):
         count = int(str(inspected_object).split("=")[-1].replace(")", "").strip())
-        if count==0:
-            return True
-        else:
+        if count == 0:
             return False
+        else:
+            return True
+    if str(inspected_object).lower().__contains__("message(mime_content"):
+        return True
+    # endregion
     if not isinstance(list_object, list):
         list_object = [list_object]
     if len(list_object) > 0:
@@ -178,13 +181,16 @@ def is_object_empty(inspected_object: Any) -> bool:
     Check if an item is empty.
     :return: Boolean True or False.
     """
-    # When working with email from ExchangeLib:
+    #  region When working with email from ExchangeLib:
     if str(inspected_object).lower().__contains__("queryset"):
         count = int(str(inspected_object).split("=")[-1].replace(")", "").strip())
         if count==0:
             return True
         else:
             return False
+    if str(inspected_object).lower().__contains__("message(mime_content"):
+            return False
+    # endregion
     if isinstance(inspected_object, str):
         return inspected_object == ""
     if isinstance(inspected_object, list):
