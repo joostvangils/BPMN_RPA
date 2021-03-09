@@ -130,6 +130,8 @@ class WorkflowEngine:
         """
         if as_dictionary:
             if not isinstance(self.input_parameter, dict):
+                if isinstance(self.input_parameter, str):
+                    self.input_parameter = self.input_parameter.replace("true", "True").replace("false", "False")
                 self.input_parameter = eval(self.input_parameter)
         self.print_log(f"Got input parameter {str(self.input_parameter)}")
         return self.input_parameter
@@ -489,7 +491,7 @@ class WorkflowEngine:
                                         else:
                                             if str(replace_value).__contains__("Message(mime_content="):
                                                 if attr is None:
-                                                    attr=""
+                                                    attr = ""
                                                 if isinstance(replace_value, list):
                                                     if tv.__contains__("."):
                                                         attr = str(lst[0].split(".")[1]).replace(".", "")
@@ -615,9 +617,9 @@ class WorkflowEngine:
             raise Exception('Your installation directory is unknown.')
         # Save the flow if not already saved
         # if not os.path.exists(f'{self.db}\\Registered Flows\\{self.flowname}.xml') and not os.path.exists(
-            #   self.flowpath):
-            # Move the file to the registered directory if not exists
-            # copyfile(self.flowpath, f'{db_path}\\Registered Flows\\{self.flowname}.xml')
+        #   self.flowpath):
+        # Move the file to the registered directory if not exists
+        # copyfile(self.flowpath, f'{db_path}\\Registered Flows\\{self.flowname}.xml')
         # if not self.flowpath.lower().__contains__(".vsdx"):
         #     self.flowpath = f'{db_path}\\Registered Flows\\{self.flowname}.xml'
         if not str(self.flowpath).__contains__("\\"):
@@ -1527,6 +1529,6 @@ class Visio:
 
 # Test
 # engine = WorkflowEngine()
-# doc = engine.open(fr"c:\\temp\\test.vsdx")  # c:\\temp\\test.xml
+# doc = engine.open(fr"c:\\temp\\input.xml")  # c:\\temp\\test.xml
 # steps = engine.get_flow(doc)
 # engine.run_flow(steps)
