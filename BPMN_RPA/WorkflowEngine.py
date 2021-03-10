@@ -7,7 +7,6 @@ import inspect
 import json
 import os
 import site
-import socket
 import sqlite3
 import sys
 import winreg
@@ -1022,8 +1021,6 @@ class WorkflowEngine:
                     {'%__folder_downloads__%': os.path.join(os.path.join(os.environ['USERPROFILE']), 'Downloads')})
             if str(getattr(step, value)).__contains__("%__folder_system__%"):
                 self.variables.update({'%__folder_system__%': os.environ['WINDIR'] + "\\System\\"})
-            if str(getattr(step, value)).__contains__("%__system_name__%"):
-                self.variables.update({'%__system_name__%': socket.getfqdn()})
             if str(getattr(step, value)).__contains__("%__user_name__%"):
                 self.variables.update({'%__user_name__%': os.getenv('username')})
 
