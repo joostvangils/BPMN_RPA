@@ -1,24 +1,19 @@
 import base64
 import copy
-import glob
 import importlib
 import importlib.util as util
 import inspect
 import json
 import os
 import site
-import sqlite3
-import sys
 import winreg
 import xml.etree.ElementTree as ElTree
 import zipfile
 import zlib
 from datetime import datetime, timedelta
 from inspect import signature
-from shutil import copyfile
-from typing import List, Any
+from sqlite3 import connect
 from urllib import parse
-
 import xmltodict
 
 
@@ -39,7 +34,7 @@ import xmltodict
 
 class WorkflowEngine:
 
-    def __init__(self, input_parameter: Any = None, pythonpath: str = "", installation_directory: str = ""):
+    def __init__(self, input_parameter: any = None, pythonpath: str = "", installation_directory: str = ""):
         """
         Class for automating DrawIO diagrams
         :param input_parameter: An object holding arguments to be passed as input to the WorkflowEngine.  in a flow, use get_input_parameter to retrieve the value.
@@ -121,7 +116,7 @@ class WorkflowEngine:
         self.step_nr = None
         self.variables = {}  # Dictionary to hold WorkflowEngine variables
 
-    def get_input_parameter(self, as_dictionary: bool = False) -> Any:
+    def get_input_parameter(self, as_dictionary: bool = False) -> any:
         """
         Returns the input parameter that was given when creating an instance of the WorkflowEngine
         :param as_dictionary: Optional. Indicator whether to treat the given input as a dictionary object (string to dict).
@@ -135,7 +130,7 @@ class WorkflowEngine:
         self.print_log(f"Got input parameter {str(self.input_parameter)}")
         return self.input_parameter
 
-    def open(self, filepath: str, as_xml: bool = False) -> Any:
+    def open(self, filepath: str, as_xml: bool = False) -> any:
         """
         Open a DrawIO document
         :param filepath: The full path (including extension) of the diagram file
@@ -191,7 +186,7 @@ class WorkflowEngine:
             return False
 
     @staticmethod
-    def get_db_path() -> Any:
+    def get_db_path() -> any:
         """
         Get the path to the orchestrator database
         :return: The path to the orchestrator database
@@ -206,7 +201,7 @@ class WorkflowEngine:
             return None
 
     @staticmethod
-    def get_python_path() -> Any:
+    def get_python_path() -> any:
         """
         Get the path to the Python.exe file
         :return: The path to the Python.exe file
@@ -237,7 +232,7 @@ class WorkflowEngine:
         except WindowsError:
             return False
 
-    def get_flow(self, ordered_dict: Any) -> Any:
+    def get_flow(self, ordered_dict: any) -> any:
         """
         Retrieving the elements of the flow in the Document.
         :param ordered_dict: The document object containing the flow elements.
@@ -302,7 +297,7 @@ class WorkflowEngine:
         retn = shapes + connectors
         return retn
 
-    def get_step_from_shape(self, shape: Any) -> Any:
+    def get_step_from_shape(self, shape: any) -> any:
         """
         Build a Step-object from the Shape-object
         :param shape: The Shape-object
@@ -332,7 +327,7 @@ class WorkflowEngine:
         return retn
 
     @staticmethod
-    def get_variables_from_text(text: str) -> Any:
+    def get_variables_from_text(text: str) -> any:
         """
         Get variable names (like '%variable%') from text.
         :param text: The text to get the variables from
@@ -359,7 +354,7 @@ class WorkflowEngine:
             retn = None
         return retn
 
-    def get_parameters_from_shapevalues(self, step: Any, input_signature: Any) -> Any:
+    def get_parameters_from_shapevalues(self, step: any, input_signature: any) -> any:
         """
         If input values are provided in the Shape values, then create a mapping
         :param step: The step to use the Shape values of to create the mapping
@@ -508,7 +503,7 @@ class WorkflowEngine:
                                             else:
                                                 replace_value = self.get_attribute_value(lst[0], replace_value)
                                                 if val is not None and replace_value is not None:
-                                                    val = val.replace(tv, replace_value)
+                                                    val = val.replace(tv, str(replace_value))
                                                 else:
                                                     val = replace_value
                                 else:
@@ -564,7 +559,7 @@ class WorkflowEngine:
             return mapping
 
     @staticmethod
-    def get_attribute_value(lst: str, replace_value: Any) -> Any:
+    def get_attribute_value(lst: str, replace_value: any) -> any:
         """
         Get an attribute value from a replace value (object)
         :param lst: The attribute list
@@ -591,7 +586,7 @@ class WorkflowEngine:
         return val
 
     @staticmethod
-    def step_has_direct_variables(step: Any) -> bool:
+    def step_has_direct_variables(step: any) -> bool:
         """
         Check if a step uses any variables as input for any of the Shapevalue fields
         :param step: The step to check
@@ -605,7 +600,7 @@ class WorkflowEngine:
         else:
             return False
 
-    def run_flow(self, steps: Any):
+    def run_flow(self, steps: any):
         """
         Execute a Flow.
         :params steps: The steps that must be executed in the flow
@@ -883,7 +878,7 @@ class WorkflowEngine:
         sql = f"UPDATE Runs SET result= '{ok}', finished='{finished}' where id = {self.id};"
         self.db.run_sql(sql=sql, tablename="Runs")
 
-    def get_input_from_signature(self, step: Any, method_to_call: Any) -> Any:
+    def get_input_from_signature(self, step: any, method_to_call: any) -> any:
         sig = None
         try:
             sig = signature(method_to_call)
@@ -915,7 +910,7 @@ class WorkflowEngine:
                     self.print_log(f"Loopcounter reset for loopvariable '{reset_for_loop_variable}'",
                                    "Running")
 
-    def loopcounter(self, step: Any, output_previous_step: Any) -> Any:
+    def loopcounter(self, step: any, output_previous_step: any) -> any:
         """
         Process steps with a loopcounter
         :param step: The current step object
@@ -1064,7 +1059,7 @@ class WorkflowEngine:
             retn = False
         return retn
 
-    def get_next_step(self, current_step, steps, output_previous_step: Any) -> Any:
+    def get_next_step(self, current_step, steps, output_previous_step: any) -> any:
         """
         Get the next step in the flow
         :param output_previous_step: The output of the previous step.
@@ -1155,7 +1150,7 @@ class SQL:
             return
         if not dbfolder.endswith("\\"):
             dbfolder += "\\"
-        self.connection = sqlite3.connect(f'{dbfolder}orchestrator.db')
+        self.connection = connect(f'{dbfolder}orchestrator.db')
         self.connection.execute("PRAGMA foreign_keys = 1")
         self.connection.execute("PRAGMA JOURNAL_MODE = 'WAL'")
 
@@ -1242,7 +1237,7 @@ class SQL:
             ret.append([rw[0], rw[1], rw[2], rw[3], rw[4]])
         return ret
 
-    def remove_saved_flows(self, lst: List = None):
+    def remove_saved_flows(self, lst: list = None):
         """
         Removes saved flows from the orchestrator database by matching on the given list of flow-names
         :param lst: The list with flow names to remove from the database
@@ -1385,7 +1380,7 @@ class Visio:
                 retn.append(step)
         return retn
 
-    def get_step_from_shape(self, shape: Any) -> Any:
+    def get_step_from_shape(self, shape: any) -> any:
         """
         Build a Step-object from the Shape-object
         :param shape: The Shape-object
@@ -1526,6 +1521,6 @@ class Visio:
 
 # Test
 # engine = WorkflowEngine()
-# doc = engine.open(fr"c:\\temp\\input.xml")  # c:\\temp\\test.xml
+# doc = engine.open(fr"c:\\temp\\loop.xml")  # c:\\temp\\test.xml
 # steps = engine.get_flow(doc)
 # engine.run_flow(steps)
