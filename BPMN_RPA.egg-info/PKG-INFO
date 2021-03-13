@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: BPMN-RPA
-Version: 3.0.58
+Version: 4.0.1
 Summary: Robotic Process Automation by running BPMN diagram flows.
 Home-page: https://github.com/joostvangils/BPMN_RPA
 Author: Joost van Gils
@@ -92,7 +92,6 @@ Description: # BPMN_RPA
         * __%\_\_month\_\_%__: returns the current month
         * __%\_\_now\_\_%__: returns the datetime now() object
         * __%\_\_now_formatted\_\_%__: returns today with time in the format 'dd-mm-yyyy_hhmmss'
-        * __%\_\_system_name\_\_%__: returns the fully qualified domain name (FQDN) of the system 
         * __%\_\_time\_\_%__: returns the current time
         * __%\_\_time_formatted\_\_%__: returns the current time in 'hh:mm:ss' format
         * __%\_\_today\_\_%__: returns the current date

@@ -5,7 +5,6 @@ import importlib.util as util
 import inspect
 import json
 import os
-import site
 import winreg
 import xml.etree.ElementTree as ElTree
 import zipfile
@@ -14,6 +13,7 @@ from datetime import datetime, timedelta
 from inspect import signature
 from sqlite3 import connect
 from urllib import parse
+
 import xmltodict
 
 
@@ -104,16 +104,18 @@ class WorkflowEngine:
                 json.dump(settings, outfile)
         self.input_parameter = input_parameter
         self.pythonPath = pythonpath
+        self.packages_folder = "\\".join(pythonpath.split('\\')[0:-1]) + "\\Lib\\site-packages"
         self.db = SQL(db_folder)
         self.db.orchestrator()  # Run the orchestrator database
         self.id = -1  # Holds the ID for our flow
-        self.error = False  # Indicator if the flow has any errors in its execution
+        self.error = None  # Indicator if the flow has any errors in its execution
         self.step_name = None
         self.flowname = None
         self.flowpath = None
         self.loopvariables = []
         self.previous_step = None
-        self.step_nr = None
+        self.step_nr = 0
+        self.step_input = None
         self.variables = {}  # Dictionary to hold WorkflowEngine variables
 
     def get_input_parameter(self, as_dictionary: bool = False) -> any:
@@ -144,11 +146,12 @@ class WorkflowEngine:
         if not filepath.__contains__(".vsdx"):
             if filepath.__contains__(".flw"):
                 self.flowname = filepath.split("\\")[-1].lower().replace(".flw", "")
-                with open(filepath, encoding="utf8", errors='ignore') as f:
-                    content = f.read()
-                decoded = base64.b64decode(content).decode("utf-8", errors='ignore')
-                idx = decoded.index("}]")
-                dict_list = json.loads(decoded[0:idx + 2])
+                with open(filepath, "rb") as binary_file:
+                    # Read the whole file at once
+                    content = binary_file.read()
+                str_content = content[24:-1].decode("utf-8", errors='ignore')
+                decoded = base64.b64decode(str_content).decode("utf-8", errors='ignore')
+                dict_list = json.loads(decoded)
                 return dict_list
             else:
                 self.flowname = filepath.split("\\")[-1].lower().replace(".xml", "")
@@ -600,41 +603,41 @@ class WorkflowEngine:
         else:
             return False
 
-    def run_flow(self, steps: any):
+    def run_flow(self, steps: any, step_by_step: bool = False):
         """
         Execute a Flow.
         :params steps: The steps that must be executed in the flow
+        :param step_by_step: Optional. Indicator if this function only performes one step and the looping of steps is done outside this function.
         """
+        step = None
+        output_previous_step = None
+        if not isinstance(steps, list):
+                steps = [steps]
+                step = steps[0]
         db_path = self.get_db_path()
         if db_path == "\\":
             self.error = True
             raise Exception('Your installation directory is unknown.')
-        # Save the flow if not already saved
-        # if not os.path.exists(f'{self.db}\\Registered Flows\\{self.flowname}.xml') and not os.path.exists(
-        #   self.flowpath):
-        # Move the file to the registered directory if not exists
-        # copyfile(self.flowpath, f'{db_path}\\Registered Flows\\{self.flowname}.xml')
-        # if not self.flowpath.lower().__contains__(".vsdx"):
-        #     self.flowpath = f'{db_path}\\Registered Flows\\{self.flowname}.xml'
         if not str(self.flowpath).__contains__("\\"):
             self.flowpath = os.getcwd() + f"\\{self.flowpath}"
         sql = f"SELECT id FROM Flows WHERE name ='{self.flowname}' AND location='{self.flowpath}'"
         flow_id = self.db.run_sql(sql=sql, tablename="Flows")
+        self.error = f"flow id: {flow_id}"
         if flow_id is None:
+            self.error = "start 1"
             sql = f"INSERT INTO Flows (name, location) VALUES ('{self.flowname}','{self.flowpath}');"
             flow_id = self.db.run_sql(sql=sql, tablename="Flows")
-        self.previous_step = None
-        output_previous_step = None
-        shape_steps = [x for x in steps if x.type == "shape"]
-        step = [x for x in shape_steps if x.IsStart][0]
-
-        # Log the start in the orchestrator database
-        sql = f"INSERT INTO Runs (name, flow_id, result) VALUES ('{self.flowname}', {flow_id}, 'The flow was aborted.');"
-        self.id = self.db.run_sql(sql=sql, tablename="Runs")
-        print("\n")
-        self.print_log(status="Starting",
-                       result=f"{datetime.today().strftime('%d-%m-%Y')} Starting flow '{self.flowname}'...")
-        self.step_nr = 0
+        if step_by_step==False or self.step_nr==0:
+            self.previous_step = None
+            shape_steps = [x for x in steps if x.type == "shape"]
+            step = [x for x in shape_steps if x.IsStart][0]
+            # Log the start in the orchestrator database
+            sql = f"INSERT INTO Runs (name, flow_id, result) VALUES ('{self.flowname}', {flow_id}, 'The flow was aborted.');"
+            self.id = self.db.run_sql(sql=sql, tablename="Runs")
+            print("\n")
+            self.print_log(status="Starting",
+                           result=f"{datetime.today().strftime('%d-%m-%Y')} Starting flow '{self.flowname}'...")
+            self.step_nr = 0
         while True:
             try:
                 # to fetch module
@@ -676,10 +679,10 @@ class WorkflowEngine:
                         step_input = None
                         if hasattr(step, "module"):
                             if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(".py"):
-                                step.module = f"{site.getsitepackages()[1]}\\BPMN_RPA\\Scripts\\{step.module}"
+                                    step.module = f"{self.packages_folder}\\BPMN_RPA\\Scripts\\{step.module}"
                             if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(
                                     step.module).__contains__(".py"):
-                                step.module = f"{site.getsitepackages()[1]}\\{step.module}"
+                                step.module = f"{self.packages_folder}\\{step.module}"
                             if str(step.module).lower().__contains__(".py"):
                                 spec = util.spec_from_file_location(step.module, step.module)
                                 module_object = util.module_from_spec(spec)
@@ -731,6 +734,7 @@ class WorkflowEngine:
                     step_input = self.get_input_from_signature(step, method_to_call)
                 if method_to_call is None and class_object is not None:
                     step_input = self.get_input_from_signature(step, class_object)
+                self.step_input = step_input
 
                 # execute function call and get returned values
                 if step_input is not None and not is_in_loop:
@@ -778,7 +782,6 @@ class WorkflowEngine:
                     this_step = self.loopcounter(step, output_previous_step)
                 if is_in_loop:
                     output_previous_step = [this_step]
-
                 # Update the result
                 if hasattr(step, "classname"):
                     if len(step.classname) == 0:
@@ -800,8 +803,9 @@ class WorkflowEngine:
                         if hasattr(step, "name"):
                             if len(step.name) > 0:
                                 self.print_log(status="Running", result=f"{step.name} executed.")
-            except Exception as e:
-                raise Exception(f"Error: {e}")
+            except Exception as ex:
+                self.set_error(ex)
+                raise Exception(f"Error: {ex}\n{self.error}")
             if step is None:
                 self.end_flow()
                 break
@@ -812,11 +816,32 @@ class WorkflowEngine:
                 if this_step is not None:
                     self.save_output_variable(step, this_step, output_previous_step)
             self.previous_step = copy.deepcopy(step)
-            if self.error:
-                break
+            if step_by_step:
+                return output_previous_step
             step = self.get_next_step(step, steps, output_previous_step)
         if output_previous_step is not None:
             return output_previous_step
+
+    def set_error(self, ex: any):
+        """
+        Set the internal error comming from the try-except
+        :param ex: the exception
+        """
+        trace = []
+        tb = ex.__traceback__
+        while tb is not None:
+            trace.append({
+                "filename": tb.tb_frame.f_code.co_filename,
+                "name": tb.tb_frame.f_code.co_name,
+                "lineno": tb.tb_lineno
+            })
+            tb = tb.tb_next
+            err_ = str({
+                'type': type(ex).__name__,
+                'message': str(ex),
+                'trace': trace
+            })
+        self.error = err_
 
     def print_log(self, result: str, status: str = ""):
         """
@@ -824,27 +849,31 @@ class WorkflowEngine:
         :param status: Optional. The status of the step
         :param result: The result of the step
         """
-        result = str(result).replace("<br>", " ")
-        result = str(result[0]).capitalize() + result[1:]
-        status = str(status)
-        if not result.endswith("."):
-            result += "."
-        step_time = datetime.now().strftime("%H:%M:%S")
-        if self.step_nr is not None:
-            print(f"{step_time}: Step {self.step_nr} - {result}")
-        else:
-            print(f"{step_time}: {result}")
-            self.step_nr = ""
-        result = result.replace("'", "''").strip()
-        if len(status) > 0:
-            status = f" - {status}"
-        if self.step_name is not None:
-            step_name = self.step_name.replace("'", "''")
-        else:
-            result = "Starting"
-            step_name = "Start"
-        sql = f"INSERT INTO Steps (run, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', '{step_name}', '{result}', '{self.step_nr}{status}');"
-        self.db.run_sql(sql)
+        try:
+            result = str(result).replace("<br>", " ")
+            result = str(result[0]).capitalize() + result[1:]
+            status = str(status)
+            if not result.endswith("."):
+                result += "."
+            step_time = datetime.now().strftime("%H:%M:%S")
+            if self.step_nr is not None:
+                print(f"{step_time}: Step {self.step_nr} - {result}")
+            else:
+                print(f"{step_time}: {result}")
+                self.step_nr = ""
+            result = result.replace("'", "''").strip()
+            if len(status) > 0:
+                status = f" - {status}"
+            if self.step_name is not None:
+                step_name = self.step_name.replace("'", "''")
+            else:
+                result = "Starting"
+                step_name = "Start"
+            sql = f"INSERT INTO Steps (run, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', '{step_name}', '{result}', '{self.step_nr}{status}');"
+            self.db.run_sql(sql)
+        except Exception as ex:
+            self.set_error(ex)
+            raise Exception(self.error)
 
     def exitcode_not_ok(self):
         """
@@ -866,24 +895,29 @@ class WorkflowEngine:
         """
         # Flow has ended. Log the end in the orchestrator database.
         ok = "The flow has ended."
-        if self.error:
-            ok = "The flow has ended with ERRORS."
-        sql = f"INSERT INTO Steps (run, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', 'End', 'Ended', '{ok}');"
-        step_time = datetime.now().strftime("%H:%M:%S")
-        finished = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        end_result = f"{step_time}: Flow '{self.flowname}': {ok}"
-        print(end_result)
-        self.db.run_sql(sql=sql, tablename="Steps")
-        # Update the result of the flow
-        sql = f"UPDATE Runs SET result= '{ok}', finished='{finished}' where id = {self.id};"
-        self.db.run_sql(sql=sql, tablename="Runs")
+        try:
+            if self.error:
+                ok = "The flow has ended with ERRORS."
+            sql = f"INSERT INTO Steps (run, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', 'End', 'Ended', '{ok}');"
+            step_time = datetime.now().strftime("%H:%M:%S")
+            finished = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            end_result = f"{step_time}: Flow '{self.flowname}': {ok}"
+            print(end_result)
+            self.db.run_sql(sql=sql, tablename="Steps")
+            # Update the result of the flow
+            sql = f"UPDATE Runs SET result= '{ok}', finished='{finished}' where id = {self.id};"
+            self.db.run_sql(sql=sql, tablename="Runs")
+        except Exception as ex:
+            self.set_error(ex)
+            raise Exception(f"Error: {ex}\n{self.error}")
 
     def get_input_from_signature(self, step: any, method_to_call: any) -> any:
         sig = None
         try:
             sig = signature(method_to_call)
-        except Exception as e:
-            print(f"Error in getting input from input_signature: {e}")
+        except Exception as ex:
+            self.set_error(ex)
+            print(f"Error in getting input from input_signature: {self.error}")
         if str(sig) != "()":
             step_input = self.get_parameters_from_shapevalues(step=step, input_signature=sig)
             return step_input
@@ -968,11 +1002,12 @@ class WorkflowEngine:
                     return loopvar.items[loopvar.counter]
                 else:
                     return output_previous_step
-            except Exception as e:
-                sql = f"INSERT INTO Steps (run, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', '{step.name}', 'Running', '', 'Error: {e}');"
+            except Exception as ex:
+                self.set_error(ex)
+                sql = f"INSERT INTO Steps (run, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', '{step.name}', 'Running', '', 'Error: {self.error}');"
                 self.db.run_sql(sql=sql, tablename="Steps")
                 self.error = True
-                print(f"Error: {e}")
+                print(f"Error: {self.error}")
                 return output_previous_step
         else:
             return output_previous_step
@@ -1121,8 +1156,9 @@ class WorkflowEngine:
                     loopvar.counter = loopvar.start
                     loopvar.total_listitems = 0
                     self.loopvariables.append(loopvar)
-                except Exception as e:
-                    print(f"Error: {e}")
+                except Exception as ex:
+                    self.set_error(ex)
+                    print(f"Error: {self.error}")
         return retn
 
     class dynamic_object(object):
@@ -1153,6 +1189,7 @@ class SQL:
         self.connection = connect(f'{dbfolder}orchestrator.db')
         self.connection.execute("PRAGMA foreign_keys = 1")
         self.connection.execute("PRAGMA JOURNAL_MODE = 'WAL'")
+        self.error = None
 
     def run_sql(self, sql, tablename: str = ""):
         """
@@ -1168,10 +1205,32 @@ class SQL:
         if len(tablename) > 0:
             try:
                 return self.get_inserted_id(tablename)
-            except (ValueError, Exception):
-                return None
+            except Exception as ex:
+                self.set_error(ex)
+                raise Exception(self.error)
         else:
             return None
+
+    def set_error(self, ex: any):
+        """
+        Set the internal error comming from the try-except
+        :param ex: the exception
+        """
+        trace = []
+        tb = ex.__traceback__
+        while tb is not None:
+            trace.append({
+                "filename": tb.tb_frame.f_code.co_filename,
+                "name": tb.tb_frame.f_code.co_name,
+                "lineno": tb.tb_lineno
+            })
+            tb = tb.tb_next
+            err_ = str({
+                'type': type(ex).__name__,
+                'message': str(ex),
+                'trace': trace
+            })
+        self.error = err_
 
     def get_inserted_id(self, tablename: str) -> int:
         """
@@ -1189,7 +1248,11 @@ class SQL:
         """
         Commit any sql statement
         """
-        self.connection.commit()
+        try:
+            self.connection.commit()
+        except Exception as ex:
+            self.set_error(ex)
+            raise Exception(self.error)
 
     def get_saved_flows(self):
         """
@@ -1254,15 +1317,18 @@ class SQL:
         """
         Create tables for the Orchestrator database
         """
-        sql = "CREATE TABLE IF NOT EXISTS Flows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, location TEXT NOT NULL, description TEXT, timestamp DATE DEFAULT (datetime('now','localtime')));"
-        self.run_sql(sql)
-        sql = "CREATE TABLE IF NOT EXISTS Runs (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, flow_id INTEGER NOT NULL, name TEXT NOT NULL, result TEXT, started DATE DEFAULT (datetime('now','localtime')), finished DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_saved FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
-        self.run_sql(sql)
-        sql = "CREATE TABLE IF NOT EXISTS Steps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, run INTEGER NOT NULL, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_runs FOREIGN KEY (run) REFERENCES Runs (id) ON DELETE CASCADE);"
-        self.run_sql(sql)
-        # sql = "CREATE TABLE IF NOT EXISTS Triggers (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, flow_id INTEGER NOT NULL, trigger_info, CONSTRAINT flows_saved_trigger FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
-        # self.run_sql(sql)
-
+        try:
+            sql = "CREATE TABLE IF NOT EXISTS Flows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, location TEXT NOT NULL, description TEXT, timestamp DATE DEFAULT (datetime('now','localtime')));"
+            self.run_sql(sql)
+            sql = "CREATE TABLE IF NOT EXISTS Runs (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, flow_id INTEGER NOT NULL, name TEXT NOT NULL, result TEXT, started DATE DEFAULT (datetime('now','localtime')), finished DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_saved FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
+            self.run_sql(sql)
+            sql = "CREATE TABLE IF NOT EXISTS Steps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, run INTEGER NOT NULL, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_runs FOREIGN KEY (run) REFERENCES Runs (id) ON DELETE CASCADE);"
+            self.run_sql(sql)
+            # sql = "CREATE TABLE IF NOT EXISTS Triggers (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, flow_id INTEGER NOT NULL, trigger_info, CONSTRAINT flows_saved_trigger FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
+            # self.run_sql(sql)
+        except Exception as ex:
+            self.set_error(ex)
+            raise Exception(self.error)
 
 class Visio:
 
@@ -1520,7 +1586,7 @@ class Visio:
         return retn
 
 # Test
-# engine = WorkflowEngine()
-# doc = engine.open(fr"c:\\temp\\loop.xml")  # c:\\temp\\test.xml
-# steps = engine.get_flow(doc)
-# engine.run_flow(steps)
+engine = WorkflowEngine()
+doc = engine.open(fr"c:\\temp\\test2.flw")  # c:\\temp\\test.xml
+steps = engine.get_flow(doc)
+engine.run_flow(steps)

@@ -1,5 +1,5 @@
 import json
-from typing import List, Any
+
 
 # The BPMN-RPA Set_Value module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@ from typing import List, Any
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-def value_to_variable(value: Any, convert_to_list=False) -> Any:
+def value_to_variable(value: any, convert_to_list=False) -> any:
     """
     Function for returning a value to the WorkflowEngine.
     :param value: Any value.
@@ -32,7 +32,7 @@ def value_to_variable(value: Any, convert_to_list=False) -> Any:
     return value
 
 
-def split_string_to_list(string: str, separator: str = " ", maxsplit: int = -1) -> List:
+def split_string_to_list(string: str, separator: str = " ", maxsplit: int = -1) -> list:
     """
     Convert a string with a separator to a list.
     :param string: The string to convert.
@@ -44,7 +44,7 @@ def split_string_to_list(string: str, separator: str = " ", maxsplit: int = -1) 
     return string.split(separator, maxsplit=int(maxsplit))
 
 
-def increment_counter(counter: any, step: int = 1) -> Any:
+def increment_counter(counter: any, step: int = 1) -> any:
     """
     Increment a counter variable by step (default = 1)
     :param counter: the variable to add step to

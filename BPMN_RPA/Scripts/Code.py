@@ -8,7 +8,6 @@ import zlib
 import ast
 from importlib import util
 from pathlib import Path
-from typing import List, Any
 import xmltodict
 from lxml import etree as eltree
 from BPMN_RPA.WorkflowEngine import WorkflowEngine
@@ -41,7 +40,7 @@ class Code:
         self.current_dict = None
 
     @staticmethod
-    def openflow(filepath: str, as_xml: bool = False) -> Any:
+    def openflow(filepath: str, as_xml: bool = False) -> any:
         """
         Open a DrawIO document
         :param filepath: The full path (including extension) of the diagram file
@@ -64,7 +63,7 @@ class Code:
         return retn, root
 
     @staticmethod
-    def saveflow(filepath: str, dct: Any, original: Any) -> Any:
+    def saveflow(filepath: str, dct: any, original: any) -> any:
         """
         Save a flow to a DrawIO document
         :param filepath: The full path (including extension) of the file.
@@ -83,7 +82,7 @@ class Code:
         xml_file.write(newcontent.decode('utf8'))
         xml_file.close()
 
-    def get_flow(self, ordered_dict: Any) -> Any:
+    def get_flow(self, ordered_dict: any) -> any:
         """
         Retreiving the elements of the flow in the Document.
         :param ordered_dict: The document object containing the flow elements.
@@ -135,7 +134,7 @@ class Code:
         return retn
 
     @staticmethod
-    def get_step_from_shape(shape: Any) -> Any:
+    def get_step_from_shape(shape: any) -> any:
         """
         Build a Step-object from the Shape-object
         :param shape: The Shape-object
@@ -165,7 +164,7 @@ class Code:
         return retn
 
     def check_flow_for_usage(self, flow: str, search_module: str = "", search_class: str = "",
-                             search_function: str = "") -> List:
+                             search_function: str = "") -> list:
         """
         Check if the given code is used in the steps of a flow.
         :param flow: The path to the file of the flow.
@@ -208,7 +207,7 @@ class Code:
             retn.append(f"Function \"{search_function}\" is used in step \"{f}\" of flow \"{flowname}\".")
         return retn
 
-    def get_library(self, filepath: str) -> Any:
+    def get_library(self, filepath: str) -> any:
         """
         Read a library file and return its content.
         :param filepath: The full path of the library to read.
@@ -240,7 +239,7 @@ class Code:
         xml_file.close()
 
     @staticmethod
-    def shape_decode(shape: Any):
+    def shape_decode(shape: any):
         """
         Decode the content of a shape to xml.
         :param shape: The shape to decode the content of.
@@ -413,7 +412,7 @@ class Code:
         except (ValueError, Exception):
             return ""
 
-    def sort_library(self, filepath: str) -> Any:
+    def sort_library(self, filepath: str) -> any:
         """
         Sort a DrawIo library of shapes.
         :param filepath: The path to the library file.
@@ -429,7 +428,7 @@ class Code:
         self.save_library()
         return dct
 
-    def get_module_from_variable_name(self, variable: str, filepath: str) -> Any:
+    def get_module_from_variable_name(self, variable: str, filepath: str) -> any:
         """
         Get the module path from a variable name.
         :param variable: The name of the variable.
@@ -461,7 +460,7 @@ class Code:
         return None, None
 
     @staticmethod
-    def search_modulename_in_flow(variable: str, flowsteps: Any) -> Any:
+    def search_modulename_in_flow(variable: str, flowsteps: any) -> any:
         """
         Search for the module path from a variable name.
         :param variable: The name of the variable.
@@ -646,7 +645,7 @@ class Code:
             raise Exception(f"Error. Probably the file {filepath} is not a BPMN-RPA flow or the flow is incorrect.")
 
     @staticmethod
-    def get_functions_from_module(module: str) -> Any:
+    def get_functions_from_module(module: str) -> any:
         """
         Retreive the comments from code.
         :param module: The module name, including the path.
@@ -693,7 +692,7 @@ class Code:
         self.sort_library(filepath=libpath)
 
     @staticmethod
-    def run_flow(flow_path: str, flow_input: Any = None):
+    def run_flow(flow_path: str, flow_input: any = None):
         """
         Run another WorkFlow.
         :param flow_path: The full path to the flow xml file.

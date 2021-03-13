@@ -1,4 +1,3 @@
-from typing import Any
 from win32gui import GetForegroundWindow, GetWindowText, EnumWindows, GetWindowPlacement, GetClassName, GetParent, \
     GetWindowLong, ShowWindow, PostMessage, SetForegroundWindow, MoveWindow, SetFocus
 
@@ -28,7 +27,7 @@ class BPMN_RPA_Window(object):
     pass
 
 
-def get_foreground_window() -> Any:
+def get_foreground_window() -> any:
     """
     Get the foreground window object.
     :return: The foreground window object.
@@ -37,12 +36,12 @@ def get_foreground_window() -> Any:
     return get_window_object(hwnd)
 
 
-def window_enumeration_handler(hwnd: int, top_windows: Any):
+def window_enumeration_handler(hwnd: int, top_windows: any):
     """Add window title and ID to array."""
     top_windows.append((hwnd, GetWindowText(hwnd)))
 
 
-def wait_for_window(window_title: str, case_sensitive: bool = False, destroyed: bool = False) -> Any:
+def wait_for_window(window_title: str, case_sensitive: bool = False, destroyed: bool = False) -> any:
     """
     Wait for a specific window with title to appear on- or disappear from the screen.
     :param window_title: The window title to match.
@@ -60,7 +59,7 @@ def wait_for_window(window_title: str, case_sensitive: bool = False, destroyed: 
                 return True
 
 
-def find_window(title: str, case_sensitive: bool = False) -> Any:
+def find_window(title: str, case_sensitive: bool = False) -> any:
     """
     Find a window with a specific (part of the) window title.
     :param title: The window title (or: part of) to search for.
@@ -85,7 +84,7 @@ def find_window(title: str, case_sensitive: bool = False) -> Any:
             return None
 
 
-def get_window_object(hwnd: int) -> Any:
+def get_window_object(hwnd: int) -> any:
     """
     Retrieve the window object from the window handle.
     :param hwnd: The window handle.
@@ -104,7 +103,7 @@ def get_window_object(hwnd: int) -> Any:
     return win
 
 
-def show_window(window: Any) -> bool:
+def show_window(window: any) -> bool:
     """
     Show a window in its normal state.
     :param window: The window object to show.
@@ -117,7 +116,7 @@ def show_window(window: Any) -> bool:
         return False
 
 
-def hide_window(window: Any) -> bool:
+def hide_window(window: any) -> bool:
     """
     Hide a window.
     :param window: The window object to hide.
@@ -130,7 +129,7 @@ def hide_window(window: Any) -> bool:
         return False
 
 
-def close_window(window: Any) -> bool:
+def close_window(window: any) -> bool:
     """
     Close a window.
     :param window: The window object to close.
@@ -143,7 +142,7 @@ def close_window(window: Any) -> bool:
         return False
 
 
-def set_foreground_window(window: Any) -> bool:
+def set_foreground_window(window: any) -> bool:
     """
     Set a window to the foreground position.
     :param window: The window object to set to the foreground.
@@ -156,7 +155,7 @@ def set_foreground_window(window: Any) -> bool:
         return False
 
 
-def set_window_position(window: Any, position: Any) -> bool:
+def set_window_position(window: any, position: any) -> bool:
     """
     Move a window to a specific position on the screen.
     :param window: The window object to move.
@@ -170,7 +169,7 @@ def set_window_position(window: Any, position: Any) -> bool:
         return False
 
 
-def focus_window(window: Any):
+def focus_window(window: any):
     """
     Set the focus to a window.
     :param window: The window object to set focus to.
