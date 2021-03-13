@@ -1586,7 +1586,7 @@ class Visio:
         return retn
 
 # Test
-engine = WorkflowEngine()
-doc = engine.open(fr"c:\\temp\\test2.flw")  # c:\\temp\\test.xml
-steps = engine.get_flow(doc)
-engine.run_flow(steps)
+# engine = WorkflowEngine()
+# doc = engine.open(fr"c:\\temp\\test2.flw")  # c:\\temp\\test.xml
+# steps = engine.get_flow(doc)
+# engine.run_flow(steps)
