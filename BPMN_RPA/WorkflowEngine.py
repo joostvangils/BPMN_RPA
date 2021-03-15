@@ -5,7 +5,9 @@ import importlib.util as util
 import inspect
 import json
 import os
-import winreg
+
+if os.name == 'nt':
+    import winreg
 import xml.etree.ElementTree as ElTree
 import zipfile
 import zlib
@@ -51,56 +53,57 @@ class WorkflowEngine:
             if os.name == 'nt':
                 pythonpath = self.get_python_path()
             else:
-                with open('settings') as json_file:
+                writepath = '/etc/BPMN_RPA_settings'
+                if not os.path.exists(writepath):
+                    file = open(writepath, "w")
+                    file.write("{\"pythonpath\": \"\", \"dbpath\":\"\"}")
+                    file.close()
+                with open(writepath) as json_file:
                     data = json.load(json_file)
                     pythonpath = data["pythonpath"]
                     settings.update({'pythonpath': pythonpath})
         if len(installation_directory) != 0:
-            if os.name == 'nt':
-                self.set_db_path(installation_directory)
-            else:
-                settings.update({'dbpath': installation_directory})
+            self.set_db_path(installation_directory)
+            settings.update({'dbpath': installation_directory})
             db_folder = installation_directory
         else:
+            db_folder = self.get_db_path()
+        if db_folder is None or len(db_folder) == 0:
             if os.name == 'nt':
-                db_folder = self.get_db_path()
+                message = "\nYour installation directory is unknown. Please enter the path of your installation directory: "
             else:
-                with open('settings') as json_file:
-                    data = json.load(json_file)
-                    db_folder = data["dbpath"]
-                    settings.update({'dbpath': db_folder})
-        if db_folder is None:
-            installdir = input(
-                "\nYour installation directory is unknown. Please enter the path of your installation directory: ")
-            if not str(installdir).endswith("\\"):
-                installdir += "\\"
+                message = "\nYour installation folder is unknown. Please enter the path of your installation folder: "
+            installdir = input(message)
+            if os.name == 'nt':
+                if not str(installdir).endswith("\\"):
+                    installdir += "\\"
+            else:
+                if not str(installdir).endswith("/"):
+                    installdir += "/"
             if not os.path.exists(installdir):
                 os.mkdir(installdir)
             if len(installdir) == 0:
                 return
             else:
-                if os.name == 'nt':
-                    self.set_db_path(installdir)
-                else:
-                    settings.update({'dbpath': installdir})
+                self.set_db_path(installdir)
+                settings.update({'dbpath': installdir})
                 db_folder = installdir
-        if pythonpath is None:
-            pythonpath = input(
-                "\nThe path to your Python.exe file is unknown. Please enter the path to your Python.exe file: ")
+
+        if pythonpath is None or len(pythonpath) == 0:
+            if os.name == 'nt':
+                message = "\nThe path to your Python.exe file is unknown. Please enter the path to your Python.exe file: "
+            else:
+                message = "\nEnter the full path of your Python installation:"
+            pythonpath = input(message)
             if not os.path.exists(pythonpath):
-                if os.name == 'nt':
-                    self.set_python_path(pythonpath)
-                else:
-                    settings.update({'pythonpath': pythonpath})
+                self.set_python_path(pythonpath)
             if len(pythonpath) == 0:
                 return
             else:
-                if os.name == 'nt':
-                    self.set_python_path(pythonpath)
-                else:
-                    settings.update({'pythonpath': pythonpath})
+                self.set_python_path(pythonpath)
+                settings.update({'pythonpath': pythonpath})
         if os.name != 'nt':
-            with open('settings', 'w') as outfile:
+            with open('/etc/BPMN_RPA_settings', 'w') as outfile:
                 json.dump(settings, outfile)
         self.input_parameter = input_parameter
         self.pythonPath = pythonpath
@@ -177,16 +180,25 @@ class WorkflowEngine:
         Write the orchestrator database path to the registry.
         :param value: The path of the orchestrator database that has to be written to the registry
         """
-        try:
-            reg_path = r"SOFTWARE\BPMN_RPA"
-            winreg.CreateKey(winreg.HKEY_CURRENT_USER, reg_path)
-            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path, 0,
-                                          winreg.KEY_WRITE)
-            winreg.SetValueEx(registry_key, "dbPath", 0, winreg.REG_SZ, value)
-            winreg.CloseKey(registry_key)
-            return True
-        except WindowsError:
-            return False
+        if os.name == 'nt':
+            try:
+                reg_path = r"SOFTWARE\BPMN_RPA"
+                winreg.CreateKey(winreg.HKEY_CURRENT_USER, reg_path)
+                registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path, 0,
+                                              winreg.KEY_WRITE)
+                winreg.SetValueEx(registry_key, "dbPath", 0, winreg.REG_SZ, value)
+                winreg.CloseKey(registry_key)
+                return True
+            except WindowsError:
+                return False
+        else:
+            json_file = open('/etc/BPMN_RPA_settings', 'r')
+            data = json.load(json_file)
+            json_file.close()
+            data["dbpath"] = value
+            json_file = open('/etc/BPMN_RPA_settings', 'w')
+            json.dump(data, json_file)
+            json_file.close()
 
     @staticmethod
     def get_db_path() -> any:
@@ -194,14 +206,20 @@ class WorkflowEngine:
         Get the path to the orchestrator database
         :return: The path to the orchestrator database
         """
-        try:
-            reg_path = r"SOFTWARE\BPMN_RPA"
-            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path, 0, winreg.KEY_READ)
-            value, regtype = winreg.QueryValueEx(registry_key, 'dbPath')
-            winreg.CloseKey(registry_key)
-            return value
-        except WindowsError:
-            return None
+        if os.name == 'nt':
+            try:
+                reg_path = r"SOFTWARE\BPMN_RPA"
+                registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path, 0, winreg.KEY_READ)
+                value, regtype = winreg.QueryValueEx(registry_key, 'dbPath')
+                winreg.CloseKey(registry_key)
+                return value
+            except WindowsError:
+                return None
+        else:
+            json_file = open('/etc/BPMN_RPA_settings', 'r')
+            data = json.load(json_file)
+            json_file.close()
+            return data["dbpath"]
 
     @staticmethod
     def get_python_path() -> any:
@@ -209,14 +227,20 @@ class WorkflowEngine:
         Get the path to the Python.exe file
         :return: The path to the Python.exe file
         """
-        try:
-            reg_path = r"SOFTWARE\BPMN_RPA"
-            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path, 0, winreg.KEY_READ)
-            value, regtype = winreg.QueryValueEx(registry_key, 'PythonPath')
-            winreg.CloseKey(registry_key)
-            return value
-        except WindowsError:
-            return None
+        if os.name == 'nt':
+            try:
+                reg_path = r"SOFTWARE\BPMN_RPA"
+                registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path, 0, winreg.KEY_READ)
+                value, regtype = winreg.QueryValueEx(registry_key, 'PythonPath')
+                winreg.CloseKey(registry_key)
+                return value
+            except WindowsError:
+                return None
+        else:
+            json_file = open('/etc/BPMN_RPA_settings', 'r')
+            data = json.load(json_file)
+            json_file.close()
+            return data["pythonpath"]
 
     @staticmethod
     def set_python_path(value: str):
@@ -224,16 +248,25 @@ class WorkflowEngine:
         Write the oPython path to the registry.
         :param value: The path of the Python.exe file that has to be written to the registry
         """
-        try:
-            reg_path = r"SOFTWARE\BPMN_RPA"
-            winreg.CreateKey(winreg.HKEY_CURRENT_USER, reg_path)
-            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path, 0,
-                                          winreg.KEY_WRITE)
-            winreg.SetValueEx(registry_key, "PythonPath", 0, winreg.REG_SZ, value)
-            winreg.CloseKey(registry_key)
-            return True
-        except WindowsError:
-            return False
+        if os.name == 'nt':
+            try:
+                reg_path = r"SOFTWARE\BPMN_RPA"
+                winreg.CreateKey(winreg.HKEY_CURRENT_USER, reg_path)
+                registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path, 0,
+                                              winreg.KEY_WRITE)
+                winreg.SetValueEx(registry_key, "PythonPath", 0, winreg.REG_SZ, value)
+                winreg.CloseKey(registry_key)
+                return True
+            except WindowsError:
+                return False
+        else:
+            json_file = open('/etc/BPMN_RPA_settings', 'r')
+            data = json.load(json_file)
+            json_file.close()
+            data["pythonpath"] = value
+            json_file = open('/etc/BPMN_RPA_settings', 'w')
+            json.dump(data, json_file)
+            json_file.close()
 
     def get_flow(self, ordered_dict: any) -> any:
         """
@@ -606,14 +639,14 @@ class WorkflowEngine:
     def run_flow(self, steps: any, step_by_step: bool = False):
         """
         Execute a Flow.
-        :params steps: The steps that must be executed in the flow
+        :param steps: The steps that must be executed in the flow
         :param step_by_step: Optional. Indicator if this function only performes one step and the looping of steps is done outside this function.
         """
         step = None
         output_previous_step = None
         if not isinstance(steps, list):
-                steps = [steps]
-                step = steps[0]
+            steps = [steps]
+            step = steps[0]
         db_path = self.get_db_path()
         if db_path == "\\":
             self.error = True
@@ -627,7 +660,7 @@ class WorkflowEngine:
             self.error = "start 1"
             sql = f"INSERT INTO Flows (name, location) VALUES ('{self.flowname}','{self.flowpath}');"
             flow_id = self.db.run_sql(sql=sql, tablename="Flows")
-        if step_by_step==False or self.step_nr==0:
+        if step_by_step is False or self.step_nr == 0:
             self.previous_step = None
             shape_steps = [x for x in steps if x.type == "shape"]
             step = [x for x in shape_steps if x.IsStart][0]
@@ -679,7 +712,7 @@ class WorkflowEngine:
                         step_input = None
                         if hasattr(step, "module"):
                             if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(".py"):
-                                    step.module = f"{self.packages_folder}\\BPMN_RPA\\Scripts\\{step.module}"
+                                step.module = f"{self.packages_folder}\\BPMN_RPA\\Scripts\\{step.module}"
                             if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(
                                     step.module).__contains__(".py"):
                                 step.module = f"{self.packages_folder}\\{step.module}"
@@ -1182,13 +1215,20 @@ class SQL:
         Class for SQLite actions on the Orchestrator database.
         :param dbfolder: The folder of the SQLite orchestrator database
         """
-        if dbfolder == "\\":
-            return
-        if not dbfolder.endswith("\\"):
-            dbfolder += "\\"
+        if os.name == 'nt':
+            if dbfolder == "\\":
+                return
+            if not dbfolder.endswith("\\"):
+                dbfolder += "\\"
+        else:
+            if not dbfolder.endswith("/"):
+                dbfolder += "/"
         self.connection = connect(f'{dbfolder}orchestrator.db')
         self.connection.execute("PRAGMA foreign_keys = 1")
         self.connection.execute("PRAGMA JOURNAL_MODE = 'WAL'")
+        # if os.name == 'posix':
+        #    self.connection.execute("PRAGMA SQLITE_ENABLE_LOCKING_STYLE = 1")
+        #    self.connection.execute("PRAGMA journal=OFF")
         self.error = None
 
     def run_sql(self, sql, tablename: str = ""):
@@ -1329,6 +1369,7 @@ class SQL:
         except Exception as ex:
             self.set_error(ex)
             raise Exception(self.error)
+
 
 class Visio:
 
