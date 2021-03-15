@@ -5,9 +5,10 @@ import importlib.util as util
 import inspect
 import json
 import os
-
 if os.name == 'nt':
     import winreg
+else:
+    import site
 import xml.etree.ElementTree as ElTree
 import zipfile
 import zlib
@@ -53,18 +54,17 @@ class WorkflowEngine:
             if os.name == 'nt':
                 pythonpath = self.get_python_path()
             else:
-                writepath = '/etc/BPMN_RPA_settings'
-                if not os.path.exists(writepath):
-                    file = open(writepath, "w")
+                sett = '/etc/BPMN_RPA_settings'
+                if not os.path.exists(sett):
+                    file = open(sett, "w")
                     file.write("{\"pythonpath\": \"\", \"dbpath\":\"\"}")
                     file.close()
-                with open(writepath) as json_file:
-                    data = json.load(json_file)
-                    pythonpath = data["pythonpath"]
-                    settings.update({'pythonpath': pythonpath})
+                json_file = open(sett, "r")
+                data = json.load(json_file)
+                json_file.close()
+                pythonpath = data["pythonpath"]
         if len(installation_directory) != 0:
             self.set_db_path(installation_directory)
-            settings.update({'dbpath': installation_directory})
             db_folder = installation_directory
         else:
             db_folder = self.get_db_path()
@@ -85,10 +85,8 @@ class WorkflowEngine:
             if len(installdir) == 0:
                 return
             else:
-                self.set_db_path(installdir)
-                settings.update({'dbpath': installdir})
+                self.set_db_path(installdir)        
                 db_folder = installdir
-
         if pythonpath is None or len(pythonpath) == 0:
             if os.name == 'nt':
                 message = "\nThe path to your Python.exe file is unknown. Please enter the path to your Python.exe file: "
@@ -101,13 +99,17 @@ class WorkflowEngine:
                 return
             else:
                 self.set_python_path(pythonpath)
-                settings.update({'pythonpath': pythonpath})
         if os.name != 'nt':
+            settings.update({'dbpath': db_folder})
+            settings.update({'pythonpath': pythonpath})
             with open('/etc/BPMN_RPA_settings', 'w') as outfile:
                 json.dump(settings, outfile)
         self.input_parameter = input_parameter
         self.pythonPath = pythonpath
-        self.packages_folder = "\\".join(pythonpath.split('\\')[0:-1]) + "\\Lib\\site-packages"
+        if os.name == 'nt':
+            self.packages_folder = "\\".join(pythonpath.split('\\')[0:-1]) + "\\Lib\\site-packages"
+        else:
+            self.packages_folder = site.getsitepackages()[0]
         self.db = SQL(db_folder)
         self.db.orchestrator()  # Run the orchestrator database
         self.id = -1  # Holds the ID for our flow
@@ -148,7 +150,7 @@ class WorkflowEngine:
         xml_file = open(filepath, "r")
         if not filepath.__contains__(".vsdx"):
             if filepath.__contains__(".flw"):
-                self.flowname = filepath.split("\\")[-1].lower().replace(".flw", "")
+                self.flowname = filepath.split("\\")[-1].replace(".flw", "")
                 with open(filepath, "rb") as binary_file:
                     # Read the whole file at once
                     content = binary_file.read()
@@ -157,7 +159,7 @@ class WorkflowEngine:
                 dict_list = json.loads(decoded)
                 return dict_list
             else:
-                self.flowname = filepath.split("\\")[-1].lower().replace(".xml", "")
+                self.flowname = filepath.split("\\")[-1].replace(".xml", "")
                 xml_root = ElTree.fromstring(xml_file.read())
                 raw_text = xml_root[0].text
                 base64_decode = base64.b64decode(raw_text)
@@ -170,7 +172,7 @@ class WorkflowEngine:
         else:
             # It is a MsVisio file!
             visio = Visio()
-            self.flowname = filepath.split("\\")[-1].lower().replace(".vsdx", "")
+            self.flowname = filepath.split("\\")[-1].replace(".vsdx", "")
             visio.open_vsdx_file(filepath)
             return visio
 
@@ -648,16 +650,21 @@ class WorkflowEngine:
             steps = [steps]
             step = steps[0]
         db_path = self.get_db_path()
-        if db_path == "\\":
-            self.error = True
-            raise Exception('Your installation directory is unknown.')
-        if not str(self.flowpath).__contains__("\\"):
-            self.flowpath = os.getcwd() + f"\\{self.flowpath}"
+        if os.name == 'nt':
+            if db_path == "\\":
+                self.error = True
+                raise Exception('Your installation directory is unknown.')
+            if not str(self.flowpath).__contains__("\\"):
+                self.flowpath = os.getcwd() + f"\\{self.flowpath}"
+        else:
+            if db_path == "/":
+                self.error = True
+                raise Exception('Your installation directory is unknown.')
+            if not str(self.flowpath).__contains__("/"):
+                self.flowpath = os.getcwd() + f"/{self.flowpath}"
         sql = f"SELECT id FROM Flows WHERE name ='{self.flowname}' AND location='{self.flowpath}'"
         flow_id = self.db.run_sql(sql=sql, tablename="Flows")
-        self.error = f"flow id: {flow_id}"
         if flow_id is None:
-            self.error = "start 1"
             sql = f"INSERT INTO Flows (name, location) VALUES ('{self.flowname}','{self.flowpath}');"
             flow_id = self.db.run_sql(sql=sql, tablename="Flows")
         if step_by_step is False or self.step_nr == 0:
@@ -711,11 +718,12 @@ class WorkflowEngine:
                     if method_to_call is None:
                         step_input = None
                         if hasattr(step, "module"):
-                            if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(".py"):
-                                step.module = f"{self.packages_folder}\\BPMN_RPA\\Scripts\\{step.module}"
-                            if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(
+                            if os.name == 'nt':
+                                if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(".py"):
+                                    step.module = f"{self.packages_folder}\\BPMN_RPA\\Scripts\\{step.module}"
+                                if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(
                                     step.module).__contains__(".py"):
-                                step.module = f"{self.packages_folder}\\{step.module}"
+                                    step.module = f"{self.packages_folder}\\{step.module}"
                             if str(step.module).lower().__contains__(".py"):
                                 spec = util.spec_from_file_location(step.module, step.module)
                                 module_object = util.module_from_spec(spec)
@@ -1282,6 +1290,8 @@ class SQL:
         curs = self.connection.cursor()
         curs.execute(sql)
         row = curs.fetchone()
+        if row[0] is None:
+            return None
         return int(row[0])
 
     def commit(self):
