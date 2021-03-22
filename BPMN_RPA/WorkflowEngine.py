@@ -121,7 +121,7 @@ class WorkflowEngine:
         self.previous_step = None
         self.step_nr = 0
         self.step_input = None
-        self.runlog = ""
+        self.runlog = []
         self.variables = {}  # Dictionary to hold WorkflowEngine variables
 
     def get_input_parameter(self, as_dictionary: bool = False) -> any:
@@ -900,10 +900,10 @@ class WorkflowEngine:
             step_time = datetime.now().strftime("%H:%M:%S")
             if self.step_nr is not None:
                 print(f"{step_time}: Step {self.step_nr} - {result}")
-                self.runlog += f"{step_time}: Step {self.step_nr} - {result}"
+                self.runlog.append(f"{step_time}: Step {self.step_nr} - {result}")
             else:
                 print(f"{step_time}: {result}")
-                self.runlog += f"{step_time}: {result}"
+                self.runlog.append(f"{step_time}: {result}")
                 self.step_nr = ""
             result = result.replace("'", "''").strip()
             if len(status) > 0:
