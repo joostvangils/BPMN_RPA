@@ -29,6 +29,49 @@ class DynamicObject(object):
     pass
 
 
+def get_default_values_from_signature(method_to_call: any) -> any:
+    retn = {}
+    sig = None
+    try:
+        sig = inspect.signature(method_to_call)
+    except Exception as ex:
+        print(f"Error in getting input from input_signature")
+    if str(sig) != "()":
+        for key, value in sig.parameters.items():
+            val = str(value)
+            if not val.__contains__("<built-in function any>") and val.__contains__("=") and val.__contains__(":"):
+                par = val.split(":")[0].strip()
+                deft = val.split("=")[1].strip()
+                retn.update({par: deft})
+            if not val.__contains__("<built-in function any>") and val.__contains__("=") and not val.__contains__(":"):
+                par = val.split("=")[0].strip()
+                deft = val.split("=")[1].strip()
+                retn.update({par: deft})
+    return retn
+
+
+def get_default_input_parameters(modulepath=None, classname=None, function=None):
+    step_input = None
+    method_to_call = None
+    module = modulepath
+    spec = util.spec_from_file_location(module, module)
+    module_object = util.module_from_spec(spec)
+    getattr(spec.loader, "exec_module")(module_object)
+    class_object = None
+    if hasattr(module_object, str(classname).lower()) or hasattr(module_object, str(classname)):
+        if hasattr(module_object, str(classname).lower()):
+            class_object = getattr(module_object, str(classname).lower())
+            if len(function) > 0:
+                method_to_call = getattr(class_object, function)
+    else:
+        method_to_call = getattr(module_object, function)
+    if method_to_call is not None:
+        step_input = get_default_values_from_signature(method_to_call)
+    if method_to_call is None and class_object is not None:
+        step_input = get_default_values_from_signature(class_object)
+    return step_input
+
+
 class Code:
 
     def __init__(self):
@@ -712,15 +755,3 @@ class Code:
         else:
             raise Exception(f'Error: flow {flow} not found.')
 
-
-# c = Code()
-# c.libpath = r"C:\Temp\Libraries\Shapes.xml"
-# c.sort_library(c.libpath)
-# c.run_flow(r"c:\temp\msgbox.xml", "hey!")
-# c.add_shape_from_function_to_library(module=r"C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\Code.py",
-#                                       function="get_docstring_from_code", title="Get comments from Python code",
-#                                       filepath=r"..\Shapes.xml")
-# add_descriptions_to_flow(r"D:\temp\taranis_query.xml")
-# c.module_to_library("C:\PythonProjects\BPMN_RPA\BPMN_RPA\Scripts\compare.py", r"c:\temp\libs")
-# c.sort_library(r"c:\temp\libs\shapes.xml")
-# c.save_library()
