@@ -4,6 +4,7 @@ import importlib
 import importlib.util as util
 import inspect
 import json
+import math
 import os
 
 if os.name == 'nt':
@@ -156,11 +157,27 @@ class WorkflowEngine:
                 with open(filepath, "rb") as binary_file:
                     # Read the whole file at once
                     content = binary_file.read()
-                str_content = content[24:-1].decode("utf-8", errors='ignore')
-                decoded = base64.b64decode(str_content + "============").decode("utf-8", errors='ignore')
-                idx = decoded.index("}]")
+                str_content = content.decode("utf-8", errors='ignore')
+                str_content = "".join([x for x in str_content if x != '' and x != '']).strip().strip('\x00')
+                # remain =math.ceil((len(str_content)/4) - int(len(str_content)/4))
+                # str_content = str_content[0:len(str_content)-remain]
+                idx = 0
+                if str_content.__contains__("fV0"):
+                    str_content = str_content.split("fV0")[0][1:] + "fV0==="
+                if str_content.__contains__("In1d"):
+                    if str_content.index("In1d") + 4 > idx:
+                        idx = str_content.index("In1d") + 4
                 if idx > 0:
-                    decoded = decoded[0:idx+2]
+                    str_content = str_content[0:idx]
+                decoded = base64.b64decode(str_content).decode("utf-8", errors='ignore')
+                t = 1
+                ## fV0=}]  of In1d = "}]
+                eq = "="
+
+                # idx = decoded.index("/*-  Zk
+                #  }]")
+                # if idx > 0:
+                #     decoded = decoded[0:idx+2]
                 dict_list = json.loads(decoded)
                 return dict_list
             else:
@@ -1651,6 +1668,6 @@ class Visio:
 
 # Test
 # engine = WorkflowEngine()
-# doc = engine.open(fr"c:\\temp\\xxx.flw")  # c:\\temp\\test.xml
+# doc = engine.open(fr"C:\temp\t.flw")  # c:\\temp\\test.xml
 # steps = engine.get_flow(doc)
 # engine.run_flow(steps)
