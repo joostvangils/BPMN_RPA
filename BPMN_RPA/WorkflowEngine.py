@@ -5,6 +5,7 @@ import importlib.util as util
 import inspect
 import json
 import os
+
 if os.name == 'nt':
     import winreg
 else:
@@ -85,7 +86,7 @@ class WorkflowEngine:
             if len(installdir) == 0:
                 return
             else:
-                self.set_db_path(installdir)        
+                self.set_db_path(installdir)
                 db_folder = installdir
         if pythonpath is None or len(pythonpath) == 0:
             if os.name == 'nt':
@@ -281,13 +282,18 @@ class WorkflowEngine:
             # It is a Visio Object!
             visio = ordered_dict
             return visio.get_flow()
+        # route for .flw flows
         if isinstance(ordered_dict, list):
             retn = []
             for rw in ordered_dict:
                 tmp = self.dynamic_object()
                 for k, v in rw.items():
-                    setattr(tmp, k, v)
+                    ky = k
+                    if ky.lower() == "class":
+                        ky = "classname"
+                    setattr(tmp, ky, v)
                 retn.append(tmp)
+            # return .flw flow steps
             return retn
         connectors = []
         shapes = []
@@ -723,7 +729,7 @@ class WorkflowEngine:
                                 if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(".py"):
                                     step.module = f"{self.packages_folder}\\BPMN_RPA\\Scripts\\{step.module}"
                                 if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(
-                                    step.module).__contains__(".py"):
+                                        step.module).__contains__(".py"):
                                     step.module = f"{self.packages_folder}\\{step.module}"
                             if str(step.module).lower().__contains__(".py"):
                                 spec = util.spec_from_file_location(step.module, step.module)
@@ -1639,8 +1645,9 @@ class Visio:
             setattr(retn, k, v)
         return retn
 
+
 # Test
-# engine = WorkflowEngine()
-# doc = engine.open(fr"c:\\temp\\test2.flw")  # c:\\temp\\test.xml
-# steps = engine.get_flow(doc)
-# engine.run_flow(steps)
+engine = WorkflowEngine()
+doc = engine.open(fr"c:\\temp\\xxx.flw")  # c:\\temp\\test.xml
+steps = engine.get_flow(doc)
+engine.run_flow(steps)
