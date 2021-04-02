@@ -157,7 +157,10 @@ class WorkflowEngine:
                     # Read the whole file at once
                     content = binary_file.read()
                 str_content = content[24:-1].decode("utf-8", errors='ignore')
-                decoded = base64.b64decode(str_content).decode("utf-8", errors='ignore')
+                decoded = base64.b64decode(str_content + "============").decode("utf-8", errors='ignore')
+                idx = decoded.index("}]")
+                if idx > 0:
+                    decoded = decoded[0:idx+2]
                 dict_list = json.loads(decoded)
                 return dict_list
             else:
@@ -1647,7 +1650,7 @@ class Visio:
 
 
 # Test
-# engine = WorkflowEngine()
-# doc = engine.open(fr"c:\\temp\\xxx.flw")  # c:\\temp\\test.xml
-# steps = engine.get_flow(doc)
-# engine.run_flow(steps)
+engine = WorkflowEngine()
+doc = engine.open(fr"c:\\temp\\xxx.flw")  # c:\\temp\\test.xml
+steps = engine.get_flow(doc)
+engine.run_flow(steps)

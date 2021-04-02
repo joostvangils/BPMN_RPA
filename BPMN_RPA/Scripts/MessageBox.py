@@ -50,12 +50,12 @@ def main(title: any, message: any, option="ok") -> int:
     return retn
 
 
-def show(title: any, message: any, option="ok") -> int:
+def show(title: str, message: str, option: str = "ok") -> int:
     """
     Show a Messagebox on the screen with a specific Title, Message and buttons.
     :param title: The title of the MessageBox.
     :param message: The message of the MessageBox.
-    :param option: Optional: 'ok', 'warning', 'error', 'yesno', 'yesnocancel', 'retrycancel', 'askyesnocancel', 'askokcancel'.
+    :param option: The icon and buttons of the MessageBox. Options: ok, warning, error, yesno, yesnocancel, retrycancel, askyesnocancel, askokcancel.
     :return: The pushed button.
     """
     root = tkinter.Tk()
