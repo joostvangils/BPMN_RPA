@@ -1278,15 +1278,22 @@ class SQL:
         if not hasattr(self, "connection"):
             return
         self.connection.execute(sql)
-        self.connection.commit()
-        if len(tablename) > 0:
-            try:
-                return self.get_inserted_id(tablename)
-            except Exception as ex:
-                self.set_error(ex)
-                raise Exception(self.error)
+        if not sql.lower().startswith("select"):
+            self.connection.commit()
+            if len(tablename) > 0:
+                try:
+                    return self.get_inserted_id(tablename)
+                except Exception as ex:
+                    self.set_error(ex)
+                    raise Exception(self.error)
+            else:
+                return None
         else:
-            return None
+            row = self.connection.cursor().fetchone()
+            if row is not None:
+                return row[0]
+            else:
+                return None
 
     def set_error(self, ex: any):
         """
