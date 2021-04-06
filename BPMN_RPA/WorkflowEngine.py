@@ -55,6 +55,7 @@ class WorkflowEngine:
         else:
             if os.name == 'nt':
                 pythonpath = self.get_python_path()
+                pythonpath = pythonpath.replace("/", "\\")
             else:
                 sett = '/etc/BPMN_RPA_settings'
                 if not os.path.exists(sett):
