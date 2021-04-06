@@ -137,7 +137,7 @@ class WorkflowEngine:
                 if isinstance(self.input_parameter, str):
                     self.input_parameter = self.input_parameter.replace("true", "True").replace("false", "False")
                 self.input_parameter = eval(self.input_parameter)
-        self.print_log(f"Got input parameter {str(self.input_parameter)}")
+        self.print_log(f"Got input parameter {str(self.input_parameter)}", "Processing Input")
         return self.input_parameter
 
     def open(self, filepath: str, as_xml: bool = False) -> any:
@@ -1068,7 +1068,7 @@ class WorkflowEngine:
                         else:
                             name = name.__str__()
                     end_result = f"loopitem '{name}' returned."
-                    self.print_log(end_result)
+                    self.print_log(end_result, "Looping")
                     return loopvar.items[loopvar.counter]
                 else:
                     return output_previous_step
