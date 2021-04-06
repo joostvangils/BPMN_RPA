@@ -71,6 +71,8 @@ class WorkflowEngine:
             db_folder = installation_directory
         else:
             db_folder = self.get_db_path()
+            if os.name == 'nt':
+                db_folder = db_folder.replace("/", "\\")
         if db_folder is None or len(db_folder) == 0:
             if os.name == 'nt':
                 message = "\nYour installation directory is unknown. Please enter the path of your installation directory: "
