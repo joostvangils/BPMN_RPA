@@ -895,7 +895,7 @@ class WorkflowEngine:
 
     def set_error(self, ex: any):
         """
-        Set the internal error comming from the try-except
+        Set the internal error coming from the try-except
         :param ex: the exception
         """
         trace = []
@@ -978,7 +978,7 @@ class WorkflowEngine:
             print(end_result)
             self.db.run_sql(sql=sql, tablename="Steps")
             # Update the result of the flow
-            sql = f"UPDATE Runs SET result= '{ok}', finished='{finished}' where id = {self.id};"
+            sql = f'UPDATE Runs SET result= \'{ok}\', finished=\'{finished}\' where id = {self.id};'
             self.db.run_sql(sql=sql, tablename="Runs")
         except Exception as ex:
             self.set_error(ex)
@@ -1678,6 +1678,6 @@ class Visio:
 
 # Test
 # engine = WorkflowEngine()
-# doc = engine.open(fr"C:\temp\t.flw")  # c:\\temp\\test.xml
+# doc = engine.open(fr"C:\Users\joost\Documents\test3.flw")  # c:\\temp\\test.xml
 # steps = engine.get_flow(doc)
 # engine.run_flow(steps)
