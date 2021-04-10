@@ -179,7 +179,7 @@ class Email:
 
     def get_all_emails(self):
         """
-        Retreive all unread email messages from the Inbox folder.
+        Retreive all email messages from the Inbox folder.
         :return: Yield item: an email item from the Inbox.
         """
         for item in self.account.inbox.all():
@@ -187,7 +187,7 @@ class Email:
 
     def get_all_emails_lite(self):
         """
-        Retreive all unread email messages from the Inbox folder, but with a field restriction (for better performance).
+        Retreive all email messages from the Inbox folder, but with a field restriction (for better performance).
         :return: Yield item: an email item from the Inbox.
         """
         for item in self.account.inbox.all().only('id', 'datetime_received', 'subject', 'body', 'to_recipients',
