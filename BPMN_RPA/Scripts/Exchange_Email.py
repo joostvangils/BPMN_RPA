@@ -18,7 +18,7 @@ class Email:
 
     def __init__(self, emailaddress: str, username: str, password: str):
         """
-        Class for both creating, sending and reading emails.
+        Class for both creating, sending and reading emails from office365 Exchange.
         Use your emailaddress and your password to access your email account.
         You MUST use an app-password when 2-factor authentication is enabled.
         Please see: https://docs.microsoft.com/en-us/azure/active-directory/user-help/multi-factor-authentication-end-user-app-passwords for how to create an app password.
@@ -118,7 +118,7 @@ class Email:
                 replyto_recipients = None
         else:
             replyto_recipients = None
-        # Email versturen (alleen als er ontvangers zijn)
+        # sennd Email (only when there are recipients)
         if to_recipients is not None:
             # Create message
             if html:
