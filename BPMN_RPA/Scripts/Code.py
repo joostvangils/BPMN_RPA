@@ -755,3 +755,7 @@ class Code:
         else:
             raise Exception(f'Error: flow {flow} not found.')
 
+
+# c = Code()
+# docstring = c.get_docstring_from_code('C:\Python\Lib\site-packages\BPMN_RPA\Scripts\Exchange_Email.py', '__init__', "", 'Email')
+# print(docstring)
