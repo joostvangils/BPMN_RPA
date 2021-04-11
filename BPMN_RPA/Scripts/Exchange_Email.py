@@ -1,15 +1,11 @@
 # System imports
 import os
-
-import requests
 import urllib3
 from datetime import datetime, timedelta
-from typing import List
 from exchangelib import Account, Configuration, Credentials, DELEGATE, EWSDateTime
 from exchangelib import Message, Mailbox, FileAttachment, HTMLBody
 from exchangelib.protocol import BaseProtocol, NoVerifyHTTPAdapter
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-os.environ['NO_PROXY'] = 'xxx'
+
 
 class Email:
     # Author: Joost van Gils
@@ -39,6 +35,8 @@ class Email:
         :param emailaddress: The emailaddress of the mailbox to connect to.
         :param password: The password of the mailbox to connect to.
         """
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        os.environ['NO_PROXY'] = 'xxx'
         BaseProtocol.HTTP_ADAPTER_CLS = NoVerifyHTTPAdapter
         self.username = username
         self.password = password
@@ -67,16 +65,16 @@ class Email:
         self.account.inbox.filter(is_read=False)
         return total
 
-    def send_email(self, subject: str, body: str, recipients: List[str], cc_recipients: List[str] = None, html: bool = True, send_reply_to: List[str] = None, attachments: List[str] = None):
+    def send_email(self, subject: str, body: str, recipients: any, cc_recipients: any = None, html: bool = True, send_reply_to: any = None, attachments: any = None):
         """
         Send an email-message.
         :param subject: the subject of the email.
         :param body: the body text of the email.
         :param recipients: A string array of emailaddresses of the persons who need to receive the email.
-        :param cc_recipients: A string array of emailaddresses of the persons who need to receive a carbon copy of the email.
+        :param cc_recipients: Optional. A string array of emailaddresses of the persons who need to receive a carbon copy of the email.
         :param html: Optional. Boolean which indicates wether the email needs to be in HTML format.
-        :param send_reply_to:  A string array of emailaddresses of the persons who need to receive the reply that will be sent origination from this email.
-        :param attachments:  A string array of file locations of the files that need to be added as an attachment to this email.
+        :param send_reply_to: Optional.  A string array of emailaddresses of the persons who need to receive the reply that will be sent origination from this email.
+        :param attachments:  Optional. A string array of file locations of the files that need to be added as an attachment to this email.
         """
         to_recipients = []
         replyto_recipients = []
@@ -92,6 +90,8 @@ class Email:
             if recipients.__contains__(";"):
                 for recip in recipients.split(";"):
                     tmp.append(recip.strip())
+            if not recipients.__contains__(",") and not recipients.__contains__(";"):
+                tmp = [recipients]
             recipients = tmp
         if len(recipients) > 0:
             for recipient in recipients:
@@ -101,12 +101,17 @@ class Email:
             to_recipients = None
         # CC-recipients
         if ccrecipients is not None:
-            if isinstance(ccrecipients, str) and len(ccrecipients) > 0:
-                # it is a string, so make a list of it
-                tmp = []
+            # it is a string, so make a list of it
+            tmp = []
+            if ccrecipients.__contains__(","):
                 for recip in ccrecipients.split(","):
                     tmp.append(recip.strip())
-                ccrecipients = tmp
+            if ccrecipients.__contains__(";"):
+                for recip in ccrecipients.split(";"):
+                    tmp.append(recip.strip())
+            if not ccrecipients.__contains__(",") and not ccrecipients.__contains__(";"):
+                tmp = [ccrecipients]
+            ccrecipients = tmp
             if len(ccrecipients) > 0:
                 for rec in ccrecipients:
                     if len(rec) > 0:
@@ -117,12 +122,17 @@ class Email:
             cc_recipients = None
         # Reply-to recipients
         if send_reply_to is not None:
-            if isinstance(send_reply_to, str) and len(send_reply_to) > 0:
-                # it is a string, so make a list of it
-                tmp = []
+            # it is a string, so make a list of it
+            tmp = []
+            if send_reply_to.__contains__(","):
                 for recip in send_reply_to.split(","):
                     tmp.append(recip.strip())
-                send_reply_to = tmp
+            if send_reply_to.__contains__(";"):
+                for recip in send_reply_to.split(";"):
+                    tmp.append(recip.strip())
+            if not send_reply_to.__contains__(",") and not send_reply_to.__contains__(";"):
+                tmp = [send_reply_to]
+            send_reply_to = tmp
             if len(send_reply_to) > 0:
                 for rec in send_reply_to:
                     if len(rec) > 0:
@@ -160,13 +170,13 @@ class Email:
         else:
             print("Recipients needs to be an array!")
 
-    def get_unread_emails(self, last_days: int = -1):
+    def get_unread_emails(self, last_days: any = -1):
         """
         Retreiving unread email messages from the Inbox.
         :param last_days: Optional. Integer which indicates from how many days in the past the unread emails need to be retreived.
         :return: An array of email objects containing the unread emails from the Inbox.
         """
-        if last_days > -1:
+        if int(last_days) > -1:
             today = datetime.today()
             startday = today - timedelta(days=last_days)
             start = self.account.default_timezone.localize(

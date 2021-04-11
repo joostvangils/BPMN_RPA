@@ -1678,6 +1678,6 @@ class Visio:
 
 # Test
 # engine = WorkflowEngine()
-# doc = engine.open(fr"C:\Users\joost\Documents\test3.flw")  # c:\\temp\\test.xml
+# doc = engine.open(fr"C:\x.flw")
 # steps = engine.get_flow(doc)
 # engine.run_flow(steps)
