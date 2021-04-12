@@ -1675,10 +1675,3 @@ class Visio:
         for k, v in properties.items():
             setattr(retn, k, v)
         return retn
-
-
-# Test
-# engine = WorkflowEngine()
-# doc = engine.open(fr"C:\temp\loop.xml")
-# steps = engine.get_flow(doc)
-# engine.run_flow(steps)
