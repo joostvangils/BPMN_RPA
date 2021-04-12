@@ -51,25 +51,29 @@ def get_default_values_from_signature(method_to_call: any) -> any:
 
 
 def get_default_input_parameters(modulepath=None, classname=None, function=None):
-    step_input = None
-    method_to_call = None
-    module = modulepath
-    spec = util.spec_from_file_location(module, module)
-    module_object = util.module_from_spec(spec)
-    getattr(spec.loader, "exec_module")(module_object)
-    class_object = None
-    if hasattr(module_object, str(classname).lower()) or hasattr(module_object, str(classname)):
-        if hasattr(module_object, str(classname).lower()):
-            class_object = getattr(module_object, str(classname).lower())
-            if len(function) > 0:
-                method_to_call = getattr(class_object, function)
+    f = open(modulepath, "r")
+    body = f.read()
+    f.close()
+    module = ast.parse(body)
+    if classname is not None:
+        classdefs = [stmt for stmt in module.body if isinstance(stmt, ast.ClassDef)]
+        classdef = [x for x in classdefs if x.name == classname][0]
+        methods = [x for x in classdef.body if isinstance(x, ast.FunctionDef)]
     else:
-        method_to_call = getattr(module_object, function)
-    if method_to_call is not None:
-        step_input = get_default_values_from_signature(method_to_call)
-    if method_to_call is None and class_object is not None:
-        step_input = get_default_values_from_signature(class_object)
-    return step_input
+        methods = [x for x in module.body if isinstance(x, ast.FunctionDef)]
+    method = [x for x in methods if x.name==function][0]
+    args = []
+    if method.args.args:
+        [args.append([a.arg, ""]) for a in method.args.args]
+    if method.args.defaults:
+        total = len(method.args.args)
+        count = len(method.args.defaults)
+        c=0
+        for t in range(total-count, total):
+            a = method.args.defaults[c]
+            args[t][1] = a.s
+            c += 1
+    return args
 
 
 class Code:
@@ -402,58 +406,26 @@ class Code:
         :param classname: Optional. The Classname.
         :return: A string with the comments from code.
         """
-        callobject = None
-        method_to_call = None
-        classobject = None
-        module_ = module
-        classname_ = classname
-        checks = [module is None, classname is None]
-        try:
-            if all(checks):
-                module = str(
-                    "\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
-                classname = "WorkflowEngine"
-            if len(module) == 0 and len(classname) == 0:
-                module = str(
-                    "\\".join(sys.executable.split("\\")[:-1])) + r"\Lib\site-packages\BPMN_RPA\WorkflowEngine.py"
-                classname = "WorkflowEngine"
-            if classname.startswith("%") and classname.endswith("%"):
-                if module is not None:
-                    if not module.startswith("%") and not module.endswith("%"):
-                        classname = module.split("\\")[-1].replace(".py", "")
-            else:
-                if classname.startswith("%") and classname.endswith("%"):
-                    module, classname = self.get_module_from_variable_name(classname, filepath)
-                if module is None and classname is None:
-                    module = module_
-                    classname = classname_
-            if not module.endswith(".py"):
-                path = "\\".join(sys.executable.split("\\")[:-1]) + "\\Lib\\"
-                if os.path.exists(path + module + ".py"):
-                    module = path + module + ".py"
-            spec = util.spec_from_file_location(module, module)
-            if spec is not None:
-                module_object = util.module_from_spec(spec)
-                getattr(spec.loader, "exec_module")(module_object)
-                callobject = module_object
-                if classname is not None:
-                    if len(classname) > 0:
-                        classobject = getattr(module_object, classname)
-                        callobject = classobject
-            if function is not None:
-                if len(function) > 0:
-                    method_to_call = getattr(callobject, function)
-            else:
-                method_to_call = getattr(classobject, "__init__")
-            doc = inspect.getdoc(method_to_call)
-            if doc is not None:
-                doc = doc.replace(":param ", "\n").replace(":return: ", "\nReturn: ").replace(":returns: ",
-                                                                                              "\nReturn: ")
-                return doc
-            else:
-                return ""
-        except (ValueError, Exception):
+        f = open(module, "r")
+        body = f.read()
+        f.close()
+        mdl = ast.parse(body)
+        if classname is not None:
+            classdefs = [stmt for stmt in mdl.body if isinstance(stmt, ast.ClassDef)]
+            classdef = [x for x in classdefs if x.name == classname][0]
+            methods = [x for x in classdef.body if isinstance(x, ast.FunctionDef)]
+        else:
+            methods = [x for x in mdl.body if isinstance(x, ast.FunctionDef)]
+        method = [x for x in methods if x.name == function][0]
+        doc = ast.get_docstring(method)
+        #doc = inspect.getdoc(method_to_call)
+        if doc is not None:
+            doc = doc.replace(":param ", "\n").replace(":return: ", "\nReturn: ").replace(":returns: ",
+                                                                                          "\nReturn: ")
+            return doc
+        else:
             return ""
+
 
     def sort_library(self, filepath: str) -> any:
         """
@@ -756,6 +728,3 @@ class Code:
             raise Exception(f'Error: flow {flow} not found.')
 
 
-# c = Code()
-# docstring = c.get_docstring_from_code('C:\Python\Lib\site-packages\BPMN_RPA\Scripts\Exchange_Email.py', '__init__', "", 'Email')
-# print(docstring)

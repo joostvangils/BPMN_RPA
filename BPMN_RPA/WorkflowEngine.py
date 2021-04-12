@@ -893,6 +893,7 @@ class WorkflowEngine:
         if output_previous_step is not None:
             return output_previous_step
 
+
     def set_error(self, ex: any):
         """
         Set the internal error coming from the try-except
@@ -1678,6 +1679,6 @@ class Visio:
 
 # Test
 # engine = WorkflowEngine()
-# doc = engine.open(fr"C:\x.flw")
+# doc = engine.open(fr"C:\temp\loop.xml")
 # steps = engine.get_flow(doc)
 # engine.run_flow(steps)
