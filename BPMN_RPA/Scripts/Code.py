@@ -71,7 +71,8 @@ def get_default_input_parameters(modulepath=None, classname=None, function=None)
         c=0
         for t in range(total-count, total):
             a = method.args.defaults[c]
-            args[t][1] = a.s
+            if hasattr(a, "s"):
+                args[t][1] = a.s
             c += 1
     return args
 
@@ -726,5 +727,3 @@ class Code:
                 raise Exception(f'Error: flow {flow} does not contain a valid xml definition')
         else:
             raise Exception(f'Error: flow {flow} not found.')
-
-
