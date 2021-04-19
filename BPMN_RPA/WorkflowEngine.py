@@ -160,7 +160,7 @@ class WorkflowEngine:
                 with open(filepath, "rb") as binary_file:
                     # Read the whole file at once
                     content = binary_file.read()
-                str_content = content.decode("utf-8", errors='ignore')
+                str_content = content.decode("ascii", errors='ignore')
                 str_content = "".join([x for x in str_content if x != '' and x != '']).strip().strip('\x00')
                 # remain =math.ceil((len(str_content)/4) - int(len(str_content)/4))
                 # str_content = str_content[0:len(str_content)-remain]
