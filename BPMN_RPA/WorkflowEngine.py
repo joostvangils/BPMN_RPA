@@ -172,15 +172,7 @@ class WorkflowEngine:
                         idx = str_content.index("In1d") + 4
                 if idx > 0:
                     str_content = str_content[0:idx]
-                decoded = base64.b64decode(str_content).decode("utf-8", errors='ignore')
-                t = 1
-                ## fV0=}]  of In1d = "}]
-                eq = "="
-
-                # idx = decoded.index("/*-  Zk
-                #  }]")
-                # if idx > 0:
-                #     decoded = decoded[0:idx+2]
+                decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
                 dict_list = json.loads(decoded)
                 return dict_list
             else:
