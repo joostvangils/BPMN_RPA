@@ -173,8 +173,6 @@ class WorkflowEngine:
                 if idx > 0:
                     str_content = str_content[0:idx]
                 decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
-                if not decoded.endswith("}}]"):
-                    decoded = decoded + "}}]"
                 dict_list = json.loads(decoded)
                 return dict_list
             else:
