@@ -6,10 +6,12 @@ print(pad)
 input_parameter = None
 if len(sys.argv) == 3:
     input_parameter = sys.argv[2]
-if pad.__contains__(".vsdx"):
+if pad.lower().__contains__(".vsdx"):
     flow = pad.replace(".vsdx", "") + ".vsdx"
-else:
+if not pad.lower().__contains__(".flw"):
     flow = pad.replace(".xml", "") + ".xml"
+else:
+    flow = pad
 if os.name == 'nt':
     cont = os.path.exists(flow)
 else:
