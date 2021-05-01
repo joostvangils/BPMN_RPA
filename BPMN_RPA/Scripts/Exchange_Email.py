@@ -204,3 +204,10 @@ class Email:
                                                   'cc_recipients', 'senther', 'conversation_id', 'attachments'):
             if item.id is not None:
                 yield item
+
+    def delete_email(self, msg):
+        """
+        Delete an email message.
+        :param msg: The email message to delete.
+        """
+        msg.delete()

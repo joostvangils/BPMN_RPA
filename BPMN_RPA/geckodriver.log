@@ -1,0 +1,37 @@
+1619504673612	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "-marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\joost\\AppData\\Local\\Temp\\rust_mozprofileaMycqP"
+1619504674012	Marionette	INFO	Marionette enabled
+JavaScript error: resource://gre/modules/XULStore.jsm, line 66: Error: Can't find profile directory.
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1619504676122	Marionette	INFO	Listening on port 60688
+1619504676282	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript error: https://www.mijnafvalwijzer.nl/themes/afvalwijzer/js/retina.js, line 56: NetworkError: A network error occurred.
+1619504737741	Marionette	INFO	Stopped listening on port 60688
+1619504746554	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "-marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\joost\\AppData\\Local\\Temp\\rust_mozprofile6SLWnN"
+1619504746951	Marionette	INFO	Marionette enabled
+JavaScript error: resource://gre/modules/XULStore.jsm, line 66: Error: Can't find profile directory.
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1619504749014	Marionette	INFO	Listening on port 60790
+1619504749221	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript error: https://www.mijnafvalwijzer.nl/themes/afvalwijzer/js/retina.js, line 56: NetworkError: A network error occurred.
+1619504818958	Marionette	INFO	Stopped listening on port 60790
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1619504824984	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "-marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\joost\\AppData\\Local\\Temp\\rust_mozprofilea1ou26"
+1619504825401	Marionette	INFO	Marionette enabled
+JavaScript error: resource://gre/modules/XULStore.jsm, line 66: Error: Can't find profile directory.
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1619504827522	Marionette	INFO	Listening on port 60889
+1619504827651	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript error: https://www.mijnafvalwijzer.nl/themes/afvalwijzer/js/retina.js, line 56: NetworkError: A network error occurred.
+1619504872161	Marionette	INFO	Stopped listening on port 60889
+
+###!!! [Child][RunMessage] Error: Channel closing: too late to send/recv, messages will be lost
+
+1619504888717	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "-marionette" "-foreground" "-no-remote" "-profile" "C:\\Users\\joost\\AppData\\Local\\Temp\\rust_mozprofile8xD0SU"
+1619504889082	Marionette	INFO	Marionette enabled
+JavaScript error: resource://gre/modules/XULStore.jsm, line 66: Error: Can't find profile directory.
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new Error("", "(unknown module)"))
+1619504891193	Marionette	INFO	Listening on port 60991
+1619504891376	Marionette	WARN	TLS certificate errors will be ignored for this session
+JavaScript error: https://www.mijnafvalwijzer.nl/themes/afvalwijzer/js/retina.js, line 56: NetworkError: A network error occurred.
