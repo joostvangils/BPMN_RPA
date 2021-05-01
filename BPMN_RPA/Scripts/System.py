@@ -49,6 +49,7 @@ def rename_file(filepath: str, newname: str):
     root = ""
     name = ""
     c = 0
+    rename = newname
     if filepath.__contains__("\\"):
         root = "\\".join(filepath.split("\\")[:-1]) + "\\"
         name = filepath.split("\\")[-1]
@@ -56,12 +57,14 @@ def rename_file(filepath: str, newname: str):
         root = "/".join(filepath.split("/")[:-1]) + "/"
         name = filepath.split("/")[-1]
     for filename in os.listdir(root):
+        newname = rename
         if name.__contains__("*"):
             n = name.replace("*", "")
-            if filename.startswith(n):
+            if filename.startswith(n) and filename.split(".")[0][-2] != "_":
                 if c > 0:
                     newname = newname.split(".")[0] + "_" + str(c) + "." + "".join(newname.split(".")[1:])
                 os.rename(f"{root}{filename}", f"{root}{newname}")
                 c += 1
-        if root + filename == filepath:
-            os.rename(f"{root}{filename}", f"{root}{newname}")
+        else:
+            if root + filename == filepath:
+                os.rename(f"{root}{filename}", f"{root}{newname}")
