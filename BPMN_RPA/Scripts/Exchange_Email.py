@@ -211,3 +211,14 @@ class Email:
         :param msg: The email message to delete.
         """
         msg.delete()
+
+    def save_attachments(self, msg, folderpath):
+        """
+        Save all attachments of the email message to the specified folder
+        :param msg: The email message object.
+        :param folderpath: The path to the folder where the attachments will be saved.
+        """
+        for attachment in msg.attachments:
+            fpath = os.path.join(folderpath, attachment.name)
+            with open(fpath, 'wb') as f:
+                f.write(attachment.content)
