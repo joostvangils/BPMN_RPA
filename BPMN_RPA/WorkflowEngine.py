@@ -1668,7 +1668,3 @@ class Visio:
             setattr(retn, k, v)
         return retn
 
-engine = WorkflowEngine()
-doc = engine.open(r"c:\temp\check email.flw")
-steps = engine.get_flow(doc)
-engine.run_flow(steps)
