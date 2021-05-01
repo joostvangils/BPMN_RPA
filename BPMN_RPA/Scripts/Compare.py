@@ -107,33 +107,33 @@ def is_time_number_of_seconds_ago(date_time: any, interval_in_seconds: int) -> b
     return (date_time - datetime.now()).total_seconds() <= int(interval_in_seconds)
 
 
-def item1_contains_item2(item1: any, item2: any, exact_match: bool = True) -> bool:
+def item1_contains_item2(first_item: any, second_item: any, exact_match: bool = True) -> bool:
     """
     Check if item 1 contains item2.
     :param exact_match:
-    :param item1: The first object.
-    :param item2: The second object.
+    :param first_item: The first object.
+    :param second_item: The second object.
     :return: True or False.
     """
-    if isinstance(item1, str) and isinstance(item2, str):
-        return str(item1).__contains__(item2)
-    if isinstance(item1, dict) and isinstance(item2, str):
+    if isinstance(first_item, str) and isinstance(second_item, str):
+        return str(first_item).__contains__(second_item)
+    if isinstance(first_item, dict) and isinstance(second_item, str):
         if exact_match:
-            return item1.keys().__contains__(item2)
+            return first_item.keys().__contains__(second_item)
         else:
-            for x in item1.keys():
-                if str(x).__contains__(item2):
+            for x in first_item.keys():
+                if str(x).__contains__(second_item):
                     return True
             return False
-    if isinstance(item1, list) and isinstance(item2, str):
+    if isinstance(first_item, list) and isinstance(second_item, str):
         if exact_match:
-            return item1.__contains__(item2)
+            return first_item.__contains__(second_item)
         else:
-            for x in item1:
-                if str(x).__contains__(item2):
+            for x in first_item:
+                if str(x).__contains__(second_item):
                     return True
             return False
-    return item1.__contains__(item2)
+    return first_item.__contains__(second_item)
 
 
 def does_list_contain_item(list_object: list, item: any) -> bool:
