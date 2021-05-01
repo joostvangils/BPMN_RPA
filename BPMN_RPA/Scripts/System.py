@@ -1,3 +1,4 @@
+import os
 from typing import Any
 import pyautogui
 
@@ -37,3 +38,30 @@ def run_python_code(code: str) -> Any:
         return ret
     except Exception as ex:
         return ex
+
+def rename_file(filepath: str, newname: str):
+    """
+    Rename a file. The filepath must be the full path to the file. You may use the wildcard * in the filename.
+    P.e. if you use c:\temp\my* as the filepath you will rename all files in the temp directory that start with my. If more than one file exists, a number will be added at the end of the filename.
+    :param filepath: The path to the file to rename. You may use the wildcard *. if you use c:\temp\my* as the filepath you will rename all files in the temp directory that start with my. If more than one file exists, a number will be added at the end of the filename.
+    :param newname: The new name of the file
+    """
+    root = ""
+    name = ""
+    c = 0
+    if filepath.__contains__("\\"):
+        root = "\\".join(filepath.split("\\")[:-1]) + "\\"
+        name = filepath.split("\\")[-1]
+    if filepath.__contains__("/"):
+        root = "/".join(filepath.split("/")[:-1]) + "/"
+        name = filepath.split("/")[-1]
+    for filename in os.listdir(root):
+        if name.__contains__("*"):
+            n = name.replace("*", "")
+            if filename.startswith(n):
+                if c > 0:
+                    newname = newname.split(".")[0] + "_" + str(c) + "." + "".join(newname.split(".")[1:])
+                os.rename(f"{root}{filename}", f"{root}{newname}")
+                c += 1
+        if root + filename == filepath:
+            os.rename(f"{root}{filename}", f"{root}{newname}")
