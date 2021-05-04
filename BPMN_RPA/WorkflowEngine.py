@@ -163,7 +163,7 @@ class WorkflowEngine:
                     content = binary_file.read()
                 str_content = content.decode("ascii", errors='ignore')
                 str_content = str_content[:-1]
-                # str_content = "".join([x for x in str_content if x != '' and x != '']).strip().strip('\x00')
+                str_content = "".join([x for x in str_content if x != '' and x != '']).strip().strip('\x00')
                 # remain =math.ceil((len(str_content)/4) - int(len(str_content)/4))
                 # str_content = str_content[0:len(str_content)-remain]
                 # idx = 0
