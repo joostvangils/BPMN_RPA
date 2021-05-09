@@ -217,8 +217,12 @@ class Email:
         Save all attachments of the email message to the specified folder
         :param msg: The email message object.
         :param folderpath: The path to the folder where the attachments will be saved.
+        :return: A list with the attachment filenames
         """
+        retn = []
         for attachment in msg.attachments:
+            retn.append(attachment.name)
             fpath = os.path.join(folderpath, attachment.name)
             with open(fpath, 'wb') as f:
                 f.write(attachment.content)
+        return retn
