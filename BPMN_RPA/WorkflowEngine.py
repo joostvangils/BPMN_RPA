@@ -162,18 +162,26 @@ class WorkflowEngine:
                     # Read the whole file at once
                     content = binary_file.read()
                 str_content = content.decode("ascii", errors='ignore')
-                str_content = str_content[:-1]
-                str_content = "".join([x for x in str_content if x != '' and x != '']).strip().strip('\x00').strip('\x01')
-                # remain =math.ceil((len(str_content)/4) - int(len(str_content)/4))
-                # str_content = str_content[0:len(str_content)-remain]
-                # idx = 0
-                # if str_content.__contains__("fV0"):
-                #     str_content = str_content.split("fV0")[0][1:] + "fV0==="
-                # if str_content.__contains__("In1d"):
-                #     if str_content.index("In1d") + 4 > idx:
-                #         idx = str_content.index("In1d") + 4
-                # if idx > 0:
-                #     str_content = str_content[0:idx]
+                decoded = None
+                try:
+                    decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
+                except:
+                    str_content = str_content[:-1]
+                    str_content = "".join([x for x in str_content if x != '' and x != '']).strip().strip('\x00').strip('\x01').strip('\x0b')
+                if decoded is None:
+                    try:
+                        decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
+                    except:
+                        remain =math.ceil((len(str_content)/4) - int(len(str_content)/4))
+                        str_content = str_content[0:len(str_content)-remain]
+                        idx = 0
+                        if str_content.__contains__("fV0"):
+                            str_content = str_content.split("fV0")[0][1:] + "fV0==="
+                        if str_content.__contains__("In1d"):
+                            if str_content.index("In1d") + 4 > idx:
+                                idx = str_content.index("In1d") + 4
+                        if idx > 0:
+                            str_content = str_content[0:idx]
                 decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
                 dict_list = json.loads(decoded)
                 return dict_list
