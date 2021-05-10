@@ -12,6 +12,7 @@ import xmltodict
 from lxml import etree as eltree
 from BPMN_RPA.WorkflowEngine import WorkflowEngine
 
+
 # The BPMN-RPA Code module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -61,15 +62,15 @@ def get_default_input_parameters(modulepath=None, classname=None, function=None)
         methods = [x for x in classdef.body if isinstance(x, ast.FunctionDef)]
     else:
         methods = [x for x in module.body if isinstance(x, ast.FunctionDef)]
-    method = [x for x in methods if x.name==function][0]
+    method = [x for x in methods if x.name == function][0]
     args = []
     if method.args.args:
         [args.append([a.arg, ""]) for a in method.args.args]
     if method.args.defaults:
         total = len(method.args.args)
         count = len(method.args.defaults)
-        c=0
-        for t in range(total-count, total):
+        c = 0
+        for t in range(total - count, total):
             a = method.args.defaults[c]
             if hasattr(a, "s"):
                 args[t][1] = a.s
@@ -419,14 +420,13 @@ class Code:
             methods = [x for x in mdl.body if isinstance(x, ast.FunctionDef)]
         method = [x for x in methods if x.name == function][0]
         doc = ast.get_docstring(method)
-        #doc = inspect.getdoc(method_to_call)
+        # doc = inspect.getdoc(method_to_call)
         if doc is not None:
             doc = doc.replace(":param ", "\n").replace(":return: ", "\nReturn: ").replace(":returns: ",
                                                                                           "\nReturn: ")
             return doc
         else:
             return ""
-
 
     def sort_library(self, filepath: str) -> any:
         """
@@ -546,7 +546,7 @@ class Code:
                 path = "".join(sys.executable.split("\\")[:-1]) + "\\Lib\\site-packages\\" + module
                 if os.path.exists(path + module + ".py"):
                     module = path + module + ".py"
-        if function is not None:
+        if function is not None and function != "":
             classobject = None
             spec = util.spec_from_file_location(title, module)
             if spec is not None:
@@ -727,3 +727,7 @@ class Code:
                 raise Exception(f'Error: flow {flow} does not contain a valid xml definition')
         else:
             raise Exception(f'Error: flow {flow} not found.')
+
+
+c = Code()
+c.module_to_library(r"C:\PythonProjects\Administratie\administratie.py", r"c:\temp")
