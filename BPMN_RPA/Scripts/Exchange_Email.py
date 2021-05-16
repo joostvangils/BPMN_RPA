@@ -4,7 +4,10 @@ import urllib3
 from datetime import datetime, timedelta
 from exchangelib import Account, Configuration, Credentials, DELEGATE, EWSDateTime
 from exchangelib import Message, Mailbox, FileAttachment, HTMLBody
+from exchangelib.fields import FieldPath
+from exchangelib.items import Persona
 from exchangelib.protocol import BaseProtocol, NoVerifyHTTPAdapter
+from exchangelib import Q
 
 
 class Email:
@@ -226,3 +229,31 @@ class Email:
             with open(fpath, 'wb') as f:
                 f.write(attachment.content)
         return retn
+
+    def get_contacts(self):
+        """
+        Get all contacts of this account
+        :return: A list with contact objects
+        """
+        folder = self.account.contacts
+        retn = []
+        for p in folder.all():
+            retn.append(p)
+        return retn
+
+    def get_contacts_with_birthday_today(self):
+        """
+        Get all contacts of this account
+        :return: A list with contact objects
+        """
+        folder = self.account.contacts
+        retn = []
+        for p in folder.all():
+            try:
+                if p.birthday is not None:
+                    if p.birthday == datetime.today():
+                        retn.append(p)
+            except:
+                pass
+        return retn
+
