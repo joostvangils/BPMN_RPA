@@ -318,6 +318,7 @@ class WorkflowEngine:
                     if ky.lower() == "class":
                         ky = "classname"
                     setattr(tmp, ky, v)
+                self.store_system_variables(tmp)
                 retn.append(tmp)
             # return .flw flow steps
             return retn
