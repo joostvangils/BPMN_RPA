@@ -175,12 +175,13 @@ class WorkflowEngine:
                         remain =math.ceil((len(str_content)/4) - int(len(str_content)/4))
                         str_content = str_content[0:len(str_content)-remain]
                         idx = 0
-                        if str_content.__contains__("fV0"):
+                        if str_content.__contains__("fV0") and not str_content.__contains__("In1d"):
                             str_content = str_content.split("fV0")[0][1:] + "fV0==="
                         if str_content.__contains__("In1d"):
-                            if str_content.index("In1d") + 4 > idx:
+                            if str_content.__contains__("In1d") + 4 > idx:
                                 idx = str_content.index("In1d") + 4
-                        if idx > 0:
+                        while idx > 0 and str_content.__contains__("In1d") and not str_content.endswith("In1d"):
+                            idx = str_content.index("In1d") + 4
                             str_content = str_content[0:idx]
                 decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
                 dict_list = json.loads(decoded)
