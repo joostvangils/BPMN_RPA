@@ -1097,7 +1097,7 @@ class WorkflowEngine:
             if str(getattr(step, value)).__contains__("%__today_formatted__%"):
                 self.variables.update({'%__today_formatted__%': datetime.today().date().strftime("%d-%m-%Y")})
             if str(getattr(step, value)).__contains__("%__month__%"):
-                self.variables.update({'%__month__%': "{:02d}".format(datetime.datetime.today().month)})
+                self.variables.update({'%__month__%': "{:02d}".format(datetime.today().month)})
             if str(getattr(step, value)).__contains__("%__year__%"):
                 self.variables.update({'%__year__%': datetime.today().year})
             if str(getattr(step, value)).__contains__("%__weeknumber__%"):
