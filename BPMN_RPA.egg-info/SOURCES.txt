@@ -18,5 +18,6 @@ BPMN_RPA/Scripts/Mouse.py
 BPMN_RPA/Scripts/Set_Value.py
 BPMN_RPA/Scripts/Standard_returns.py
 BPMN_RPA/Scripts/System.py
+BPMN_RPA/Scripts/Web.py
 BPMN_RPA/Scripts/Windows.py
 BPMN_RPA/Scripts/__init__.py
