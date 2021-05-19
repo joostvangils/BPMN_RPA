@@ -241,19 +241,28 @@ class Email:
             retn.append(p)
         return retn
 
-    def get_contacts_with_birthday_today(self):
+    def get_contact_by_email(self, emailaddress):
         """
-        Get all contacts of this account
-        :return: A list with contact objects
+        Get a contacts of this account by it's emailaddress
+        :return: The contact object
         """
         folder = self.account.contacts
         retn = []
-        for p in folder.all():
-            try:
-                if p.birthday is not None:
-                    if p.birthday == datetime.today():
-                        retn.append(p)
-            except:
-                pass
+        for p in folder.all().filter(email_addresses__icontains=emailaddress ):
+            retn.append(p)
         return retn
 
+    def get_contacts_with_birthday_today(self):
+        """
+        Get all contacts of this account whom have their birthday today
+        :return: A list with contact objects whom have their birthday today
+        """
+        folder = self.account.contacts
+        retn = []
+        for p in folder.all().filter(birthday=datetime.today()):
+            retn.append(p)
+        return retn
+
+# e = Email("joostvangils@valuestream.nl", "joostvangils@valuestream.nl", "xxx")
+# all = e.get_contact_by_email("joostvangils@1ic.nl")
+# print("")

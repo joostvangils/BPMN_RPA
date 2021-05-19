@@ -729,5 +729,3 @@ class Code:
             raise Exception(f'Error: flow {flow} not found.')
 
 
-c = Code()
-c.module_to_library(r"C:\PythonProjects\Administratie\administratie.py", r"c:\temp")
