@@ -186,7 +186,7 @@ class WorkflowEngine:
                         while idx > 0 and str_content.__contains__("In1d") and not str_content.endswith("In1d"):
                             idx = str_content.index("In1d") + 4
                             str_content = str_content[0:idx]
-                        decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
+                        decoded = base64.b64decode(str_content+"==").decode("ascii", errors='ignore')
                 dict_list = json.loads(decoded)
                 return dict_list
             else:
