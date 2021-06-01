@@ -165,6 +165,9 @@ class WorkflowEngine:
                 decoded = None
                 try:
                     decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
+                    if decoded is not None:
+                        if decoded.__contains__("P"):
+                            decoded = decoded[0:decoded.index("P")]
                 except:
                     str_content = str_content[:-1]
                     str_content = "".join([x for x in str_content if x != '' and x != '']).strip().strip('\x00').strip('\x01').strip('\x0b')
@@ -183,7 +186,7 @@ class WorkflowEngine:
                         while idx > 0 and str_content.__contains__("In1d") and not str_content.endswith("In1d"):
                             idx = str_content.index("In1d") + 4
                             str_content = str_content[0:idx]
-                decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
+                        decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
                 dict_list = json.loads(decoded)
                 return dict_list
             else:
@@ -1679,4 +1682,3 @@ class Visio:
         for k, v in properties.items():
             setattr(retn, k, v)
         return retn
-
