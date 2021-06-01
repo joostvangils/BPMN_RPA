@@ -1679,3 +1679,4 @@ class Visio:
         for k, v in properties.items():
             setattr(retn, k, v)
         return retn
+

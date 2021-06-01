@@ -273,7 +273,7 @@ class Email:
         :param subject: The subject of the email to send
         :param headertext: Optional. The text that is displayed above the questions
         :param footertext: Optional. The text that is displayed below the questions
-        :param possible_answers: A list with possible answers that the recipient can reply with. Each answer will be shown as a link in the email body.
+        :param possible_answers: A comma separated string with possible answers that the recipient can reply with. Each answer will be shown as a link in the email body.
         :param warningtext: Optional. The text that is added to the answer to notify the recipient that answers cannot be edited.
         :param sendReplyTo: Optional. The emailaddress where answers will be received.
         """
@@ -283,11 +283,11 @@ class Email:
         question_id = uuid.uuid4().hex
         if self.sql is None:
             self.sql = BPMN_RPA.WorkflowEngine.SQL(BPMN_RPA.WorkflowEngine.WorkflowEngine.get_db_path())
-        for answ in possible_answers:
+        for answ in possible_answers.split(","):
             answer_id = uuid.uuid4().hex
             questiontext = str(headertext + ' ' + footertext).strip()
-            self.sql.run_sql(f"INSERT INTO Survey (recipient, question_id, question, answer_id, answer) VALUES ('{recipient}','{question_id}', '{questiontext}', '{answer_id}', '{answ}');")
-            body += f"<li style=\"mso-special-format:bullet;\"><a href='mailto:{sendReplyTo}?subject=Reply to question {question_id}&body={answ}%0D%0AConfirmation code: {answer_id}%0D%0A%0D%0A{warningtext}'>{answ}</a></li>"
+            self.sql.run_sql(f"INSERT INTO Survey (recipient, question_id, question, answer_id, answer) VALUES ('{recipient}','{question_id}', '{questiontext}', '{answer_id}', '{str(answ).strip()}');")
+            body += f"<li style=\"mso-special-format:bullet;\"><a href='mailto:{sendReplyTo}?subject=Reply to question {question_id}&body={str(answ).strip()}%0D%0AConfirmation code: {answer_id}%0D%0A%0D%0A{warningtext}'>{str(answ).strip()}</a></li>"
         body += f"</ul><br><br>{footertext}"
         self.send_email(subject, body, [recipient])
 
@@ -307,7 +307,7 @@ class Email:
         curs = self.sql.connection.cursor()
         curs.execute(sql)
         row = curs.fetchone()
-        if row[0] is None:
+        if row is None:
             return False
         return True
 
@@ -330,12 +330,13 @@ class Email:
         curs.execute(sql)
         row = curs.fetchone()
         retn = None
-        if row[0] is not None:
+        if row is not None:
             retn = row[0]
             if delete_from_database:
                 self.sql.run_sql(f"DELETE FROM Survey WHERE question_id='{question_id}' AND Recipient = '{emailmessage.sender.email_address}';")
             else:
                 self.sql.run_sql(f"UPDATE Survey SET received=1 WHERE question_id='{question_id}' AND Recipient = '{emailmessage.sender.email_address}' AND answer_id='{answer_id}';")
         return retn
+
 
 
