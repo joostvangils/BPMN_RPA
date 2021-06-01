@@ -1418,8 +1418,8 @@ class SQL:
             self.run_sql(sql)
             sql = "CREATE TABLE IF NOT EXISTS Steps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, run INTEGER NOT NULL, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_runs FOREIGN KEY (run) REFERENCES Runs (id) ON DELETE CASCADE);"
             self.run_sql(sql)
-            # sql = "CREATE TABLE IF NOT EXISTS Triggers (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, flow_id INTEGER NOT NULL, trigger_info, CONSTRAINT flows_saved_trigger FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
-            # self.run_sql(sql)
+            sql = "CREATE TABLE IF NOT EXISTS Survey (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, question_id STRING NOT NULL, question STRING NOT NULL, answer_id string NOT NULL, answer STRING NOT NULL, recipient STRING NOT NULL, received INTEGER DEFAULT 0, timestamp DATE DEFAULT (datetime('now','localtime')));"
+            self.run_sql(sql)
         except Exception as ex:
             self.set_error(ex)
             raise Exception(self.error)
@@ -1679,4 +1679,3 @@ class Visio:
         for k, v in properties.items():
             setattr(retn, k, v)
         return retn
-

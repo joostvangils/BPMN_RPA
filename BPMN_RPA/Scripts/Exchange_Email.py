@@ -1,5 +1,7 @@
 # System imports
 import os
+import uuid
+import BPMN_RPA.WorkflowEngine
 import urllib3
 from datetime import datetime, timedelta
 from exchangelib import Account, Configuration, Credentials, DELEGATE, EWSDateTime
@@ -48,6 +50,7 @@ class Email:
         config = Configuration(credentials=creds, service_endpoint="https://outlook.office365.com/ews/exchange.asmx")
         self.account = Account(primary_smtp_address=self.emailaddress, credentials=creds, autodiscover=False,
                                config=config, access_type=DELEGATE)
+        self.sql = None
 
     def move_message_to_inbox_subfolder(self, msg: object, folder: str):
         """
@@ -263,6 +266,76 @@ class Email:
             retn.append(p)
         return retn
 
-# e = Email("joostvangils@valuestream.nl", "joostvangils@valuestream.nl", "xxx")
-# all = e.get_contact_by_email("joostvangils@1ic.nl")
-# print("")
+    def send_question_with_options(self, recipient, subject, possible_answers, headertext="", footertext="", warningtext="This answer will be processed automatically. Please do not edit your answer. Any additional text will not be read.", sendReplyTo = ""):
+        """
+        Ask questions by email and store the question parameters in the Orhcestrator database, so answers can be collected when answers are received.
+        :param recipient: The emailaddress of the recipient. This should be a single email address.
+        :param subject: The subject of the email to send
+        :param headertext: Optional. The text that is displayed above the questions
+        :param footertext: Optional. The text that is displayed below the questions
+        :param possible_answers: A list with possible answers that the recipient can reply with. Each answer will be shown as a link in the email body.
+        :param warningtext: Optional. The text that is added to the answer to notify the recipient that answers cannot be edited.
+        :param sendReplyTo: Optional. The emailaddress where answers will be received.
+        """
+        if len(sendReplyTo)==0:
+            sendReplyTo = self.emailaddress
+        body=f"""{headertext}<br><br><ul>"""
+        question_id = uuid.uuid4().hex
+        if self.sql is None:
+            self.sql = BPMN_RPA.WorkflowEngine.SQL(BPMN_RPA.WorkflowEngine.WorkflowEngine.get_db_path())
+        for answ in possible_answers:
+            answer_id = uuid.uuid4().hex
+            questiontext = str(headertext + ' ' + footertext).strip()
+            self.sql.run_sql(f"INSERT INTO Survey (recipient, question_id, question, answer_id, answer) VALUES ('{recipient}','{question_id}', '{questiontext}', '{answer_id}', '{answ}');")
+            body += f"<li style=\"mso-special-format:bullet;\"><a href='mailto:{sendReplyTo}?subject=Reply to question {question_id}&body={answ}%0D%0AConfirmation code: {answer_id}%0D%0A%0D%0A{warningtext}'>{answ}</a></li>"
+        body += f"</ul><br><br>{footertext}"
+        self.send_email(subject, body, [recipient])
+
+    def is_email_answer_to_question(self, emailmessage):
+        """
+        Indicator whether the email message is an answer to a question that was send earlier. The answer will be recognized by the sendername, the question ID and the confirmation code.
+        :param emailmessage: The email message to investigate.
+        :return: True or False.
+        """
+        if str(emailmessage.subject).startswith("Reply to question "):
+            question_id = str(emailmessage.subject).replace("Reply to question ", "")
+        else:
+            return False
+        if self.sql is None:
+            self.sql = BPMN_RPA.WorkflowEngine.SQL(BPMN_RPA.WorkflowEngine.WorkflowEngine.get_db_path())
+        sql = f"SELECT * FROM Survey WHERE question_id='{question_id}' AND Recipient = '{emailmessage.sender.email_address}';"
+        curs = self.sql.connection.cursor()
+        curs.execute(sql)
+        row = curs.fetchone()
+        if row[0] is None:
+            return False
+        return True
+
+    def get_email_answer_to_question(self, emailmessage, delete_from_database=True):
+        """
+        Get the answer from the email message. The answer will be recognized by the sendername, the question ID and the confirmation code.
+        :param emailmessage: The email message to get the answer of.
+        :param delete_from_database: Optional. Indicator whether to delete the question send from the Orhcestrator database.
+        :return: True or False.
+        """
+        if str(emailmessage.subject).startswith("Reply to question "):
+            question_id = str(emailmessage.subject).replace("Reply to question ", "")
+        else:
+            return False
+        if self.sql is None:
+            self.sql = BPMN_RPA.WorkflowEngine.SQL(BPMN_RPA.WorkflowEngine.WorkflowEngine.get_db_path())
+        answer_id = str(str(emailmessage.body).split("Confirmation code: ")[1]).split(" ")[0]
+        sql = f"SELECT answer FROM Survey WHERE question_id='{question_id}' AND Recipient = '{emailmessage.sender.email_address}' AND answer_id='{answer_id}';"
+        curs = self.sql.connection.cursor()
+        curs.execute(sql)
+        row = curs.fetchone()
+        retn = None
+        if row[0] is not None:
+            retn = row[0]
+            if delete_from_database:
+                self.sql.run_sql(f"DELETE FROM Survey WHERE question_id='{question_id}' AND Recipient = '{emailmessage.sender.email_address}';")
+            else:
+                self.sql.run_sql(f"UPDATE Survey SET received=1 WHERE question_id='{question_id}' AND Recipient = '{emailmessage.sender.email_address}' AND answer_id='{answer_id}';")
+        return retn
+
+
