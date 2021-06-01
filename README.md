@@ -2,7 +2,11 @@
 Robotic Process Automation in Windows and Linux by using BPMN diagrams.
 
 With this Framework you can draw Business Process Model Notation based Diagrams and run those diagrams with a WorkflowEngine.
-You can run flows that were made in DrawIO (based on the mxGraph model notation of https://app.diagrams.net/) or with Ms Visio. There is no need for installing DrawIO or Visio to run the flows. Installing these applications is only needed for creating the flows.
+You can run flows that were made with one of the following programs:
+* [BPMN-RPA Studio](https://1ic.nl/download)
+* DrawIO (based on the mxGraph model notation of https://app.diagrams.net/)
+* Ms Visio
+There is no need for installing BPMN-RPA Studio, DrawIO or Visio to run the flows. Installing these applications is only needed for creating the flows.
 
 ### Content:
 * [Quick Start](#Quick-start)
