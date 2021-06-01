@@ -7,7 +7,7 @@ You can run flows that were made with one of the following programs:
 * DrawIO (Freeware based on the mxGraph model notation of https://app.diagrams.net/)
 * Microsoft Visio
 
-There is no need for installing BPMN-RPA Studio, DrawIO or Visio to run the flows. Installing these applications is only needed for creating the flows.
+There is no need for installing BPMN-RPA Studio, DrawIO or Visio to run the flows. Installing one of these applications is only needed for creating the flows.
 
 ### Content:
 * [Quick Start](#Quick-start)
