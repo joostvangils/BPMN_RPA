@@ -166,8 +166,8 @@ class WorkflowEngine:
                 try:
                     decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
                     if decoded is not None:
-                        if decoded.__contains__("P"):
-                            decoded = decoded[0:decoded.index("P")]
+                        if decoded.__contains__("}]"):
+                            decoded = decoded[0:decoded.rfind("}]") + 2]
                 except:
                     str_content = str_content[:-1]
                     str_content = "".join([x for x in str_content if x != '' and x != '']).strip().strip('\x00').strip('\x01').strip('\x0b')
@@ -175,7 +175,7 @@ class WorkflowEngine:
                     try:
                         decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
                     except:
-                        remain =math.ceil((len(str_content)/4) - int(len(str_content)/4))
+                        remain = math.ceil((len(str_content)/4) - int(len(str_content)/4))
                         str_content = str_content[0:len(str_content)-remain]
                         idx = 0
                         if str_content.__contains__("fV0") and not str_content.__contains__("In1d"):
@@ -187,6 +187,8 @@ class WorkflowEngine:
                             idx = str_content.index("In1d") + 4
                             str_content = str_content[0:idx]
                         decoded = base64.b64decode(str_content+"==").decode("ascii", errors='ignore')
+                        if decoded.__contains__("}]"):
+                            decoded = decoded[0:decoded.rfind("}]") + 2]
                 dict_list = json.loads(decoded)
                 return dict_list
             else:
