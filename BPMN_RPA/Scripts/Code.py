@@ -428,16 +428,19 @@ class Code:
         else:
             return ""
 
-    def create_flow_script(self, filepath: str, targetfolder: str = "") -> str:
+    def create_flow_script(self, filepath: str, targetfolder: str = "", input: str = "") -> str:
         """
         Create a single Python script from a .flw Flow file. The Python script will be created in the target folder as the Flow file.
         :param filepath: The full path to the Flow File (.flw)
         :param targetfolder: Optional. The folder where the script will be created. If no folder is given, then the script will be created in the same folder as the .flw file.
+        :param input: Optional. The input for the flow.
         :return: The full path to the created Python Script
         """
         engine = WorkflowEngine()
         doc = engine.open(filepath)
         steps = engine.get_flow(doc)
+        if input=="":
+            input = "None"
         reserved = ["email", "code", "compare", "workflowengine"]
         name = ""
         if filepath.__contains__("\\"):
@@ -462,7 +465,8 @@ class Code:
             f.write("retn = []\n")
             f.write("for step in lst:\n")
             f.write("  retn.append(json.loads(step))\n")
-            f.write("engine = WorkflowEngine()\n")
+            f.write(f"inp = {input}\n")
+            f.write("engine = WorkflowEngine(inp)\n")
             f.write("steps = engine.get_flow(retn)\n")
             f.write("engine.run_flow(steps)\n")
         return targetdir + "\\" + flowname
