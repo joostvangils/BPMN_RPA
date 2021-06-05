@@ -428,6 +428,42 @@ class Code:
         else:
             return ""
 
+    def create_flow_script(self, filepath: str):
+        """
+        Create a single Python script from a .flw Flow file. The Python script will be created in the same folder as the Flow file.
+        :param filepath: The full path to the Flow File (.flw)
+        :return: The full path to the created Python Script
+        """
+        engine = WorkflowEngine()
+        doc = engine.open(filepath)
+        steps = engine.get_flow(doc)
+        reserved = ["email", "code", "compare", "workflowengine"]
+        name = ""
+        if filepath.__contains__("\\"):
+            targetdir = "\\".join(filepath.split("\\")[:-1])
+            name = filepath.split("\\")[-1].replace(".flw", "")
+        else:
+            targetdir = "/".join(filepath.split("/")[:-1])
+            name = filepath.split("/")[-1].replace(".flw", "")
+        if name.lower() in reserved:
+            name += "_script"
+        flowname = name + ".py"
+        retn = []
+        for step in steps:
+            retn.append(json.dumps(step.__dict__))
+        json_txt = json.dumps(retn)
+        with open(targetdir + "\\" + flowname, 'w') as f:
+            f.write("import json\n")
+            f.write("from BPMN_RPA.WorkflowEngine import WorkflowEngine\n")
+            f.write(f"lst = {json_txt}\n")
+            f.write("retn = []\n")
+            f.write("for step in lst:\n")
+            f.write("  retn.append(json.loads(step))\n")
+            f.write("engine = WorkflowEngine()\n")
+            f.write("steps = engine.get_flow(retn)\n")
+            f.write("engine.run_flow(steps)\n")
+        return targetdir + "\\" + flowname
+
     def sort_library(self, filepath: str) -> any:
         """
         Sort a DrawIo library of shapes.
