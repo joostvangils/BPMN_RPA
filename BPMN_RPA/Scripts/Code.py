@@ -428,10 +428,11 @@ class Code:
         else:
             return ""
 
-    def create_flow_script(self, filepath: str):
+    def create_flow_script(self, filepath: str, targetfolder: str = "") -> str:
         """
-        Create a single Python script from a .flw Flow file. The Python script will be created in the same folder as the Flow file.
+        Create a single Python script from a .flw Flow file. The Python script will be created in the target folder as the Flow file.
         :param filepath: The full path to the Flow File (.flw)
+        :param targetfolder: Optional. The folder where the script will be created. If no folder is given, then the script will be created in the same folder as the .flw file.
         :return: The full path to the created Python Script
         """
         engine = WorkflowEngine()
@@ -445,6 +446,8 @@ class Code:
         else:
             targetdir = "/".join(filepath.split("/")[:-1])
             name = filepath.split("/")[-1].replace(".flw", "")
+        if len(targetfolder)>0:
+            targetdir = targetfolder
         if name.lower() in reserved:
             name += "_script"
         flowname = name + ".py"
