@@ -37,7 +37,7 @@ There is no need for installing BPMN-RPA Studio, DrawIO or Visio to run the flow
 - You have several options to run your workflow:
   * by generating a single Python script in [BPMN-RPA Studio](https://1ic.nl/download) that can contains both the starting of the WorkflowEngine as the flow steps itself 
   * by using the [BPMN_RPA_Starter.py](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/BPMN_RPA_Starter.py)
-  * or the WorkflowEngine by code
+  * start the flow with the WorkflowEngine in code
 
 #### First start
 The first time you will try to run a Flow, you will be asked to enter the path of your install directory. If you are using Windows, the path of the install directory will be saved in the registry (path saved in registry key 'HKEY_CURRENT_USER\Software\BPMN_RPA\dbPath') and is used to create a SQLite database for logging purposes, called 'Orchestrator.db'. The WorkflowEngine must also know where your python.exe is located. You will be asked to enter the full path to the python.exe file (including the '.exe' extension). Again, if you are using Windows this path will be saved in registry key 'HKEY_CURRENT_USER\Software\BPMN_RPA\PythonPath'. For Linux users a "settings" file together with the orchestrator database will be created.
