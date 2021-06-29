@@ -13,6 +13,8 @@ import json
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+import uuid
+
 
 def value_to_variable(value: any, convert_to_list=False) -> any:
     """
@@ -66,3 +68,10 @@ def increment_counter(counter: any, step: int = 1) -> any:
         newcounter = 0
 
     return newcounter
+
+def create_unique_id():
+    """
+    Generate a unique ID
+    :return: Unique ID as string
+    """
+    return uuid.uuid4().hex
