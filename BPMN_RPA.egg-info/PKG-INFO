@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: BPMN-RPA
-Version: 4.5.1
+Version: 4.5.3
 Summary: Robotic Process Automation by running BPMN diagram flows.
 Home-page: https://github.com/joostvangils/BPMN_RPA
 Author: Joost van Gils
@@ -11,7 +11,7 @@ Description: # BPMN_RPA
         
         With this Framework you can draw Business Process Model Notation based Diagrams and run those diagrams with a WorkflowEngine.
         You can run flows that were made with one of the following programs:
-        * [BPMN-RPA Studio](https://1ic.nl/download) (Freeware)
+        * [BPMN-RPA Studio](https://1ic.nl/download) (Freeware). Watch: https://www.youtube.com/watch?v=C6_rN4gFeR8
         * DrawIO (Freeware based on the mxGraph model notation of https://app.diagrams.net/)
         * Microsoft Visio
         

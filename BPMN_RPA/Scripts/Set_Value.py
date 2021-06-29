@@ -33,6 +33,13 @@ def value_to_variable(value: any, convert_to_list=False) -> any:
         value = json.loads(value)
     return value
 
+def json_to_object(json_string: str) -> any:
+    """
+    Convert a JSON string to an Object.
+    :param json_string: The JSON string to convert.
+    :return: The Object from the JSON string.
+    """
+    return json.loads(json_string)
 
 def split_string_to_list(string: str, separator: str = " ", maxsplit: int = -1) -> list:
     """
