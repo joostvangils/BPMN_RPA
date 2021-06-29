@@ -1,6 +1,5 @@
 import json
 
-
 # The BPMN-RPA Set_Value module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -33,6 +32,7 @@ def value_to_variable(value: any, convert_to_list=False) -> any:
         value = json.loads(value)
     return value
 
+
 def json_to_object(json_string: str) -> any:
     """
     Convert a JSON string to an Object.
@@ -40,6 +40,16 @@ def json_to_object(json_string: str) -> any:
     :return: The Object from the JSON string.
     """
     return json.loads(json_string)
+
+
+def object_to_json(object: any) -> str:
+    """
+    Convert an Object to a JSON string.
+    :param object: The Object to convert.
+    :return: The JSON string.
+    """
+    return json.dumps(object)
+
 
 def split_string_to_list(string: str, separator: str = " ", maxsplit: int = -1) -> list:
     """
@@ -75,6 +85,7 @@ def increment_counter(counter: any, step: int = 1) -> any:
         newcounter = 0
 
     return newcounter
+
 
 def create_unique_id():
     """
