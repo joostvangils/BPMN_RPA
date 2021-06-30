@@ -735,6 +735,13 @@ class WorkflowEngine:
                                 self.print_log(status="Running",
                                                result=f"Passing an {step.type} with value {output_previous_step}...")
                     else:
+                        if hasattr(step, "type"):
+                            if step.type == "disabled":
+                                self.print_log(status="Running",
+                                               result=f"Passing disabled step '{step.name}'. Passed value still is {output_previous_step}...")
+                                step = self.get_next_step(step, steps, output_previous_step)
+                                continue
+
                         if hasattr(step, "function"):
                             if step.function != "print_log":
                                 self.print_log(status="Running", result=f"Executing step '{step.name}'...")
