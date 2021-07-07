@@ -15,7 +15,7 @@ if __name__ == "__main__":
         long_description = f.read()
     setuptools.setup(
         name="BPMN_RPA",  # Replace with your own username
-        version="4.6.3",
+        version="4.6.4",
         author="Joost van Gils",
         author_email="joostvangils@1ic.nl",
         description="Robotic Process Automation by running BPMN diagram flows.",
@@ -25,7 +25,7 @@ if __name__ == "__main__":
         packages=setuptools.find_packages(),
         package_dir={'BPMN_RPA': 'BPMN_RPA'},
         include_package_data=True,
-        # install_requires=parse_requirements("requirements.txt"),
+        install_requires=parse_requirements("requirements.txt"),
         classifiers=[
             "Programming Language :: Python :: 3",
             "License :: OSI Approved :: GNU Affero General Public License v3",
