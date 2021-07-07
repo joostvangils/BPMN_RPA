@@ -1,11 +1,10 @@
-###### Requirements without Version Specifiers ######
-datetime~=4.3
-importlib~=1.0.4
-keyboard~=0.13.5
-lxml~=4.6.2
-pathlib~=1.0.1
-pyautogui~=0.9.52
-typing~=3.7.4.3
-xmltodict~=0.12.0
-future~=0.18.2
-setuptools~=50.3.2
+pywin32==225; platform_system == "Windows"
+requests==2.25.1
+xmltodict==0.12.0
+PyAutoGUI==0.9.48; platform_system == "Windows"
+exchangelib==2.0.1
+urllib3==1.26.4
+lxml==4.6.3
+beautifulsoup4==4.9.3
+keyboard==0.13.5
+win32gui==221.6; platform_system == "Windows"
