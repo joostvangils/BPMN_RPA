@@ -114,7 +114,7 @@ class WorkflowEngine:
         if os.name == 'nt':
             self.packages_folder = "\\".join(pythonpath.split('\\')[0:-1]) + "\\Lib\\site-packages"
         else:
-            self.packages_folder = site.getsitepackages()[0]
+            self.packages_folder = pythonpath + "\\dist-packages"
         self.db = SQL(db_folder)
         self.db.orchestrator()  # Run the orchestrator database
         self.id = -1  # Holds the ID for our flow
