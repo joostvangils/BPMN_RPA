@@ -1,7 +1,7 @@
 import base64
 import copy
 import importlib
-import importlib.util as util
+import importlib.utsite-il as util
 import inspect
 import json
 import math
@@ -770,6 +770,8 @@ class WorkflowEngine:
                                 if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(
                                         step.module).__contains__(".py"):
                                     step.module = f"{self.packages_folder}\\{step.module}"
+                            if os.name != 'nt':
+                                step.module = f"{self.packages_folder}\\{step.module}"
                             if str(step.module).lower().__contains__(".py"):
                                 spec = util.spec_from_file_location(step.module, step.module)
                                 module_object = util.module_from_spec(spec)
