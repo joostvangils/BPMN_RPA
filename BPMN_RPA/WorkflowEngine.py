@@ -776,9 +776,9 @@ class WorkflowEngine:
                                 if not str(step.module).__contains__("/") and str(step.module).lower().__contains__(
                                         ".py") and str(step.module).__contains__(self.packages_folder):
                                     module_ = f"{self.packages_folder}/BPMN_RPA/Scripts/{step.module}"
-                                if str(step.module).__contains__("/") and str(step.module).lower().__contains__(
-                                        ".py"):
-                                    module_ = f"{self.packages_folder}/{step.module}"
+                                if not str(step.module).__contains__("/") and not str(step.module).lower().__contains__(
+                                        ".py") and not str(step.module).__contains__(self.packages_folder):
+                                    modue_ = f"{self.packages_folder}/{step.module}"
                                 step.module = module_
                             if str(step.module).lower().__contains__(".py"):
                                 spec = util.spec_from_file_location(step.module, step.module)
