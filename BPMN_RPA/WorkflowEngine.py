@@ -114,7 +114,7 @@ class WorkflowEngine:
         if os.name == 'nt':
             self.packages_folder = "\\".join(pythonpath.split('\\')[0:-1]) + "\\Lib\\site-packages"
         else:
-            self.packages_folder = site.getsitepackages()[0]
+            self.packages_folder = pythonpath + "/dist-packages"
         self.db = SQL(db_folder)
         self.db.orchestrator()  # Run the orchestrator database
         self.id = -1  # Holds the ID for our flow
@@ -772,6 +772,16 @@ class WorkflowEngine:
                                 if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(
                                         step.module).__contains__(".py"):
                                     step.module = f"{self.packages_folder}\\{step.module}"
+                            if os.name != 'nt':
+                                step.module = str(step.module).replace("\\", "/")
+                                module_ = step.module
+                                if not str(step.module).__contains__("/") and str(step.module).lower().__contains__(
+                                        ".py") and str(step.module).__contains__(self.packages_folder):
+                                    module_ = f"{self.packages_folder}/BPMN_RPA/Scripts/{step.module}"
+                                if not str(step.module).__contains__("/") and not str(step.module).lower().__contains__(
+                                        ".py") and not str(step.module).__contains__(self.packages_folder):
+                                    modue_ = f"{self.packages_folder}/{step.module}"
+                                step.module = module_
                             if str(step.module).lower().__contains__(".py"):
                                 spec = util.spec_from_file_location(step.module, step.module)
                                 module_object = util.module_from_spec(spec)
