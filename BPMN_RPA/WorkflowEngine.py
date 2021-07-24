@@ -165,6 +165,8 @@ class WorkflowEngine:
                 decoded = None
                 try:
                     decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
+                    if(decoded.__contains__("}]@")):
+                        decoded = decoded[0:decoded.index("}]@")+2]
                     if decoded is not None:
                         if decoded.__contains__("}]"):
                             decoded = decoded[0:decoded.rfind("}]") + 2]

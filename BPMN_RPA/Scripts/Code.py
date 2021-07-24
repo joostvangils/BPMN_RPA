@@ -3,14 +3,17 @@ import inspect
 import json
 import os
 import sys
+from pprint import pprint
 from urllib import parse
 import zlib
 import ast
 from importlib import util
 from pathlib import Path
 import xmltodict
+from BPMN_RPA.Scripts.Exchange_Email import Email
 from lxml import etree as eltree
 from BPMN_RPA.WorkflowEngine import WorkflowEngine
+import jsonpickle
 
 
 # The BPMN-RPA Code module is free software: you can redistribute it and/or modify
@@ -87,6 +90,7 @@ class Code:
         self.libs = []
         self.libpath = ""
         self.current_dict = None
+        self.properties = None
 
     @staticmethod
     def openflow(filepath: str, as_xml: bool = False) -> any:
@@ -471,6 +475,42 @@ class Code:
             f.write("engine.run_flow(steps)\n")
         return targetdir + "\\" + flowname
 
+    def get_properties(self, obj):
+        """
+        Get all properties from an object as strings in a list.
+        :param obj: The object to get the properties of.
+        :return: None. The properties are returned as the attribute 'properties' of this class.
+        """
+        if self.properties is None:
+            self.properties = {}
+        if self.properties is not None:
+            self.properties.clear()
+        if isinstance(obj, list):
+            ct = 0
+            for el in obj:
+                if not callable(el):
+                    item = f"[{ct}]"
+                    self.properties.update({item: jsonpickle.encode(el)})
+                    ct += 1
+            return self.properties
+        if isinstance(obj, str):
+            self.properties.update({"text": jsonpickle.encode(str(obj))})
+        for el in obj.__dir__():
+            if not str(el).startswith(("__")) and not callable(el):
+                try:
+                    val = getattr(obj, el)
+                    if not callable(val):
+                        self.properties.update({el: jsonpickle.encode(val)})
+                except:
+                    pass
+        return self.properties
+
+    def clear_properties(self):
+        """
+        Clear the contents of the attribute 'properties' of this class.
+        """
+        self.properties.clear()
+
     def sort_library(self, filepath: str) -> any:
         """
         Sort a DrawIo library of shapes.
@@ -770,5 +810,8 @@ class Code:
                 raise Exception(f'Error: flow {flow} does not contain a valid xml definition')
         else:
             raise Exception(f'Error: flow {flow} not found.')
+
+
+
 
 
