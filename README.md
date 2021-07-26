@@ -25,7 +25,7 @@ There is no need for installing BPMN-RPA Studio, DrawIO or Visio to run the flow
 * [Logging](#Logging)
 * [End a flow](#End-a-flow)
   * [End flow with exitcode](#End-flow-with-exitcode)
-* [Step by step](#Step by step flow execution)
+* [Loops](#Loops)
 * [PlugIn](#PlugIn)
 * [Example](#Example)
 
