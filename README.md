@@ -25,6 +25,7 @@ There is no need for installing BPMN-RPA Studio, DrawIO or Visio to run the flow
 * [Logging](#Logging)
 * [End a flow](#End-a-flow)
   * [End flow with exitcode](#End-flow-with-exitcode)
+* [Step-by-step flow execution](#Step-by-step flow execution)
 * [PlugIn](#PlugIn)
 * [Example](#Example)
 
@@ -162,6 +163,25 @@ If you wish to end your flow with an exitcode (0 for OK and -1 for not OK) then 
 <br>
 Just call one of the above functions by only passing the 'function' parameter (thus not passing the 'Module' and 'Class' parameter):<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Exit_not_ok.PNG" height="120" width="350" ></a><br>
+
+#### Step-by-step flow execution
+As from BPMN-RPA version 4.x.x and above, you can perform step-by-step flow execution in your code.
+An example:
+
+```Python
+engine = WorkflowEngine()
+doc = engine.open("c:\\test.flw")
+steps = engine.get_flow(doc)
+nextstep = steps[0]
+while nextstep is not None:
+    q = input("Execute next step? (y/n)")
+    if q.lower()!="y":
+        break
+    print("\n")
+    result =  engine.run_flow(nextstep,True )
+    nextstep = engine.get_next_step(nextstep, steps, result);
+    print(f"Output of this step: {result}")
+```
 
 #### PlugIn
 BPMN-RPA has a Drawio plugin for checking your flows. You can download it here: <a href="https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/BPMN-RPA_PlugIn.js">PlugIn</a><br>

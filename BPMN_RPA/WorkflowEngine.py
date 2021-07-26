@@ -1703,3 +1703,16 @@ class Visio:
         for k, v in properties.items():
             setattr(retn, k, v)
         return retn
+
+engine = WorkflowEngine()
+doc = engine.open("c:\\test.flw")
+steps = engine.get_flow(doc)
+nextstep = steps[0]
+while nextstep is not None:
+    q = input("Execute next step? (y/n)")
+    if q.lower()!="y":
+        break
+    print("\n")
+    result =  engine.run_flow(nextstep,True )
+    nextstep = engine.get_next_step(nextstep, steps, result);
+    print(f"Output of this step: {result}")
