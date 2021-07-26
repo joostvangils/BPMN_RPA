@@ -63,7 +63,7 @@ You can use Tasks to call Python scripts. For the WorkflowEngine to recognize th
       
       P.e.: to call 
       ```Python
-    os.system('Notepad')
+        os.system('Notepad')
       ```
       You look up the name of the input parameter(s) in the official documentation (or in the code). In this example, the input parameter is called 'command'. You then set the following attributes:<br><br>
       <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/os_system.PNG" height="450" width="400" ></a>
