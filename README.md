@@ -46,7 +46,7 @@ The first time you will try to run a Flow, you will be asked to enter the path o
 #### Recognized Shapes
 For the Workflow engine to recognize the flow, you must use the recommended shape attributes with the following Shapes:
 
-##### Tasks<br>
+##### Tasks
 You can use Tasks to call Python scripts. For the WorkflowEngine to recognize the Tasks, each Task has to contain certain attributes to make this possible.<br>
    * Recommended attributes:
      * Module: This is the full path to the Python file that contains your Class and/or function.
@@ -63,7 +63,7 @@ You can use Tasks to call Python scripts. For the WorkflowEngine to recognize th
       
       P.e.: to call 
       ```Python
-      os.system('Notepad')
+    os.system('Notepad')
       ```
       You look up the name of the input parameter(s) in the official documentation (or in the code). In this example, the input parameter is called 'command'. You then set the following attributes:<br><br>
       <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/os_system.PNG" height="450" width="400" ></a>
@@ -179,7 +179,7 @@ while nextstep is not None:
         break
     print("\n")
     result =  engine.run_flow(nextstep,True )
-    nextstep = engine.get_next_step(nextstep, steps, result);
+    nextstep = engine.get_next_step(nextstep, steps, result)
     print(f"Output of this step: {result}")
 ```
 
