@@ -493,6 +493,9 @@ class Code:
                     self.properties.update({item: jsonpickle.encode(el)})
                     ct += 1
             return self.properties
+        if isinstance(obj, dict):
+            for key in obj:
+                self.properties.update({key: obj[key]})
         if isinstance(obj, str):
             self.properties.update({"text": jsonpickle.encode(str(obj))})
         for el in obj.__dir__():
@@ -810,8 +813,4 @@ class Code:
                 raise Exception(f'Error: flow {flow} does not contain a valid xml definition')
         else:
             raise Exception(f'Error: flow {flow} not found.')
-
-
-
-
 
