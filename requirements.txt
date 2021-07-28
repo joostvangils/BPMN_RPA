@@ -7,5 +7,5 @@ urllib3==1.26.4
 lxml==4.6.3; platform_system == "Windows"
 beautifulsoup4==4.9.3
 keyboard==0.13.5
-win32gui==221.6; platform_system == "Windows"
+win32gui; platform_system == "Windows"
 jsonpickle==2.0.0
