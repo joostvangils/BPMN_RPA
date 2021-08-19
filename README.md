@@ -31,10 +31,10 @@ There is no need for installing BPMN-RPA Studio, DrawIO or Visio to run the flow
 
 
 #### Quick start
-- Open the application for creating the flow (diagram.net, DrawIO desktop app or Ms Visio)
-- Import the BPMN RPA Shape library ( file -> open library, which you can download for DrawIO [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.xml) and for MsVisio [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.vssx))
-- Create your Diagram in https://app.diagrams.net/ or in the Desktop application (DrawIO or Ms Visio) by using the appropriate BPMN_RPA Shape-set
-- Save your diagram (as XML for DrawIO or as vsdx for Visio)
+- Open the application for creating the flow (BPMN-RPA Studio, diagram.net, DrawIO desktop app or Ms Visio)
+- For Draw.io only: Import the BPMN RPA Shape library ( file -> open library, which you can download for DrawIO [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.xml) and for MsVisio [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.vssx))
+- Create your Diagram in BPMN-RPA Studio, in https://app.diagrams.net/ or in the Desktop application (DrawIO or Ms Visio) by using the appropriate BPMN_RPA Shape-set
+- Save your diagram (as .flw for BPMN-RPA Studio, as XML for DrawIO or as vsdx for Visio)
 - You have several options to run your workflow:
   * by generating a single Python script in [BPMN-RPA Studio](https://1ic.nl/download) that can contains both the code to start the WorkflowEngine as the flow steps itself 
   * by using the [BPMN_RPA_Starter.py](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/BPMN_RPA_Starter.py)
