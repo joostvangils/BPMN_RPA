@@ -1,19 +1,17 @@
+import ast
 import base64
 import inspect
 import json
 import os
 import sys
-from pprint import pprint
-from urllib import parse
 import zlib
-import ast
 from importlib import util
 from pathlib import Path
+from urllib import parse
+import jsonpickle
 import xmltodict
-from BPMN_RPA.Scripts.Exchange_Email import Email
 from lxml import etree as eltree
 from BPMN_RPA.WorkflowEngine import WorkflowEngine
-import jsonpickle
 
 
 # The BPMN-RPA Code module is free software: you can redistribute it and/or modify

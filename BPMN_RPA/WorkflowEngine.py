@@ -165,18 +165,18 @@ class WorkflowEngine:
                 decoded = None
                 try:
                     decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
-                    if(decoded.__contains__("}]@")):
+                    if decoded.__contains__("}]@"):
                         decoded = decoded[0:decoded.index("}]@")+2]
                     if decoded is not None:
                         if decoded.__contains__("}]"):
                             decoded = decoded[0:decoded.rfind("}]") + 2]
-                except:
+                except (ValueError, Exception):
                     str_content = str_content[:-1]
                     str_content = "".join([x for x in str_content if x != '' and x != '']).strip().strip('\x00').strip('\x01').strip('\x0b')
                 if decoded is None:
                     try:
                         decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
-                    except:
+                    except (ValueError, Exception):
                         remain = math.ceil((len(str_content)/4) - int(len(str_content)/4))
                         str_content = str_content[0:len(str_content)-remain]
                         idx = 0
@@ -190,13 +190,13 @@ class WorkflowEngine:
                             str_content = str_content[0:idx]
                         try:
                             decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
-                        except:
+                        except (ValueError, Exception):
                             for i in range(0, 4):
                                 str_content = str_content[0:-1]
                                 try:
                                     decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
                                     break
-                                except:
+                                except (ValueError, Exception):
                                     pass
                         if decoded.__contains__("}]"):
                             decoded = decoded[0:decoded.rfind("}]") + 2]
@@ -929,7 +929,6 @@ class WorkflowEngine:
             step = self.get_next_step(step, steps, output_previous_step)
         if output_previous_step is not None:
             return output_previous_step
-
 
     def set_error(self, ex: any):
         """
