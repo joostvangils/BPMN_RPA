@@ -8,3 +8,4 @@ lxml>=4.6.3; platform_system == "Windows"
 beautifulsoup4>=4.9.3
 keyboard>=0.13.5
 jsonpickle>=2.0.0
+tk-0.1.0; platform_system == "Windows"

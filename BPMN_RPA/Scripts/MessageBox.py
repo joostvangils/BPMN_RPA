@@ -1,5 +1,6 @@
 import tkinter
 import tkinter.messagebox
+import tkinter.simpledialog
 
 # The BPMN-RPA MessageBox module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -81,5 +82,22 @@ def show(title: str, message: str, option: str = "ok") -> int:
         retn = tkinter.messagebox.askokcancel(title, message)
     else:
         retn = None
+    root.destroy()
+    return retn
+
+def inputbox(title: str, message: str, default: str = "") -> str:
+    """
+    Show a inputbox on the screen with a specific Title, Message and default value.
+    :param title: The title of the inputbox.
+    :param message: The message of the inputbox.
+    :param default: The default value of the inputbox.
+    :return: The input value.
+    """
+    root = tkinter.Tk()
+    root.withdraw()
+    title = str(title)
+    message = str(message) + "                                               "
+    default = str(default)
+    retn = tkinter.simpledialog.askstring(title, message, initialvalue=default)
     root.destroy()
     return retn

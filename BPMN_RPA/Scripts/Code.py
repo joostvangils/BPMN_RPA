@@ -53,6 +53,12 @@ def get_default_values_from_signature(method_to_call: any) -> any:
 
 
 def get_default_input_parameters(modulepath=None, classname=None, function=None):
+    if classname == "":
+        classname = None
+    if modulepath == "":
+        modulepath = None
+    if function == "":
+        function = None
     f = open(modulepath, "r")
     body = f.read()
     f.close()
@@ -410,13 +416,16 @@ class Code:
         :param classname: Optional. The Classname.
         :return: A string with the comments from code.
         """
+        if classname == "":
+            classname = None
         f = open(module, "r")
         body = f.read()
         f.close()
         mdl = ast.parse(body)
         if classname is not None:
             classdefs = [stmt for stmt in mdl.body if isinstance(stmt, ast.ClassDef)]
-            classdef = [x for x in classdefs if x.name == classname][0]
+            if len(classdefs) > 0:
+                classdef = [x for x in classdefs if x.name == classname][0]
             methods = [x for x in classdef.body if isinstance(x, ast.FunctionDef)]
         else:
             methods = [x for x in mdl.body if isinstance(x, ast.FunctionDef)]
