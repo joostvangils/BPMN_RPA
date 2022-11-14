@@ -157,51 +157,65 @@ class WorkflowEngine:
         if not filepath.__contains__(".vsdx"):
             if filepath.__contains__(".flw"):
                 self.flowname = filepath.split("\\")[-1].replace(".flw", "")
-                with open(filepath, "rb") as binary_file:
-                    binary_file.seek(24)
-                    # Read the whole file at once
-                    content = binary_file.read()
-                str_content = content.decode("ascii", errors='ignore')
-                decoded = None
                 try:
-                    decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
-                    if decoded.__contains__("}]@"):
-                        decoded = decoded[0:decoded.index("}]@")+2]
-                    if decoded is not None:
-                        if decoded.__contains__("}]"):
-                            decoded = decoded[0:decoded.rfind("}]") + 2]
-                except (ValueError, Exception):
-                    str_content = str_content[:-1]
-                    str_content = "".join([x for x in str_content if x != '' and x != '']).strip().strip('\x00').strip('\x01').strip('\x0b')
-                if decoded is None:
+                    with open(filepath, "r") as f:
+                        content = f.read()
+                    decoded = base64.b64decode(content).decode("ascii", errors='ignore')
+                    return json.loads(decoded)
+                except UnicodeDecodeError:
+                    # Found non-text data in the file
+                    pass
+                finally:
+                    try:
+                        with open(filepath, "rb") as binary_file:
+                            binary_file.seek(24)
+                            # Read the whole file at once
+                            content = binary_file.read()
+                        str_content = content.decode("ascii", errors='ignore')
+                        decoded = None
+                    except Exception as e:
+                        print(e)
+                        pass
                     try:
                         decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
-                    except (ValueError, Exception):
-                        remain = math.ceil((len(str_content)/4) - int(len(str_content)/4))
-                        str_content = str_content[0:len(str_content)-remain]
-                        idx = 0
-                        if str_content.__contains__("fV0") and not str_content.__contains__("In1d"):
-                            str_content = str_content.split("fV0")[0][1:] + "fV0==="
-                        if str_content.__contains__("In1d"):
-                            if str_content.__contains__("In1d") + 4 > idx:
-                                idx = str_content.index("In1d") + 4
-                        while idx > 0 and str_content.__contains__("In1d") and not str_content.endswith("In1d"):
-                            idx = str_content.index("In1d") + 4
-                            str_content = str_content[0:idx]
+                        if decoded.__contains__("}]@"):
+                            decoded = decoded[0:decoded.index("}]@")+2]
+                        if decoded is not None:
+                            if decoded.__contains__("}]"):
+                                decoded = decoded[0:decoded.rfind("}]") + 2]
+                    except Exception as e:
+                        print(e)
+                        str_content = str_content[:-1]
+                        str_content = "".join([x for x in str_content if x != '' and x != '']).strip().strip('\x00').strip('\x01').strip('\x0b')
+                    if decoded is None:
                         try:
                             decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
                         except (ValueError, Exception):
-                            for i in range(0, 4):
-                                str_content = str_content[0:-1]
-                                try:
-                                    decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
-                                    break
-                                except (ValueError, Exception):
-                                    pass
-                        if decoded.__contains__("}]"):
-                            decoded = decoded[0:decoded.rfind("}]") + 2]
-                dict_list = json.loads(decoded)
-                return dict_list
+                            remain = math.ceil((len(str_content)/4) - int(len(str_content)/4))
+                            str_content = str_content[0:len(str_content)-remain]
+                            idx = 0
+                            if str_content.__contains__("fV0") and not str_content.__contains__("In1d"):
+                                str_content = str_content.split("fV0")[0][1:] + "fV0==="
+                            if str_content.__contains__("In1d"):
+                                if str_content.__contains__("In1d") + 4 > idx:
+                                    idx = str_content.index("In1d") + 4
+                            while idx > 0 and str_content.__contains__("In1d") and not str_content.endswith("In1d"):
+                                idx = str_content.index("In1d") + 4
+                                str_content = str_content[0:idx]
+                            try:
+                                decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
+                            except (ValueError, Exception):
+                                for i in range(0, 4):
+                                    str_content = str_content[0:-1]
+                                    try:
+                                        decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
+                                        break
+                                    except (ValueError, Exception):
+                                        pass
+                            if decoded.__contains__("}]"):
+                                decoded = decoded[0:decoded.rfind("}]") + 2]
+                    dict_list = json.loads(decoded)
+                    return dict_list
             else:
                 self.flowname = filepath.split("\\")[-1].replace(".xml", "")
                 xml_root = ElTree.fromstring(xml_file.read())

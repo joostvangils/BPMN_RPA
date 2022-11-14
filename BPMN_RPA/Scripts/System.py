@@ -68,3 +68,11 @@ def rename_file(filepath: str, newname: str):
         else:
             if root + filename == filepath:
                 os.rename(f"{root}{filename}", f"{root}{newname}")
+
+
+def start_windows_program(path: str):
+    """
+    Start a Windows program.
+    :param path: The full path to the program to start.
+    """
+    os.startfile(path)
