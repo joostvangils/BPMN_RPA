@@ -1,4 +1,5 @@
 import os
+import time
 from typing import Any
 import pyautogui
 
@@ -76,3 +77,11 @@ def start_windows_program(path: str):
     :param path: The full path to the program to start.
     """
     os.startfile(path)
+
+
+def wait(seconds: int):
+    """
+    Wait for a number of seconds.
+    :param seconds: The number of seconds to wait (double).
+    """
+    time.sleep(seconds)

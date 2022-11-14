@@ -1,5 +1,8 @@
-from win32gui import GetForegroundWindow, GetWindowText, EnumWindows, GetWindowPlacement, GetClassName, GetParent, \
-    GetWindowLong, ShowWindow, PostMessage, SetForegroundWindow, MoveWindow, SetFocus
+import json
+import os
+import sys
+import winreg
+from pathlib import Path
 
 # The BPMN-RPA Windows module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,10 +18,34 @@ from win32gui import GetForegroundWindow, GetWindowText, EnumWindows, GetWindowP
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
+def get_python_path() -> any:
+    """
+    Get the path to the Python.exe file
+    :return: The path to the Python.exe file
+    """
+    if os.name == 'nt':
+        try:
+            reg_path = r"SOFTWARE\BPMN_RPA"
+            registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_path, 0, winreg.KEY_READ)
+            value, regtype = winreg.QueryValueEx(registry_key, 'PythonPath')
+            winreg.CloseKey(registry_key)
+            return value
+        except WindowsError:
+            return None
+    else:
+        json_file = open('/etc/BPMN_RPA_settings', 'r')
+        data = json.load(json_file)
+        json_file.close()
+        return data["pythonpath"]
+
 GWL_WNDPROC = (-4)
 SW_HIDE = 0
 SW_SHOWNORMAL = 1
 WM_CLOSE = 16
+# C:\Python\Lib\site-packages\pywin32_system32
+curwd = get_python_path().replace('\\python.exe', '')
+os.add_dll_directory(rf"{curwd}\Lib\site-packages\pywin32_system32")
+import win32gui
 
 class BPMN_RPA_Window(object):
     """
@@ -31,14 +58,22 @@ def get_foreground_window() -> any:
     """
     Get the foreground window object.
     :return: The foreground window object.
+    The window object contains the following properties:
+    - Hwnd: The window handle.
+    - Title: The window title.
+    - Rect: The window rectangle.
+    - ClassName: The window class name.
+    - ParentHwnd: The parent window handle.
+    - WndProc: The window procedure.
+    You can reference these properties by using the dot notation, e.g.: window.Hwnd
     """
-    hwnd = GetForegroundWindow()
+    hwnd = win32gui.GetForegroundWindow()
     return get_window_object(hwnd)
 
 
 def window_enumeration_handler(hwnd: int, top_windows: any):
     """Add window title and ID to array."""
-    top_windows.append((hwnd, GetWindowText(hwnd)))
+    top_windows.append((hwnd, win32gui.GetWindowText(hwnd)))
 
 
 def wait_for_window(window_title: str, case_sensitive: bool = False, destroyed: bool = False) -> any:
@@ -48,6 +83,14 @@ def wait_for_window(window_title: str, case_sensitive: bool = False, destroyed: 
     :param case_sensitive: Optional. Indicator whether the window title should be matched with case sensitivity.
     :param destroyed: Optional. Boolean: indicator where the window should appear/be created (True) or closed/destroyed (False).
     :return: If the window is created, the window object is returned. Otherwise a True value will be returned.
+    The window object contains the following properties:
+    - Hwnd: The window handle.
+    - Title: The window title.
+    - Rect: The window rectangle.
+    - ClassName: The window class name.
+    - ParentHwnd: The parent window handle.
+    - WndProc: The window procedure.
+    You can reference these properties by using the dot notation, e.g.: window.Hwnd
     """
     while True:
         window = find_window(window_title, case_sensitive)
@@ -65,9 +108,17 @@ def find_window(title: str, case_sensitive: bool = False) -> any:
     :param title: The window title (or: part of) to search for.
     :param case_sensitive: Optional. Indicator whether the window title should be matched with case sensitivity.
     :return: If the window is found, the window object is returned. Otherwise a None value will be returned.
+    The window object contains the following properties:
+    - Hwnd: The window handle.
+    - Title: The window title.
+    - Rect: The window rectangle.
+    - ClassName: The window class name.
+    - ParentHwnd: The parent window handle.
+    - WndProc: The window procedure.
+    You can reference these properties by using the dot notation, e.g.: window.Hwnd
     """
     top_windows = []
-    EnumWindows(window_enumeration_handler, top_windows)
+    win32gui.EnumWindows(window_enumeration_handler, top_windows)
     if case_sensitive:
         windows = [window for window in top_windows if title in window[1]]
     else:
@@ -92,12 +143,12 @@ def get_window_object(hwnd: int) -> any:
     """
     win = BPMN_RPA_Window()
     win.Hwnd = hwnd
-    win.Title = GetWindowText(hwnd)
+    win.Title = win32gui.GetWindowText(hwnd)
     try:
-        win.Rect = GetWindowPlacement(hwnd)
-        win.ClassName = GetClassName(hwnd)
-        win.ParentHwnd = GetParent(hwnd)
-        win.WndProc = GetWindowLong(hwnd, GWL_WNDPROC)
+        win.Rect = win32gui.GetWindowPlacement(hwnd)
+        win.ClassName = win32gui.GetClassName(hwnd)
+        win.ParentHwnd = win32gui.GetParent(hwnd)
+        win.WndProc = win32gui.GetWindowLong(hwnd, GWL_WNDPROC)
     except:
         pass
     return win
@@ -110,7 +161,7 @@ def show_window(window: any) -> bool:
     :return: True if the window can be showed, False otherwise.
     """
     try:
-        ShowWindow(window.Hwnd, SW_SHOWNORMAL)
+        win32gui.ShowWindow(window.Hwnd, SW_SHOWNORMAL)
         return True
     except:
         return False
@@ -123,7 +174,7 @@ def hide_window(window: any) -> bool:
     :return: True if the window can be hidden, False otherwise.
     """
     try:
-        ShowWindow(window.Hwnd, SW_HIDE)
+        win32gui.ShowWindow(window.Hwnd, SW_HIDE)
         return True
     except:
         return False
@@ -136,7 +187,7 @@ def close_window(window: any) -> bool:
     :return: True if the window can be closed, False otherwise.
     """
     try:
-        PostMessage(window.Hwnd, WM_CLOSE, 0, 0)
+        win32gui.PostMessage(window.Hwnd, WM_CLOSE, 0, 0)
         return True
     except:
         return False
@@ -149,7 +200,7 @@ def set_foreground_window(window: any) -> bool:
     :return: True if the window can be set to the foreground, False otherwise.
     """
     try:
-        SetForegroundWindow(window.Hwnd)
+        win32gui.SetForegroundWindow(window.Hwnd)
         return True
     except:
         return False
@@ -162,7 +213,7 @@ def set_window_position(window: any, position: any) -> bool:
     :return: True if the window can be moved, False otherwise.
     """
     try:
-        MoveWindow(window.Hwnd, position[0], position[1], position[2] - position[0], position[3] - position[1],
+        win32gui.MoveWindow(window.Hwnd, position[0], position[1], position[2] - position[0], position[3] - position[1],
                             True)
         return True
     except:
@@ -174,4 +225,5 @@ def focus_window(window: any):
     Set the focus to a window.
     :param window: The window object to set focus to.
     """
-    SetFocus(window.Hwnd)
+    win32gui.SetFocus(window.Hwnd)
+

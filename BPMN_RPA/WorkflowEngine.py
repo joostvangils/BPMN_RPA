@@ -143,6 +143,21 @@ class WorkflowEngine:
         self.print_log(f"Got input parameter {str(self.input_parameter)}", "Processing Input")
         return self.input_parameter
 
+    def convert_binary_flow_to_default_file_format(self, flowpath: str) -> str:
+        """
+        Converts a flow to the default file format (base64 encoded json string) and saves it with the same name.
+        :param flowpath: The path to the binary flow that needs to be converted
+        """
+        # read the binary flow
+        flow = self.open(flowpath)
+        # base64 encode the content
+        string_bytes = json.dumps(flow).encode("ascii")
+        base64_bytes = base64.b64encode(string_bytes)
+        base64_string = base64_bytes.decode("ascii")
+        # write it back to the file
+        with open(flowpath, "w") as file:
+            file.write(base64_string)
+
     def open(self, filepath: str, as_xml: bool = False) -> any:
         """
         Open a DrawIO document
@@ -161,11 +176,11 @@ class WorkflowEngine:
                     with open(filepath, "r") as f:
                         content = f.read()
                     decoded = base64.b64decode(content).decode("ascii", errors='ignore')
-                    return json.loads(decoded)
-                except UnicodeDecodeError:
+                    retn = json.loads(decoded)
+                    return retn
+                except UnicodeDecodeError as e:
                     # Found non-text data in the file
-                    pass
-                finally:
+                    print(e)
                     try:
                         with open(filepath, "rb") as binary_file:
                             binary_file.seek(24)
@@ -179,7 +194,7 @@ class WorkflowEngine:
                     try:
                         decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
                         if decoded.__contains__("}]@"):
-                            decoded = decoded[0:decoded.index("}]@")+2]
+                            decoded = decoded[0:decoded.index("}]@") + 2]
                         if decoded is not None:
                             if decoded.__contains__("}]"):
                                 decoded = decoded[0:decoded.rfind("}]") + 2]
@@ -191,8 +206,8 @@ class WorkflowEngine:
                         try:
                             decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
                         except (ValueError, Exception):
-                            remain = math.ceil((len(str_content)/4) - int(len(str_content)/4))
-                            str_content = str_content[0:len(str_content)-remain]
+                            remain = math.ceil((len(str_content) / 4) - int(len(str_content) / 4))
+                            str_content = str_content[0:len(str_content) - remain]
                             idx = 0
                             if str_content.__contains__("fV0") and not str_content.__contains__("In1d"):
                                 str_content = str_content.split("fV0")[0][1:] + "fV0==="
@@ -1725,3 +1740,5 @@ class Visio:
         for k, v in properties.items():
             setattr(retn, k, v)
         return retn
+
+
