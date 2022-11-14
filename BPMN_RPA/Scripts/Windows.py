@@ -4,6 +4,7 @@ import sys
 import winreg
 from pathlib import Path
 
+
 # The BPMN-RPA Windows module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -38,6 +39,7 @@ def get_python_path() -> any:
         json_file.close()
         return data["pythonpath"]
 
+
 GWL_WNDPROC = (-4)
 SW_HIDE = 0
 SW_SHOWNORMAL = 1
@@ -46,6 +48,7 @@ WM_CLOSE = 16
 curwd = get_python_path().replace('\\python.exe', '')
 os.add_dll_directory(rf"{curwd}\Lib\site-packages\pywin32_system32")
 import win32gui
+
 
 class BPMN_RPA_Window(object):
     """
@@ -226,4 +229,3 @@ def focus_window(window: any):
     :param window: The window object to set focus to.
     """
     win32gui.SetFocus(window.Hwnd)
-
