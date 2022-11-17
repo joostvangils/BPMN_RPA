@@ -44,7 +44,7 @@ GWL_WNDPROC = (-4)
 SW_HIDE = 0
 SW_SHOWNORMAL = 1
 WM_CLOSE = 16
-# C:\Python\Lib\site-packages\pywin32_system32
+
 curwd = get_python_path().replace('\\python.exe', '')
 os.add_dll_directory(rf"{curwd}\Lib\site-packages\pywin32_system32")
 import win32gui

@@ -1267,14 +1267,14 @@ class WorkflowEngine:
                 try:
                     conn = \
                         [x for x in outgoing_connector if
-                         (str(x.value).lower() == "true" and x.source == current_step.id)][0]
+                         ((str(x.value).lower() == "true" or str(x.value).lower() == "yes") and x.source == current_step.id)][0]
                 except (ValueError, Exception):
                     raise Exception("Your Exclusive Gateway doesn't contain a 'True' or 'False' sequence arrow output.")
             else:
                 try:
                     conn = \
                         [x for x in outgoing_connector if
-                         (str(x.value).lower() == "false" and x.source == current_step.id)][0]
+                         ((str(x.value).lower() == "false" or str(x.value).lower() == "no") and x.source == current_step.id)][0]
                 except (ValueError, Exception):
                     raise Exception("Your Exclusive Gateway doesn't contain a 'True' or 'False' sequence arrow output.")
             try:
@@ -1740,5 +1740,3 @@ class Visio:
         for k, v in properties.items():
             setattr(retn, k, v)
         return retn
-
-
