@@ -138,7 +138,7 @@ class WorkflowEngine:
         if as_dictionary:
             if not isinstance(self.input_parameter, dict):
                 if isinstance(self.input_parameter, str):
-                    self.input_parameter = self.input_parameter.replace("true", "True").replace("false", "False")
+                    self.input_parameter = self.input_parameter.replace("true", "True").replace("false", "False").replace("yes", "Yes").replace("no", "No")
                 self.input_parameter = eval(self.input_parameter)
         self.print_log(f"Got input parameter {str(self.input_parameter)}", "Processing Input")
         return self.input_parameter
@@ -514,9 +514,9 @@ class WorkflowEngine:
                     else:
                         return_none = False
                 if isinstance(val, str):
-                    if val == "True":
+                    if val == "True" or val == "Yes":
                         val = True
-                    elif val == "False":
+                    elif val == "False" or val == "No":
                         val = False
                     else:
                         if val.replace(".", "").isnumeric():
