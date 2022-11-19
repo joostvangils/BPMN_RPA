@@ -1,5 +1,6 @@
 import pyautogui
 
+
 # The BPMN-RPA Mouse module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -29,6 +30,22 @@ def mouse_move(x: int, y: int, duration: int = 0):
     :param duration: Optional. The time to take for the mouse move.
     """
     pyautogui.moveTo(x, y, duration)
+
+
+def click_on_image(image: str, confidence: float = 0.9):
+    """
+    Click on an image on the screen.
+    :param image: The image to click on.
+    :param confidence: Optional. The confidence level for the image match.
+    :return: True if the image was found and clicked, False otherwise.
+    """
+    pos = pyautogui.locateOnScreen(image, confidence=confidence)
+    if pos is not None:
+        pyautogui.click(pos)
+        return True
+    else:
+        print("image not found")
+        return False
 
 
 def mouse_drag(x: int, y: int):
