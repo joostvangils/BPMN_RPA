@@ -32,22 +32,6 @@ def mouse_move(x: int, y: int, duration: int = 0):
     pyautogui.moveTo(x, y, duration)
 
 
-def click_on_image(image: str, confidence: float = 0.9):
-    """
-    Click on an image on the screen.
-    :param image: The image to click on.
-    :param confidence: Optional. The confidence level for the image match.
-    :return: True if the image was found and clicked, False otherwise.
-    """
-    pos = pyautogui.locateOnScreen(image, confidence=confidence)
-    if pos is not None:
-        pyautogui.click(pos)
-        return True
-    else:
-        print("image not found")
-        return False
-
-
 def mouse_drag(x: int, y: int):
     """
     Drag the mouse to a specific coordinate on the screen.
@@ -120,3 +104,16 @@ def mouse_scroll_right(clicks: int):
     :param clicks: number of clicks to scroll right.
     """
     pyautogui.hscroll(clicks)
+
+def block_mouse_input():
+    """
+    Block mouse input.
+    """
+    pyautogui.FAILSAFE = False
+
+def unblock_mouse_input():
+    """
+    Unblock mouse input.
+    """
+    pyautogui.FAILSAFE = True
+

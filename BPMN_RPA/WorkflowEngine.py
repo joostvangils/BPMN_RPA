@@ -673,6 +673,10 @@ class WorkflowEngine:
         if return_none:
             return None
         else:
+            # replace all reserved keys
+            for key in mapping:
+                if key in ["id ", "type ", "name ", "description "]:
+                    mapping[key.replace(" ", "")] = mapping.pop(key)
             return mapping
 
     @staticmethod

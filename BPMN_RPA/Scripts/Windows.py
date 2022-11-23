@@ -1,8 +1,19 @@
 import json
 import os
 import sys
+import time
 import winreg
 from pathlib import Path
+
+import win32api
+import win32con
+import win32net
+import win32print
+import win32process
+import win32security
+import win32service
+import win32ts
+import winsound
 
 
 # The BPMN-RPA Windows module is free software: you can redistribute it and/or modify
@@ -229,3 +240,321 @@ def focus_window(window: any):
     :param window: The window object to set focus to.
     """
     win32gui.SetFocus(window.Hwnd)
+
+
+def get_service_status(service_name: str) -> str:
+    """
+    Get the status of a Windows service.
+    :param service_name: The name of the service to get the status from.
+    :return: The status of the service.
+    """
+    service = win32service.OpenService(win32service.OpenSCManager(None, None, win32service.SC_MANAGER_ALL_ACCESS),
+                                       service_name, win32service.SERVICE_ALL_ACCESS)
+    status = win32service.QueryServiceStatus(service)
+    return status[1]
+
+
+def start_service(service_name: str) -> bool:
+    """
+    Start a Windows service.
+    :param service_name: The name of the service to start.
+    :return: True if the service can be started, False otherwise.
+    """
+    try:
+        service = win32service.OpenService(win32service.OpenSCManager(None, None, win32service.SC_MANAGER_ALL_ACCESS),
+                                           service_name, win32service.SERVICE_ALL_ACCESS)
+        win32service.StartService(service, None)
+        return True
+    except:
+        return False
+
+
+def stop_service(service_name: str) -> bool:
+    """
+    Stop a Windows service.
+    :param service_name: The name of the service to stop.
+    :return: True if the service can be stopped, False otherwise.
+    """
+    try:
+        service = win32service.OpenService(win32service.OpenSCManager(None, None, win32service.SC_MANAGER_ALL_ACCESS),
+                                           service_name, win32service.SERVICE_ALL_ACCESS)
+        win32service.ControlService(service, win32service.SERVICE_CONTROL_STOP)
+        return True
+    except:
+        return False
+
+
+def resume_service(service_name: str) -> bool:
+    """
+    Resume a Windows service.
+    :param service_name: The name of the service to resume.
+    :return: True if the service can be resumed, False otherwise.
+    """
+    try:
+        service = win32service.OpenService(win32service.OpenSCManager(None, None, win32service.SC_MANAGER_ALL_ACCESS),
+                                           service_name, win32service.SERVICE_ALL_ACCESS)
+        win32service.ControlService(service, win32service.SERVICE_CONTROL_CONTINUE)
+        return True
+    except:
+        return False
+
+
+def log_off_current_user() -> bool:
+    """
+    Log off the current user.
+    :return: True if the user can be logged off, False otherwise.
+    """
+    try:
+        win32ts.WTSLogoffSession(win32ts.WTS_CURRENT_SERVER_HANDLE, win32ts.WTS_CURRENT_SESSION, True)
+        return True
+    except:
+        return False
+
+
+def shutdown_system() -> bool:
+    """
+    Shutdown the system.
+    :return: True if the system can be shutdown, False otherwise.
+    """
+    try:
+        win32api.InitiateSystemShutdown(None, "Shutdown", 0, True, True)
+        return True
+    except:
+        return False
+
+
+def restart_system() -> bool:
+    """
+    Restart the system.
+    :return: True if the system can be restarted, False otherwise.
+    """
+    try:
+        win32api.InitiateSystemShutdown(None, "Restart", 0, True, False)
+        return True
+    except:
+        return False
+
+
+def get_current_user() -> str:
+    """
+    Get the name of the current user.
+    :return: The name of the current user.
+    """
+    return win32api.GetUserName()
+
+
+def play_sound(sound_path: str) -> bool:
+    """
+    Play a sound file.
+    :param sound_path: The path to the sound file.
+    :return: True if the sound can be played, False otherwise.
+    """
+    try:
+        winsound.PlaySound(sound_path, winsound.SND_FILENAME)
+        return True
+    except:
+        return False
+
+
+def get_current_volume() -> int:
+    """
+    Get the current volume.
+    :return: The current volume.
+    """
+    return win32api.GetVolumeInformation(None)[1]
+
+
+def set_current_volume(volume: int) -> bool:
+    """
+    Set the current volume.
+    :param volume: The volume to set.
+    :return: True if the volume can be set, False otherwise.
+    """
+    try:
+        win32api.SetVolume(volume, None)
+        return True
+    except:
+        return False
+
+
+def get_running_applications() -> list:
+    """
+    Get a list of running applications.
+    :return: A list of running applications.
+    """
+    return win32process.EnumProcesses()
+
+
+def kill_running_application(application: str):
+    """
+    Kill a running application.
+    :param application: The name of the application to kill.
+    """
+    for process in win32process.EnumProcesses():
+        if process[1] == application:
+            win32process.TerminateProcess(process[0], 0)
+            break
+
+
+def pause_service(service_name: str) -> bool:
+    """
+    Pause a Windows service.
+    :param service_name: The name of the service to pause.
+    :return: True if the service can be paused, False otherwise.
+    """
+    try:
+        service = win32service.OpenService(win32service.OpenSCManager(None, None, win32service.SC_MANAGER_ALL_ACCESS),
+                                           service_name, win32service.SERVICE_ALL_ACCESS)
+        win32service.ControlService(service, win32service.SERVICE_CONTROL_PAUSE)
+        return True
+    except:
+        return False
+
+
+def wait_for_service(service_name: str, timeout: int = 10) -> bool:
+    """
+    Wait for a Windows service to start.
+    :param service_name: The name of the service to wait for.
+    :param timeout: The timeout in seconds.
+    :return: True if the service started, False otherwise.
+    """
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        if get_service_status(service_name) == win32service.SERVICE_RUNNING:
+            return True
+        time.sleep(1)
+    return False
+
+
+def get_default_printer() -> str:
+    """
+    Get the default printer.
+    :return: The default printer.
+    """
+    return win32print.GetDefaultPrinter()
+
+
+def set_default_printer(printer_name: str) -> bool:
+    """
+    Set the default printer.
+    :param printer_name: The name of the printer to set as default.
+    :return: True if the printer can be set as default, False otherwise.
+    """
+    try:
+        win32print.SetDefaultPrinter(printer_name)
+        return True
+    except:
+        return False
+
+
+def show_desktop() -> bool:
+    """
+    Show the desktop.
+    :return: True if the desktop can be shown, False otherwise.
+    """
+    try:
+        win32gui.PostMessage(win32con.HWND_BROADCAST, win32con.WM_SYSCOMMAND, win32con.SC_MONITORPOWER, 2)
+        return True
+    except:
+        return False
+
+
+def lock_desktop() -> bool:
+    """
+    Lock the desktop.
+    :return: True if the desktop can be locked, False otherwise.
+    """
+    try:
+        win32gui.PostMessage(win32con.HWND_BROADCAST, win32con.WM_SYSCOMMAND, win32con.SC_MONITORPOWER, 2)
+        return True
+    except:
+        return False
+
+
+def get_screen_resolution() -> tuple:
+    """
+    Get the screen resolution.
+    :return: The screen resolution.
+    """
+    return win32api.GetSystemMetrics(0), win32api.GetSystemMetrics(1)
+
+
+def set_screen_resolution(width: int, height: int) -> bool:
+    """
+    Set the screen resolution.
+    :param width: The width of the screen resolution.
+    :param height: The height of the screen resolution.
+    :return: True if the screen resolution can be set, False otherwise.
+    """
+    try:
+        win32api.ChangeDisplaySettings((width, height), 0)
+        return True
+    except:
+        return False
+
+
+def control_screensaver(action: int) -> bool:
+    """
+    Control the screensaver.
+    :param action: The action to perform.
+    :return: True if the screensaver can be controlled, False otherwise.
+    """
+    try:
+        win32gui.PostMessage(win32con.HWND_BROADCAST, win32con.WM_SYSCOMMAND, win32con.SC_MONITORPOWER, action)
+        return True
+    except:
+        return False
+
+
+def get_screensaver_status() -> bool:
+    """
+    Get the screensaver status.
+    :return: True if the screensaver is active, False otherwise.
+    """
+    return win32gui.GetForegroundWindow() == win32gui.GetDesktopWindow()
+
+
+def open_terminal() -> bool:
+    """
+    Open a terminal.
+    :return: True if a terminal can be opened, False otherwise.
+    """
+    try:
+        os.system("start cmd")
+        return True
+    except:
+        return False
+
+
+def close_terminal() -> bool:
+    """
+    Close a terminal.
+    :return: True if a terminal can be closed, False otherwise.
+    """
+    try:
+        os.system("taskkill /f /im cmd.exe")
+        return True
+    except:
+        return False
+
+
+def move_cursor_in_terminal(x: int, y: int) -> bool:
+    """
+    Move the cursor in a terminal.
+    :param x: The x position of the cursor.
+    :param y: The y position of the cursor.
+    :return: True if the cursor can be moved, False otherwise.
+    """
+    try:
+        win32api.SetCursorPos((x, y))
+        return True
+    except:
+        return False
+
+
+def get_terminal_cursor_position() -> tuple:
+    """
+    Get the cursor position in a terminal.
+    :return: The cursor position.
+    """
+    return win32api.GetCursorPos()

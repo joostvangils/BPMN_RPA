@@ -1,13 +1,15 @@
+from __future__ import absolute_import
 import ast
 import base64
+import importlib
 import inspect
 import json
 import os
 import sys
 import zlib
-from importlib import util
+import urllib.parse
 from pathlib import Path
-from urllib import parse
+
 import jsonpickle
 import xmltodict
 from lxml import etree as eltree
@@ -82,6 +84,10 @@ def get_default_input_parameters(modulepath=None, classname=None, function=None)
             if hasattr(a, "s"):
                 args[t][1] = a.s
             c += 1
+    # rename arguments
+    for arg in args:
+        if arg[0] in ["id", "type", "name", "description"]:
+            arg[0] = arg[0] + " "
     return args
 
 
@@ -113,7 +119,7 @@ class Code:
         raw_text = xml_root[0].text
         base64_decode = base64.b64decode(raw_text)
         inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
-        url_decode = parse.unquote(inflated_xml)
+        url_decode = urllib.parse.unquote(inflated_xml)
         if as_xml:
             return url_decode
         retn = xmltodict.parse(url_decode)
@@ -128,7 +134,7 @@ class Code:
         :param original: the original file content
         """
         retn = xmltodict.unparse(dct)
-        retn = parse.quote(retn).replace("/", "%2F")
+        retn = urllib.parse.quote(retn).replace("/", "%2F")
         retn = zlib.compress(retn.encode('unicode_escape'))
         retn = retn[2:]
         content = base64.b64encode(retn).decode('utf-8')
@@ -304,7 +310,7 @@ class Code:
         """
         base64_decode = base64.b64decode(shape.get("xml"))
         inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
-        retn = parse.unquote(inflated_xml)
+        retn = urllib.parse.unquote(inflated_xml)
         return retn
 
     @staticmethod
@@ -314,7 +320,7 @@ class Code:
         :param shape_xml: The xml to encode.
         :return: Encoded xml.
         """
-        retn = parse.quote(shape_xml).replace("/", "%2F")
+        retn = urllib.parse.quote(shape_xml).replace("/", "%2F")
         retn = zlib.compress(retn.encode('unicode_escape'))
         retn = retn[2:]
         retn = base64.b64encode(retn).decode('utf-8')
@@ -641,9 +647,9 @@ class Code:
                     module = path + module + ".py"
         if function is not None and function != "":
             classobject = None
-            spec = util.spec_from_file_location(title, module)
+            spec = importlib.util.spec_from_file_location(title, module)
             if spec is not None:
-                module_object = util.module_from_spec(spec)
+                module_object = importlib.util.module_from_spec(spec)
                 getattr(spec.loader, "exec_module")(module_object)
                 callobject = module_object
                 if classname is not None:
@@ -820,4 +826,3 @@ class Code:
                 raise Exception(f'Error: flow {flow} does not contain a valid xml definition')
         else:
             raise Exception(f'Error: flow {flow} not found.')
-
