@@ -428,3 +428,17 @@ def set_folder_permissions(path: str, permissions: str):
     :param permissions: The permissions to set the folder to.
     """
     os.chmod(path, int(permissions, 8))
+
+
+def convert_timezone_to_utc(date: str, timezone="Europe/Amsterdam") -> str:
+    """
+    Convert a date from my timezone to UTC.
+    :param date: The date to convert.
+    :param timezone: Optional. The timezone to convert from. Default is Europe/Amsterdam.
+    :return: The converted date.
+    """
+    import datetime
+    import pytz
+    return datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.timezone(timezone)).astimezone(pytz.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+

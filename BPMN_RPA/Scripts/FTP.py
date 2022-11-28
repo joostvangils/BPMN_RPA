@@ -15,7 +15,13 @@ import ftplib
 
 
 class FTP:
-    def __int__(self, host, user, password):
+    def __init__(self, host, user, password):
+        """
+        Create a new FTP connection.
+        :param host: The host name or IP address of the FTP server.
+        :param user: The user name to connect with.
+        :param password: The password to connect with.
+        """
         self.ftp = ftplib.FTP()
         # open FTP connection
         self.ftp.connect(host, 21)

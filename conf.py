@@ -22,7 +22,7 @@ copyright = '2021, Joost van Gils'
 author = 'Joost van Gils'
 
 # The full version, including alpha/beta/rc tags
-release = '2.1.33'
+release = '5.1.0'
 
 
 # -- General configuration ---------------------------------------------------

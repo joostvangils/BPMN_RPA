@@ -25,6 +25,45 @@ class SqLite:
         self.conn = sqlite3.connect(self.database)
         self.cursor = self.conn.cursor()
 
+    def sqlite_does_table_exist(self, table_name):
+        """
+        Checks if a table exists
+        :param table_name: Name of the table
+        :return: True if the table exists
+        """
+        self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='" + table_name + "'")
+        return bool(self.cursor.fetchone())
+
+    def sqlite_does_column_exist(self, table_name, column_name):
+        """
+        Checks if a column exists
+        :param table_name: Name of the table
+        :param column_name: Name of the column
+        :return: True if the column exists
+        """
+        self.cursor.execute("SELECT * FROM " + table_name + " WHERE " + column_name + " IS NOT NULL LIMIT 1")
+        return bool(self.cursor.fetchone())
+
+    def sqlite_add_column(self, table_name, column_name, column_type):
+        """
+        Adds a column to a table
+        :param table_name: Name of the table
+        :param column_name: Name of the column
+        :param column_type: Type of the column
+        """
+        self.cursor.execute("ALTER TABLE " + table_name + " ADD COLUMN " + column_name + " " + column_type)
+        self.conn.commit()
+
+    def sqlite_add_row(self, table_name, column_names, column_values):
+        """
+        Adds a row to a table
+        :param table_name: Name of the table
+        :param column_names: List of column names
+        :param column_values: List of column values
+        """
+        self.cursor.execute("INSERT INTO " + table_name + " (" + column_names + ") VALUES (" + column_values + ")")
+        self.conn.commit()
+
     def sqlite_get_table_names(self):
         """
         Returns a list of all table names
@@ -148,20 +187,20 @@ class SqLite:
         """
         self.conn.close()
 
-    def sqlite_create_database(self, name):
+    def sqlite_create_database(self, db_name):
         """
         Creates a database
-        :param name: Name of the database
+        :param db_name: Name of the database
         """
-        self.cursor.execute("CREATE DATABASE " + name)
+        self.cursor.execute("CREATE DATABASE " + db_name)
         self.conn.commit()
 
-    def sqlite_delete_database(self, name):
+    def sqlite_delete_database(self, db_name):
         """
         Deletes a database
-        :param name: Name of the database
+        :param db_name: Name of the database
         """
-        self.cursor.execute("DROP DATABASE " + name)
+        self.cursor.execute("DROP DATABASE " + db_name)
         self.conn.commit()
 
     def sqlite_get_all_databases(self):

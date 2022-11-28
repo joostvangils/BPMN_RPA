@@ -37,6 +37,23 @@ class SQLserver:
             self.connection = pyodbc.connect('DRIVER=' + driver + ';SERVER=' + hostname + ';DATABASE=' + database + ';Trusted_Connection=yes;')
         self.cursor = self.connection.cursor()
 
+    def sqlserver_does_table_exist(self, table_name):
+        """
+        Checks if a table exists
+        :param table_name: Name of the table
+        :return: True if the table exists, false if not
+        """
+        return self.cursor.tables(table=table_name).fetchone() is not None
+
+    def sqlserver_column_exist(self, table_name, column_name):
+        """
+        Checks if a column exists in a table
+        :param table_name: Name of the table
+        :param column_name: Name of the column
+        :return: True if the column exists, false if not
+        """
+        return self.cursor.columns(table=table_name, column=column_name).fetchone() is not None
+
     def sqlserver_execute_query(self, query):
         """
         Executes a query against the database.
@@ -298,7 +315,3 @@ class SQLserver:
                 query += " AND "
             query += where_column_names[i] + " = ?"
         return [row[0] for row in self.cursor.execute(query, where_column_values).fetchall()]
-
-
-
-

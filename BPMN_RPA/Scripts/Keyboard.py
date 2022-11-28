@@ -1,6 +1,7 @@
 import pyautogui
 import keyboard
 
+
 # The BPMN-RPA Keyboard module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -52,3 +53,65 @@ def wait_for_hotkey(key: str, ctrl: bool = False, alt: bool = False, shift: bool
     while True:
         if keyboard.is_pressed(hotkey):
             return True
+
+
+def wait_for_key_release(key: str):
+    """
+    Wait for a specific key to be released.
+    :param key: The key on the keyboard.
+    """
+    while True:
+        if keyboard.is_pressed(key):
+            return False
+
+
+def wait_for_key_press(key: str):
+    """
+    Wait for a specific key to be pressed.
+    :param key: The key on the keyboard.
+    """
+    while True:
+        if keyboard.is_pressed(key):
+            return True
+
+
+def wait_for_key_combination_release(key: str, ctrl: bool = False, alt: bool = False, shift: bool = False):
+    """
+    Wait for a specific key combination to be released.
+    :param key: The key on the keyboard.
+    :param ctrl: Optional. Boolean: indicator whether the control button should be pressed.
+    :param alt: Optional. Boolean: indicator whether the alt button should be pressed.
+    :param shift: Optional. Boolean: indicator whether the shift button should be pressed.
+    """
+    while True:
+        if keyboard.is_pressed(key):
+            if ctrl:
+                if keyboard.is_pressed("ctrl"):
+                    return False
+            if alt:
+                if keyboard.is_pressed("alt"):
+                    return False
+            if shift:
+                if keyboard.is_pressed("shift"):
+                    return False
+
+
+def wait_for_key_combination_press(key: str, ctrl: bool = False, alt: bool = False, shift: bool = False):
+    """
+    Wait for a specific key combination to be pressed.
+    :param key: The key on the keyboard.
+    :param ctrl: Optional. Boolean: indicator whether the control button should be pressed.
+    :param alt: Optional. Boolean: indicator whether the alt button should be pressed.
+    :param shift: Optional. Boolean: indicator whether the shift button should be pressed.
+    """
+    while True:
+        if keyboard.is_pressed(key):
+            if ctrl:
+                if keyboard.is_pressed("ctrl"):
+                    return True
+            if alt:
+                if keyboard.is_pressed("alt"):
+                    return True
+            if shift:
+                if keyboard.is_pressed("shift"):
+                    return True

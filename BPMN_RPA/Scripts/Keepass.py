@@ -194,9 +194,3 @@ class KeePass:
         """
         self.kp.save()
 
-    def keepass_close(self):
-        """
-        Closes the KeePass database
-        """
-        self.kp.close()
-

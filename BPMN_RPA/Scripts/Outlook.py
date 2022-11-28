@@ -1,4 +1,5 @@
-import win32com
+import json
+
 import win32com.client
 
 # The BPMN-RPA Outlook module is free software: you can redistribute it and/or modify
@@ -19,7 +20,10 @@ class Outlook:
 
     def __init__(self):
         """
-        Initializes the Outlook class
+        Initializes the Outlook class.
+        On error copy the two files from [installation directory python]\Lib\site-packages\pywin32_system32 to C:\Windows\System32.
+        Make sure to run 'python pywin32_postinstall.py -install' in administrator mode after installing pywin32.
+        Then check if you only have one pywintypes.py in your Python subfolders. If not: rename the pywintypes.py in the Python\Lib\site-packages\win32ctypes subfolder to pywintypes_old.py.
         """
         self.outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
 
@@ -37,7 +41,10 @@ class Outlook:
         :param folder: Optional. Folder to return. Default: Inbox.
         :return: Items
         """
-        return self.outlook.GetDefaultFolder(folder).Items
+        retn = []
+        for item in self.outlook.GetDefaultFolder(folder).Items:
+            retn.append(item)
+        return retn
 
     def get_outlook_folder_item(self, folder=6, item=1):
         """
@@ -73,7 +80,10 @@ class Outlook:
         :param item: Optional. Item to return. Default: First item.
         :return: Attachments
         """
-        return self.outlook.GetDefaultFolder(folder).Items[item].Attachments
+        retn = []
+        for attachment in self.outlook.GetDefaultFolder(folder).Items[item].Attachments:
+            retn.append(attachment)
+        return retn
 
     def get_outlook_folder_item_attachment(self, folder=6, item=1, attachment=1):
         """
@@ -122,12 +132,14 @@ class Outlook:
         :param mark_as_read: Optional. Mark the emails as read. Default: True.
         :return: Emails
         """
+        retn = []
         inbox = self.get_outlook_folder(6)
         unread_emails = inbox.Items.Restrict("[Unread]=True")
-        if mark_as_read:
-            for email in unread_emails:
+        for email in unread_emails:
+            retn.append(email)
+            if mark_as_read:
                 email.UnRead = False
-        return unread_emails
+        return retn
 
     def create_outlook_folder(self, folder_name):
         """
@@ -208,10 +220,12 @@ class Outlook:
         :return: Tasks
         """
         tasks = self.outlook.GetDefaultFolder(4).Items
-        if mark_as_complete:
-            for task in tasks:
+        retn = []
+        for task in tasks:
+            retn.append(task)
+            if mark_as_complete:
                 task.Complete = True
-        return tasks
+        return retn
 
     def get_outlook_task(self, task=1, mark_as_complete=True):
         """
@@ -232,10 +246,12 @@ class Outlook:
         :return: Tasks
         """
         tasks = self.outlook.GetDefaultFolder(4).Items.Restrict("[Start] = 'Today'")
-        if mark_as_complete:
-            for task in tasks:
+        retn = []
+        for task in tasks:
+            retn.append(task)
+            if mark_as_complete:
                 task.Complete = True
-        return tasks
+        return retn
 
     def get_outlook_tomorrow_tasks(self, mark_as_complete=True):
         """
@@ -243,68 +259,83 @@ class Outlook:
         :param mark_as_complete: Optional. Mark the tasks as complete. Default: True.
         :return: Tasks
         """
+        retn = []
         tasks = self.outlook.GetDefaultFolder(4).Items.Restrict("[Start] = 'Tomorrow'")
-        if mark_as_complete:
-            for task in tasks:
+        for task in tasks:
+            retn.append(task)
+            if mark_as_complete:
                 task.Complete = True
-        return tasks
-
+        return retn
     def get_outlook_this_week_tasks(self, mark_as_complete=True):
         """
         Returns the tasks for this week
         :param mark_as_complete: Optional. Mark the tasks as complete. Default: True.
         :return: Tasks
         """
+        retn = []
         tasks = self.outlook.GetDefaultFolder(4).Items.Restrict("[Start] = 'This Week'")
-        if mark_as_complete:
-            for task in tasks:
+        for task in tasks:
+            retn.append(task)
+            if mark_as_complete:
                 task.Complete = True
-        return tasks
-
+        return retn
     def get_outlook_next_week_tasks(self, mark_as_complete=True):
         """
         Returns the tasks for next week
         :param mark_as_complete: Optional. Mark the tasks as complete. Default: True.
         :return: Tasks
         """
+        retn = []
         tasks = self.outlook.GetDefaultFolder(4).Items.Restrict("[Start] = 'Next Week'")
-        if mark_as_complete:
-            for task in tasks:
+        for task in tasks:
+            retn.append(task)
+            if mark_as_complete:
                 task.Complete = True
-        return tasks
-
+        return retn
     def get_outlook_overdue_tasks(self, mark_as_complete=True):
         """
         Returns the overdue tasks
         :param mark_as_complete: Optional. Mark the tasks as complete. Default: True.
         :return: Tasks
         """
+        retn = []
         tasks = self.outlook.GetDefaultFolder(4).Items.Restrict("[Start] = 'Overdue'")
-        if mark_as_complete:
-            for task in tasks:
+        for task in tasks:
+            retn.append(task)
+            if mark_as_complete:
                 task.Complete = True
-        return tasks
-
+        return retn
     def get_outlook_completed_tasks(self):
         """
         Returns the completed tasks
         :return: Tasks
         """
-        return self.outlook.GetDefaultFolder(4).Items.Restrict("[Complete] = True")
+        retn = []
+        tasks = self.outlook.GetDefaultFolder(4).Items.Restrict("[Complete] = True")
+        for task in tasks:
+            retn.append(task)
+        return retn
 
     def get_outlook_incomplete_tasks(self):
         """
         Returns the incomplete tasks
         :return: Tasks
         """
-        return self.outlook.GetDefaultFolder(4).Items.Restrict("[Complete] = False")
-
+        retn = []
+        tasks = self.outlook.GetDefaultFolder(4).Items.Restrict("[Complete] = False")
+        for task in tasks:
+            retn.append(task)
+        return retn
     def get_outlook_appointments(self):
         """
         Returns the appointments
         :return: Appointments
         """
-        return self.outlook.GetDefaultFolder(9).Items
+        retn = []
+        appointments = self.outlook.GetDefaultFolder(9).Items
+        for appointment in appointments:
+            retn.append(appointment)
+        return retn
 
     def get_outlook_appointment(self, appointment=1):
         """
@@ -319,42 +350,66 @@ class Outlook:
         Returns the appointments for today
         :return: Appointments
         """
-        return self.outlook.GetDefaultFolder(9).Items.Restrict("[Start] = 'Today'")
+        retn = []
+        appointments = self.outlook.GetDefaultFolder(9).Items.Restrict("[Start] = 'Today'")
+        for appointment in appointments:
+            retn.append(appointment)
+        return retn
 
     def get_outlook_tomorrow_appointments(self):
         """
         Returns the appointments for tomorrow
         :return: Appointments
         """
-        return self.outlook.GetDefaultFolder(9).Items.Restrict("[Start] = 'Tomorrow'")
+        retn = []
+        appointments = self.outlook.GetDefaultFolder(9).Items.Restrict("[Start] = 'Tomorrow'")
+        for appointment in appointments:
+            retn.append(appointment)
+        return retn
 
     def get_outlook_this_week_appointments(self):
         """
         Returns the appointments for this week
         :return: Appointments
         """
-        return self.outlook.GetDefaultFolder(9).Items.Restrict("[Start] = 'This Week'")
+        retn = []
+        appointments = self.outlook.GetDefaultFolder(9).Items.Restrict("[Start] = 'This Week'")
+        for appointment in appointments:
+            retn.append(appointment)
+        return retn
 
     def get_outlook_next_week_appointments(self):
         """
         Returns the appointments for next week
         :return: Appointments
         """
-        return self.outlook.GetDefaultFolder(9).Items.Restrict("[Start] = 'Next Week'")
+        retn = []
+        appointments = self.outlook.GetDefaultFolder(9).Items.Restrict("[Start] = 'Next Week'")
+        for appointment in appointments:
+            retn.append(appointment)
+        return retn
 
     def get_outlook_overdue_appointments(self):
         """
         Returns the overdue appointments
         :return: Appointments
         """
-        return self.outlook.GetDefaultFolder(9).Items.Restrict("[Start] = 'Overdue'")
+        retn = []
+        appointments = self.outlook.GetDefaultFolder(9).Items.Restrict("[Start] = 'Overdue'")
+        for appointment in appointments:
+            retn.append(appointment)
+        return retn
 
     def get_outlook_completed_appointments(self):
         """
         Returns the completed appointments
         :return: Appointments
         """
-        return self.outlook.GetDefaultFolder(9).Items.Restrict("[Complete] = True")
+        retn = []
+        appointments = self.outlook.GetDefaultFolder(9).Items.Restrict("[Complete] = True")
+        for appointment in appointments:
+            retn.append(appointment)
+        return retn
 
     def create_outlook_appointment_out_of_office(self, subject, body, recipients, start, end):
         """
@@ -421,7 +476,3 @@ class Outlook:
         Empties the Outlook trash
         """
         self.outlook.GetDefaultFolder(3).Items.Delete()
-
-
-
-
