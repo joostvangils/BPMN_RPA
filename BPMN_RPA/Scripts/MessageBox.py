@@ -18,6 +18,48 @@ import tkinter.simpledialog
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+def show(title: str, message: str, option: str = "ok", topmost=True) -> int:
+    """
+    Show a Messagebox on the screen with a specific Title, Message and buttons.
+    :param title: The title of the MessageBox.
+    :param message: The message of the MessageBox.
+    :param option: The icon and buttons of the MessageBox. Options: ok, warning, error, yesno, yesnocancel, retrycancel, askyesnocancel, askokcancel.
+    :param topmost: If the messagebox should be placed on top of all other windows.
+    :return: The pushed button.
+    """
+    root = tkinter.Tk()
+    if topmost:
+        # set window topmost
+        root.wm_attributes("-topmost", 1)
+    try:
+        root.iconbitmap(default="app.ico")
+    except Exception as e:
+        pass
+    root.withdraw()
+    title = str(title)
+    message = str(message)
+    option = option.lower()
+    if option == "ok":
+        retn = tkinter.messagebox.showinfo(title, message)
+    elif option == "warning":
+        retn = tkinter.messagebox.showwarning(title, message)
+    elif option == "error":
+        retn = tkinter.messagebox.showerror(title, message)
+    elif option == "yesno":
+        retn = tkinter.messagebox.askyesno(title, message)
+    elif option == "yesnocancel":
+        retn = tkinter.messagebox.askyesnocancel(title, message)
+    elif option == "retrycancel":
+        retn = tkinter.messagebox.askretrycancel(title, message)
+    elif option == "askyesnocancel":
+        retn = tkinter.messagebox.askyesnocancel(title, message)
+    elif option == "askokcancel":
+        retn = tkinter.messagebox.askokcancel(title, message)
+    else:
+        retn = None
+    root.destroy()
+    return retn
+
 
 def messagebox_show(title: str, message: str, option: str = "ok", topmost=True) -> int:
     """
@@ -226,5 +268,32 @@ def messagebox_show_question(title: str, message: str, topmost=True) -> str:
     title = str(title)
     message = str(message)
     retn = tkinter.messagebox.askquestion(title, message)
+    root.destroy()
+    return retn
+
+
+def inputbox(title: str, message: str, default: str = "", topmost=True) -> str:
+    """
+    Show a inputbox on the screen with a specific Title, Message and default value.
+    :param title: The title of the inputbox.
+    :param message: The message of the inputbox.
+    :param default: The default value of the inputbox.
+    :param topmost: If the messagebox should be placed on top of all other windows.
+    :return: The input value.
+    """
+    root = tkinter.Tk()
+    if topmost:
+        # set window topmost
+        root.wm_attributes("-topmost", 1)
+    try:
+        root.iconbitmap(default="app.ico")
+    except Exception as e:
+        pass
+    root.withdraw()
+    title = str(title)
+    message = str(message) + "                                               "
+    default = str(default)
+    # make the textbox extendable
+    retn = tkinter.simpledialog.askstring(title, message, initialvalue=default)
     root.destroy()
     return retn

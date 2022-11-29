@@ -441,4 +441,20 @@ def convert_timezone_to_utc(date: str, timezone="Europe/Amsterdam") -> str:
     import pytz
     return datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.timezone(timezone)).astimezone(pytz.utc).strftime("%Y-%m-%d %H:%M:%S")
 
+def base64encode(string: str) -> str:
+    """
+    Encode a string to base64.
+    :param string: The string to encode.
+    :return: The encoded string.
+    """
+    import base64
+    return base64.b64encode(string.encode()).decode()
 
+def base64decode(string: str) -> str:
+    """
+    Decode a string from base64.
+    :param string: The string to decode.
+    :return: The decoded string.
+    """
+    import base64
+    return base64.b64decode(string.encode()).decode()

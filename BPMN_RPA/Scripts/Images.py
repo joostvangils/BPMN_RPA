@@ -1,6 +1,5 @@
 import pyautogui
 from PIL import Image
-from pytesseract import pytesseract
 
 
 # The BPMN-RPA Images module is free software: you can redistribute it and/or modify
@@ -41,6 +40,7 @@ def ocr_text_from_image(image: str, path_to_tesseract: str = None, lang: str = '
     :param lang: Optional. The language to use for the OCR.
     :return:
     """
+    from pytesseract import pytesseract
     if path_to_tesseract is not None:
         pytesseract.tesseract_cmd = path_to_tesseract
     return pytesseract.image_to_string(Image.open(image), lang=lang)

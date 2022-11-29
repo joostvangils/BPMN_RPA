@@ -17,7 +17,7 @@ import win32com.client
 
 class Excel:
 
-    def __int__(self, path: str, visible: bool = False, read_only: bool = False, update_links: bool = False, format: str = "xlsx"):
+    def __init__(self, path: str, visible: bool = False, read_only: bool = False, update_links: bool = False, format: str = "xlsx"):
         """
         Open an Excel file and initialize the Excel class for user by other functions.
         :param path: The full path to the Excel file.
