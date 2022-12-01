@@ -11,7 +11,7 @@ pandas==1.4.4
 PDFNetPython3==9.4.0
 Pillow==9.3.0
 PyAutoGUI==0.9.53
-PyJWT==1.7.1
+PyJWT==2.4.0
 pykeepass==4.0.3
 pyodbc==4.0.32
 pyOpenSSL==22.1.0
