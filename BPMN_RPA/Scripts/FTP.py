@@ -12,6 +12,9 @@ import ftplib
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# The BPMN-RPA FTP module is based on the Python ftplib module, which is licensed under the MIT license:
+# Copyright (c) 2007 Giampaolo Rodola
 
 
 class FTP:

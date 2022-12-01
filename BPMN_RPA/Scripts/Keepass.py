@@ -15,6 +15,8 @@ from pykeepass import PyKeePass
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# The BPMN-RPA KeePass module is based on the PyKeePass module (copyright Philipp Schmitt) , which is also licensed under the GNU General Public License.
 
 class KeePass:
 

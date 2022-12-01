@@ -1,13 +1,9 @@
 import json
 import os
-import subprocess
-import time
-import signpdf
-import OpenSSL
+
 import PyPDF2
-from PDFNetPython3.PDFNetPython import PDFNet, PDFDoc, SignatureWidget, Rect, DigitalSignatureField, Image, SDFDoc
 from PyPDF2 import PdfFileReader, PdfFileWriter
-from reportlab.lib.utils import ImageReader
+
 
 # The BPMN-RPA PDF module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +17,18 @@ from reportlab.lib.utils import ImageReader
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# The BPMN-RPA PDF module is based on the PyPDF2 module (copyright Mathieu Fenniak) , which is licensed under the BSD License:
+# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+#
+# Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+# Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+# All advertising materials mentioning features or use of this software must display the following acknowledgement: This product includes software developed by the <copyright holder>.
+# Neither the name of the <copyright holder> nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+# THIS SOFTWARE IS PROVIDED BY <COPYRIGHT HOLDER> AS IS AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+# IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+# EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 class PDF:
