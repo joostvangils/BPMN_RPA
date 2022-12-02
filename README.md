@@ -1,5 +1,9 @@
 # BPMN_RPA
 Robotic Process Automation in Windows and Linux by using BPMN diagrams.
+Create flows in BPMN notation and execute them in Windows and Linux. This package contains 2 types of flow-engines:
+
+1. The Workflow Engine: runs a flow from beginning to end.
+2. The CheckList Engine: runs a flow step by step and saves the state of the flow after each step. This allows you to resume the flow at any time!
 
 With this Framework you can draw Business Process Model Notation based Diagrams and run those diagrams with a WorkflowEngine.
 You can run flows that were made with one of the following programs:
@@ -28,6 +32,7 @@ There is no need for installing BPMN-RPA Studio, DrawIO or Visio to run the flow
 * [Step by step flow execution](#Step-by-step-flow-execution)
 * [PlugIn](#PlugIn)
 * [Example](#Example)
+* [The CheckList Engine](#The_CheckList_Engine)
 
 
 #### Quick start
@@ -203,3 +208,31 @@ engine.run_flow(steps)
 ```
 
 You can download the DrawIO desktop version [here](https://github.com/jgraph/drawio-desktop/releases)
+
+#### The CheckList Engine
+The CheckListEngine runs any flow like the WorkflowEngine. The only difference is that the CheckListEngine will save the entire state of the whole flow in a separate file after each step.
+This allows you to resume the flow from the last saved state. This is very useful when you have a long running flow with waiting periods between steps (like p.e. an onboarding flow for new employees).
+It is likely that you want to create several CheckList instances of the original flow, so that you can run several flows in parallel. This is possible by using the 'full_path_save_as' parameter in the CheckListEngine constructor. This parameter is optional and will default to the name of the original flow (without the .flw extension). If you want to run several flows in parallel, then you must use different instance names (i.e. 'full_path_save_as') for each flow. The CheckListEngine will create a separate file for each flow instance.
+
+To start a new instance of a flow, just use the CheckListEngine constructor:
+```Python
+# Start a new instance of the flow 'example.flow' and create an instance file called 'example_instance1'
+chkLst = ChecklistEngine (flow_name="\\my_flows\\example.flw", full_path_save_as="\\instances\\example_instance_1")
+# This will load the flow and start the first step. The state of the flow will be saved in the file '\instances\example_instance1'.
+
+# You can run the flow instance by calling the 'run_flow' function. This function has 2 optional parameters:
+# 1. ask_permission: if set to True, the user will be asked for permission to execute the next step. Default is False.
+# 2. msgbox: only applicable if ask_permission is set to True. If msgbox is True, a messagebox will be shown to the user. If False, the user will be asked to enter Yes (y) or No (n) in the console. Default is True.
+# When the user answers 'No' to the question, the flow will be ended and the state of the flow will be saved.
+
+chkLst.run_flow(ask_permission=True, msgbox=True)
+```
+
+To resume a flow at any time you like from a saved state, use the CheckListEngine constructor and call the 'resume_flow' function:
+```Python
+# Resume the flow instance 'example_instance1'
+chkLst = ChecklistEngine()
+chkLst.resume_flow("\\instances\\example_instance_1", ask_permission=True, msgbox=True)
+```
+
+```Python
