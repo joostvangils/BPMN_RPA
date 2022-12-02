@@ -216,8 +216,10 @@ It is likely that you want to create several CheckList instances of the original
 
 To start a new instance of a flow, just use the CheckListEngine constructor:
 ```Python
+from BPMN_RPA import CheckListEngine
+
 # Start a new instance of the flow 'example.flow' and create an instance file called 'example_instance1'
-chkLst = ChecklistEngine (flow_name="\\my_flows\\example.flw", full_path_save_as="\\instances\\example_instance_1")
+chkLst = ChecklistEngine(flow_name="\\my_flows\\example.flw", full_path_save_as="\\instances\\example_instance_1")
 # This will load the flow and start the first step. The state of the flow will be saved in the file '\instances\example_instance1'.
 
 # You can run the flow instance by calling the 'run_flow' function. This function has 2 optional parameters:
@@ -230,6 +232,8 @@ chkLst.run_flow(ask_permission=True, msgbox=True)
 
 To resume a flow at any time you like from a saved state, use the CheckListEngine constructor and call the 'resume_flow' function:
 ```Python
+from BPMN_RPA import CheckListEngine
+
 # Resume the flow instance 'example_instance1'
 chkLst = ChecklistEngine()
 chkLst.resume_flow("\\instances\\example_instance_1", ask_permission=True, msgbox=True)
