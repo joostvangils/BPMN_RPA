@@ -127,6 +127,7 @@ class WorkflowEngine:
         self.previous_step = None
         self.step_nr = 0
         self.step_input = None
+        self.current_step = None
         self.runlog = []
         self.variables = {}  # Dictionary to hold WorkflowEngine variables
 
@@ -774,6 +775,7 @@ class WorkflowEngine:
                 if hasattr(step, "name"):
                     self.step_nr += 1
                     self.step_name = step.name
+                    self.current_step = step
                     if len(step.name) == 0:
                         if hasattr(step, "type"):
                             if not hasattr(step, "function"):

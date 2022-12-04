@@ -1,6 +1,8 @@
 import os
 import pickle
 
+from pygraphviz import graphviz
+
 from BPMN_RPA.WorkflowEngine import WorkflowEngine, SQL
 
 # The BPMN-RPA CheckListEngine is free software: you can redistribute it and/or modify
@@ -29,6 +31,10 @@ class ChecklistEngine:
         """
         self.flow_name = flow_name
         self.save_as = full_path_save_as
+        self.outputPreviousStep = None
+        self.step = None
+        if full_path_save_as == "":
+            self.save_as = flow_name.replace(".flw", "_running_instance")
         # Check if file exists. If not, throw exception
         if not os.path.exists(self.flow_name) and self.flow_name != "":
             raise FileNotFoundError(f"The flow file does not exist!")
@@ -37,14 +43,16 @@ class ChecklistEngine:
             doc = self.engine.open(fr"{self.flow_name}")
             self.engine.doc = doc
             self.steps = self.engine.get_flow(doc)
-            self.flow_name = self.save_as
+            if self.save_as != "":
+                self.flow_name = self.save_as
         except Exception as e:
             try:
                 self.load_flow_state(flow_name)
             except Exception as e:
                 try:
                     self.load_flow_state(full_path_save_as)
-                    self.flow_name = self.save_as
+                    if self.save_as != "":
+                        self.flow_name = self.save_as
                 except Exception as e:
                     pass
 
@@ -56,33 +64,50 @@ class ChecklistEngine:
         :param msgbox: If this is True and ask_permission is True, a message box will be shown to the user to click OK to continue to the next step. Otherwise, the user will be asked to enter Yes (y) or No (n) in the console.
         :return: True or False
         """
-        outputPreviousStep = None
-        step = self.steps[self.engine.step_nr]
-        if hasattr(step, "shape_description"):
-            if getattr(step, "shape_description") == "End event.":
-                os.remove(self.flow_name)
-                self.engine.print_log(f"Flow finished, instance '{self.flow_name}' removed.")
-                print(f"Flow finished, instance '{self.flow_name}' removed.")
-                exit(0)
+        if self.engine.current_step is None:
+            for stp in self.steps:
+                if hasattr(stp, "IsStart"):
+                    if stp.IsStart:
+                        self.step = stp
+                    break
+        if self.step is None:
+            self.step = self.engine.get_next_step(self.engine.current_step, self.steps, self.outputPreviousStep)
         try:
             if self.engine.db is None:
                 db_path = self.engine.get_db_path()
                 self.engine.db = SQL(db_path)
-            tmp = outputPreviousStep  # Needed for gateway
-            outputPreviousStep = self.engine.run_flow(step, True)
-            if outputPreviousStep is None:
-                outputPreviousStep = tmp  # When gateway
-            step = self.engine.get_next_step(step, self.steps, outputPreviousStep)
-            if step is None:
+        except Exception as e:
+            pass
+        if hasattr(self.step, "shape_description"):
+            if getattr(self.step, "shape_description") == "End event.":
+                self.outputPreviousStep = self.engine.run_flow(self.step, True)
                 os.remove(self.flow_name)
+                self.engine.print_log(f"Flow finished, instance '{self.flow_name}' removed.")
+                print(f"Flow finished, instance '{self.flow_name}' removed.")
+                # try to remove png file
+                try:
+                    os.remove(f"{self.flow_name.split('.')[0]}.png")
+                except Exception as e:
+                    pass
+                exit(0)
+        try:
+            tmp = self.outputPreviousStep  # Needed for gateway
+            self.outputPreviousStep = self.engine.run_flow(self.step, True)
+            if self.outputPreviousStep is None:
+                self.outputPreviousStep = tmp  # When gateway
+            self.step = self.engine.get_next_step(self.step, self.steps, self.outputPreviousStep)
+            if self.step is None:
+                os.remove(self.save_as)
                 self.engine.print_log(f"Flow finished, instance '{self.flow_name}' removed.")
                 print(f"Flow finished, instance '{self.flow_name}' removed.")
                 exit(0)
             self.save_flow_state()
-            if ask_permission and not getattr(step, "IsStart") and not ("gateway" in str(getattr(step, "type"))):
+            if ask_permission and getattr(self.step, "IsStart") == False and not ("gateway" in str(getattr(self.step, "type").lower())) and str(getattr(self.step, "shape_description").lower()) != "end event.":
                 if not self.ask_permission_for_next_step(msgbox=msgbox):
                     exit(0)
         except Exception as e:
+            print(e)
+            self.save_flow_state()
             pass
         return True
 
@@ -150,11 +175,12 @@ class ChecklistEngine:
         This function will ask the user for permission to run the next step. If the user does not have permission, the flow will be saved and the program will exit.
         :param msgbox: If True, a messagebox will be shown to the user. If False, the user will be asked to enter Yes (y) or No (n) in the console.
         """
-        instance_name = self.flow_name.split("\\")[-1].split(".")[0]
+        instance_name = os.path.basename(self.flow_name).split(".")[0]
+        folder = self.flow_name.replace(os.path.basename(self.flow_name), "")
         if msgbox:
             # Show messagebox
             import BPMN_RPA.Scripts.MessageBox as mb
-            result = mb.messagebox_show_with_yes_no_buttons(f"Continue with next step?", f"Do you want to execute the next step of flow '{instance_name}'?")
+            result = mb.messagebox_show_with_yes_no_buttons(f"Continue with next step?", f"Do you want to execute the '{self.step.name}' step of flow '{instance_name}'?")
         else:
             # Show console
             result = input(f"Do you want to execute the next step of flow '{instance_name}'? (y/n) ")
@@ -166,6 +192,71 @@ class ChecklistEngine:
             return True
         else:
             self.save_flow_state()
+            self.create_flow_diagram(folder)
             print(f"Flow state saved: {self.flow_name}")
             print("Program exited.")
             exit()
+
+    def create_flow_diagram(self, folder=""):
+        """
+        This function will create a diagram of the flow.
+        :param folder: The folder to save the diagram to.
+        """
+        steps = self.steps
+        # get start step
+        step = None
+        for stp in self.steps:
+            if hasattr(stp, "IsStart"):
+                if stp.IsStart:
+                    step = stp
+                break
+        import graphviz
+        if os.name == 'nt':
+            if not folder.endswith("\\"):
+                folder += "\\"
+            name = os.path.basename(self.save_as).split('\\')[-1].split('.')[0]
+        else:
+            if not folder.endswith("/"):
+                folder += "/"
+            name = os.path.basename(self.save_as).split('/')[-1].split('.')[0]
+        if self.save_as == "":
+            self.save_as = self.flow_name
+        e = graphviz.Graph('G', filename=folder + name, engine='dot', format='png')
+        e.attr('node', shape='ellipse', id=step.id, bordercolor="black", borderwidth="1", fontname="Arial", fontsize="10")
+        e.node(name=step.id, label='Start')
+        step = steps[0]
+        ctr = 1
+        current_step = self.engine.get_next_step(self.engine.current_step, self.steps, "")
+        while True:
+            step = steps[ctr]
+            if (str(getattr(step, "type")).lower() == "shape" or ("gateway" in str(getattr(step, "type")).lower())) and hasattr(step, "shape_description"):
+                if str(getattr(step, "shape_description").lower()) != "end event.":
+                    if str(getattr(step, "shape_description").lower()) == "exclusive gateway.":
+                        e.node(name=step.id, label="X", shape='diamond', id=step.id, style="filled", color="lightgrey", bold="true", fontname="Arial", fontsize="10")
+                    else:
+                        if str(getattr(step, "shape_description").lower()) == "parallel gateway.":
+                            e.node(name=step.id, label="+", shape='diamond', id=step.id, style="filled", color="lightgrey", bold="true", fontname="Arial", fontsize="10")
+                        else:
+                            if step == current_step:
+                                e.node(name=step.id, label=step.name, shape='box', id=step.id, style="filled", color="black", bordercolor="black", borderwidth="1", fillcolor="#4A6648", fontname="Arial", fontsize="10", fontcolor="white")
+                            else:
+                                e.node(name=step.id, label=step.name, shape='box', id=step.id, style="", color="black", bordercolor="black", borderwidth="1", fillcolor="white", fontname="Arial", fontsize="10")
+                else:
+                    e.node(name=step.id, label='End', shape='ellipse', border='2', id=step.id, style="", fillcolor="white", color="black", bordercolor="black", borderwidth="1", fontname="Arial", fontsize="10")
+            ctr += 1
+            if ctr >= len(steps):
+                break
+        for step in steps:
+            if hasattr(step, "type"):
+                if str(step.type) == "connector":
+                    if hasattr(step, "value"):
+                        e.edge(step.source, step.target, dir="forward", arrowhead='normal', arrowsize='0.5', label=step.value, fontname="Arial", fontsize="10")
+                    else:
+                        e.edge(step.source, step.target, dir="forward", arrowhead='normal', arrowsize='0.5', fontname="Arial", fontsize="10")
+        print(f"Flow diagram saved: {folder + name}.png")
+        e.render(view=False)
+
+
+
+cl = ChecklistEngine(r"c:\temp\test.flw")
+cl.run_flow(ask_permission=True, msgbox=True)
