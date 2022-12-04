@@ -256,7 +256,3 @@ class ChecklistEngine:
         print(f"Flow diagram saved: {folder + name}.png")
         e.render(view=False)
 
-
-
-cl = ChecklistEngine(r"c:\temp\test.flw")
-cl.run_flow(ask_permission=True, msgbox=True)
