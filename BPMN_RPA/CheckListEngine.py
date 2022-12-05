@@ -1,5 +1,5 @@
 import os
-import pickle
+import dill as pickle
 
 from pygraphviz import graphviz
 
@@ -18,6 +18,24 @@ from BPMN_RPA.WorkflowEngine import WorkflowEngine, SQL
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # Copyright 2020-2021 Joost van Gils (J.W.N.M. van Gils)
+#
+# BPMN-RPA CheckListEngine uses the dill library, which is licensed under the BSD License (BSD-3-Clause).
+# Copyright Mike McKerns. Further reading:
+# M.M. McKerns, L. Strand, T. Sullivan, A. Fang, M.A.G. Aivazis,
+# "Building a framework for predictive science", Proceedings of
+# the 10th Python in Science Conference, 2011;
+# http://arxiv.org/pdf/1202.1056
+# Michael McKerns and Michael Aivazis,
+# "pathos: a framework for heterogeneous computing", 2010- ;
+# https://uqfoundation.github.io/project/pathos
+# Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+# 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+# 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 class ChecklistEngine:
@@ -124,6 +142,8 @@ class ChecklistEngine:
         else:
             flw = self.save_as
         self.engine.db = None
+        pickle.settings['recurse']=False
+        pickle.settings['']
         with open(f"{flw}", "wb") as f:
             pickle.dump(self.engine, f)
 
