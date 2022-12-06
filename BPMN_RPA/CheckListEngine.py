@@ -1,8 +1,5 @@
 import os
 import dill as pickle
-
-from pygraphviz import graphviz
-
 from BPMN_RPA.WorkflowEngine import WorkflowEngine, SQL
 
 # The BPMN-RPA CheckListEngine is free software: you can redistribute it and/or modify
@@ -142,8 +139,7 @@ class ChecklistEngine:
         else:
             flw = self.save_as
         self.engine.db = None
-        pickle.settings['recurse']=False
-        pickle.settings['']
+        pickle.settings['recurse']=True
         with open(f"{flw}", "wb") as f:
             pickle.dump(self.engine, f)
 
@@ -273,7 +269,7 @@ class ChecklistEngine:
                         e.edge(step.source, step.target, dir="forward", arrowhead='normal', arrowsize='0.5', label=step.value, fontname="Arial", fontsize="10")
                     else:
                         e.edge(step.source, step.target, dir="forward", arrowhead='normal', arrowsize='0.5', fontname="Arial", fontsize="10")
-        print(f"Flow diagram saved: {folder + name}.png")
-        e.render(view=False)
+        print(f"Flow diagram saved: {folder + name}_diagram.png")
+        e.render(filename=f"{folder + name}_diagram", view=False, cleanup=True)
 
 

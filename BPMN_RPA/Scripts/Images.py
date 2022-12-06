@@ -250,8 +250,6 @@ from PIL import Image
 #    limitations under the License.
 
 
-
-
 def click_on_image(image: str, confidence: float = 0.9):
     """
     Click on an image on the screen.
@@ -280,4 +278,3 @@ def ocr_text_from_image(image: str, path_to_tesseract: str = None, lang: str = '
     if path_to_tesseract is not None:
         pytesseract.tesseract_cmd = path_to_tesseract
     return pytesseract.image_to_string(Image.open(image), lang=lang)
-

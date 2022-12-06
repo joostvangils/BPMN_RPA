@@ -1,5 +1,8 @@
+import pickle
+
 import win32com
 import win32com.client
+
 
 # The BPMN-RPA Excel module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,10 +29,54 @@ class Excel:
         :param update_links: Optional. Whether the Excel file should update links.
         :param format: Optional. The format of the Excel file.
         """
+        self.Visible = visible
+        self.excel = None
+        self.path = path
+        self.read_only = read_only
+        self.update_links = update_links
+        self.format = format
+        self.__connect__()
+
+    def __connect__(self):
+        """
+        Internal function to connect to Excel.
+        :return: None
+        """
         self.excel = win32com.client.Dispatch("Excel.Application")
-        self.excel.Visible = visible
+        self.excel.Visible = self.Visible
         self.excel.DisplayAlerts = False
-        self.excel.Workbooks.Open(path, ReadOnly=read_only, UpdateLinks=update_links, Format=format)
+        self.excel.Workbooks.Open(self.path, ReadOnly=self.read_only, UpdateLinks=self.update_links, Format=self.format)
+
+    def __is_picklable__(self, obj: any) -> bool:
+        """
+        Internal function to determine if the object is pickable.
+        :param obj: The object to check.
+        :return: True or False
+        """
+        try:
+            pickle.dumps(obj)
+            return True
+        except Exception as e:
+            return False
+
+    def __getstate__(self):
+        """
+        Internal function for serialization
+        """
+        self.close(save_changes=True)
+        state = self.__dict__.copy()
+        for key, val in state.items():
+            if not self.__is_picklable__(val):
+                state[key] = str(val)
+        return state
+
+    def __setstate__(self, state):
+        """
+        Internal function for deserialization
+        :param state: The state to set to the 'self' object of the class
+        """
+        self.__dict__.update(state)
+        self.__connect__()
 
     def close(self, save_changes: bool = False):
         """

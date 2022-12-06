@@ -1,6 +1,6 @@
-import json
-
+import pickle
 import win32com.client
+
 
 # The BPMN-RPA Outlook module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,10 +22,47 @@ class Outlook:
         """
         Initializes the Outlook class.
         On error copy the two files from [installation directory python]\Lib\site-packages\pywin32_system32 to C:\Windows\System32.
-        Make sure to run 'python pywin32_postinstall.py -install' in administrator mode after installing pywin32.
+        Make sure to run 'python pywin32_postinstall.py -install' from [installation directory python]\Scripts in administrator mode after installing pywin32.
         Then check if you only have one pywintypes.py in your Python subfolders. If not: rename the pywintypes.py in the Python\Lib\site-packages\win32ctypes subfolder to pywintypes_old.py.
         """
+        self.outlook = None
+        self.__connect__()
+
+    def __connect__(self):
+        """
+        Internal function to connect to Desktop Outlook
+        """
         self.outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
+
+    def __is_picklable__(self, obj: any) -> bool:
+        """
+        Internal function to determine if the object is pickable.
+        :param obj: The object to check.
+        :return: True or False
+        """
+        try:
+            pickle.dumps(obj)
+            return True
+        except Exception as e:
+            return False
+
+    def __getstate__(self):
+        """
+        Internal function for serialization
+        """
+        state = self.__dict__.copy()
+        for key, val in state.items():
+            if not self.__is_picklable__(val):
+                state[key] = str(val)
+        return state
+
+    def __setstate__(self, state):
+        """
+        Internal function for deserialization
+        :param state: The state to set to the 'self' object of the class
+        """
+        self.__dict__.update(state)
+        self.__connect__()
 
     def get_outlook_folder(self, folder=6):
         """
@@ -266,6 +303,7 @@ class Outlook:
             if mark_as_complete:
                 task.Complete = True
         return retn
+
     def get_outlook_this_week_tasks(self, mark_as_complete=True):
         """
         Returns the tasks for this week
@@ -279,6 +317,7 @@ class Outlook:
             if mark_as_complete:
                 task.Complete = True
         return retn
+
     def get_outlook_next_week_tasks(self, mark_as_complete=True):
         """
         Returns the tasks for next week
@@ -292,6 +331,7 @@ class Outlook:
             if mark_as_complete:
                 task.Complete = True
         return retn
+
     def get_outlook_overdue_tasks(self, mark_as_complete=True):
         """
         Returns the overdue tasks
@@ -305,6 +345,7 @@ class Outlook:
             if mark_as_complete:
                 task.Complete = True
         return retn
+
     def get_outlook_completed_tasks(self):
         """
         Returns the completed tasks
@@ -326,6 +367,7 @@ class Outlook:
         for task in tasks:
             retn.append(task)
         return retn
+
     def get_outlook_appointments(self):
         """
         Returns the appointments
@@ -391,7 +433,7 @@ class Outlook:
 
     def get_outlook_overdue_appointments(self):
         """
-        Returns the overdue appointments
+       Returns the overdue appointments
         :return: Appointments
         """
         retn = []

@@ -1,5 +1,5 @@
 import pyodbc
-
+import pickle
 
 # The BPMN-RPA SQLserver module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -41,13 +41,51 @@ class SQLserver:
         self.database = database
         self.username = username
         self.password = password
+        self.driver = driver
         self.connection = None
         self.cursor = None
-        if username != "" and password != "":
-            self.connection = pyodbc.connect('DRIVER=' + driver + ';SERVER=' + hostname + ';DATABASE=' + database + ';UID=' + username + ';PWD=' + password)
+        self.__connect__()
+
+    def __connect__(self):
+        """
+        Internal function to connect to the database.
+        """
+        if self.username != "" and self.password != "":
+            self.connection = pyodbc.connect('DRIVER=' + self.driver + ';SERVER=' + self.server + ';DATABASE=' + self.database + ';UID=' + self.username + ';PWD=' + self.password)
         else:
-            self.connection = pyodbc.connect('DRIVER=' + driver + ';SERVER=' + hostname + ';DATABASE=' + database + ';Trusted_Connection=yes;')
+            self.connection = pyodbc.connect('DRIVER=' + self.driver + ';SERVER=' + self.server + ';DATABASE=' + self.database + ';Trusted_Connection=yes;')
         self.cursor = self.connection.cursor()
+
+    def __is_picklable__(self, obj: any) -> bool:
+        """
+        Internal function to determine if the object is pickable.
+        :param obj: The object to check.
+        :return: True or False
+        """
+        try:
+            pickle.dumps(obj)
+            return True
+        except Exception as e:
+            return False
+
+    def __getstate__(self):
+        """
+        Internal function for serialization
+        """
+        state = self.__dict__.copy()
+        for key, val in state.items():
+            if not self.__is_picklable__(val):
+                state[key] = str(val)
+        self.connection.close()
+        return state
+
+    def __setstate__(self, state):
+        """
+        Internal function for deserialization
+        :param state: The state to set to the 'self' object of the class
+        """
+        self.__dict__.update(state)
+        self.__connect__()
 
     def sqlserver_does_table_exist(self, table_name):
         """

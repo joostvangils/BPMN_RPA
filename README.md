@@ -229,6 +229,8 @@ chkLst = ChecklistEngine(flow_name="\\my_flows\\example.flw", full_path_save_as=
 
 chkLst.run_flow(ask_permission=True, msgbox=True)
 ```
+When you want to pause the flow, just click 'No' in the MessageBox or press 'n' in the console. The state of the flow will be saved in the instance file, together with a flow diagram (.png file with the same name as the instance file). The current step will be highlighted in green in the flow diagram. Example:
+<br><br><a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/my_flow.PNG" height="400" width="300" ></a>
 
 To resume a flow at any time you like from a saved state, use the CheckListEngine constructor and call the 'resume_flow' function:
 ```Python
