@@ -1,4 +1,6 @@
 import json
+import pickle
+
 import xmltodict
 from pykeepass import PyKeePass
 
@@ -27,7 +29,45 @@ class KeePass:
         :param path: Path to the KeePass database
         :param master_password: Master password of the KeePass database
         """
-        self.kp = PyKeePass(path, password=master_password)
+        self.path = path
+        self.master_password = master_password
+        self.__connect__()
+
+    def __connect__(self):
+        """
+        Internal function to connect to the KeePass database
+        """
+        self.kp = PyKeePass(self.path, password=self.master_password)
+
+    def __is_picklable__(self, obj: any) -> bool:
+        """
+        Internal function to determine if the object is pickable.
+        :param obj: The object to check.
+        :return: True or False
+        """
+        try:
+            pickle.dumps(obj)
+            return True
+        except Exception as e:
+            return False
+
+    def __getstate__(self):
+        """
+        Internal function for serialization
+        """
+        state = self.__dict__.copy()
+        for key, val in state.items():
+            if not self.__is_picklable__(val):
+                state[key] = str(val)
+        return state
+
+    def __setstate__(self, state):
+        """
+        Internal function for deserialization
+        :param state: The state to set to the 'self' object of the class
+        """
+        self.__dict__.update(state)
+        self.__connect__()
 
     def keepass_get_password(self, title):
         """

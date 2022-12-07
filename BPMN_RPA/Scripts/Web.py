@@ -120,7 +120,8 @@ class Web:
 
     def __init__(self, url=""):
         """
-        Instantiate class for reading web pages
+        Instantiate class for reading web pages. To make this work, you should install the Selenium Chrome driver and
+        add it to your PATH. See https://sites.google.com/a/chromium.org/chromedriver/downloads for more information.
         :param url: The url of the page to open
         """
         self.downloaddir = r"\temp"
@@ -140,7 +141,7 @@ class Web:
             "download.directory_upgrade": True,
             "safebrowsing.enabled": True
         })
-        self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        self.driver = webdriver.Chrome(options=options)
         self.wait = WebDriverWait(self.driver, 20)
         if self.url != "":
             self.driver.get(self.url)
@@ -162,6 +163,7 @@ class Web:
         """
         Internal function for serialization
         """
+        self.driver.quit()
         state = self.__dict__.copy()
         for key, val in state.items():
             if not self.__is_picklable__(val):
@@ -654,3 +656,9 @@ class Web:
         :param value: The value to set
         """
         self.driver.find_element(By.XPATH, xpath).send_keys(value)
+
+    def close(self):
+        """
+        Close the browser.
+        """
+        self.driver.quit()

@@ -1,5 +1,6 @@
 import json
 import os
+import pickle
 
 import PyPDF2
 from PyPDF2 import PdfFileReader, PdfFileWriter
@@ -39,12 +40,54 @@ class PDF:
         :param pdf_file_path:
         """
         self.pdf_file_path = pdf_file_path
+        self.pdf_file = None
+        self.pdf_reader = None
+        self.pdf_writer = None
+        self.pages = None
+        self.page = None
+        self.page_content = None
+        self.__connect__()
+
+    def __connect__(self):
+        """
+        Internal function to connect to the PDF
+        """
         self.pdf_file = open(self.pdf_file_path, 'rb')
         self.pdf_reader = PyPDF2.PdfFileReader(self.pdf_file)
         self.pdf_writer = PyPDF2.PdfFileWriter()
         self.pages = self.pdf_reader.getNumPages()
         self.page = self.pdf_reader.getPage(0)
         self.page_content = self.page.extractText()
+
+    def __is_picklable__(self, obj: any) -> bool:
+        """
+        Internal function to determine if the object is pickable.
+        :param obj: The object to check.
+        :return: True or False
+        """
+        try:
+            pickle.dumps(obj)
+            return True
+        except Exception as e:
+            return False
+
+    def __getstate__(self):
+        """
+        Internal function for serialization
+        """
+        state = self.__dict__.copy()
+        for key, val in state.items():
+            if not self.__is_picklable__(val):
+                state[key] = str(val)
+        return state
+
+    def __setstate__(self, state):
+        """
+        Internal function for deserialization
+        :param state: The state to set to the 'self' object of the class
+        """
+        self.__dict__.update(state)
+        self.__connect__()
 
     def get_page_content(self, page_number):
         """

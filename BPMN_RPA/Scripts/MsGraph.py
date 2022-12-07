@@ -1,5 +1,6 @@
 import base64
 import json
+import pickle
 import sys
 from datetime import datetime, timedelta
 import jwt
@@ -276,6 +277,35 @@ class ms_graph:
         self.clientID = client_id  # The Application (client) ID of the app registration
         self.scope = ["User.ReadWrite.All", "Mail.ReadWrite.Shared", "Contacts.ReadWrite", "Contacts.ReadWrite.Shared", "AccessReview.ReadWrite.All", "AdministrativeUnit.ReadWrite.All"]
         self.tokenExpiry = None
+
+    def __is_picklable__(self, obj: any) -> bool:
+        """
+        Internal function to determine if the object is pickable.
+        :param obj: The object to check.
+        :return: True or False
+        """
+        try:
+            pickle.dumps(obj)
+            return True
+        except Exception as e:
+            return False
+
+    def __getstate__(self):
+        """
+        Internal function for serialization
+        """
+        state = self.__dict__.copy()
+        for key, val in state.items():
+            if not self.__is_picklable__(val):
+                state[key] = str(val)
+        return state
+
+    def __setstate__(self, state):
+        """
+        Internal function for deserialization
+        :param state: The state to set to the 'self' object of the class
+        """
+        self.__dict__.update(state)
 
     def msal_persistence(self, location, fallback_to_plaintext=False):
         """

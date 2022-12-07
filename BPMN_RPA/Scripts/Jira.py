@@ -1,5 +1,6 @@
 import datetime
 import json
+import pickle
 from typing import Any, List
 from dateutil import parser
 import pandas as pd
@@ -57,8 +58,46 @@ class Jira:
         :param jira_url: The URL of the Jira instance.
         """
         self.rooturl = jira_url
-        options = {'server': self.rooturl}
-        self.jira = JIRA(options=options, basic_auth=(jira_user, jira_pwd))
+        self.options = {'server': self.rooturl}
+        self.jira_user = jira_user
+        self.jira_pwd = jira_pwd
+        self.__connect__()
+
+    def __connect__(self):
+        """
+        Internal function to connect to Jira.
+        """
+        self.jira = JIRA(options=self.options, basic_auth=(self.jira_user, self.jira_pwd))
+
+    def __is_picklable__(self, obj: any) -> bool:
+        """
+        Internal function to determine if the object is pickable.
+        :param obj: The object to check.
+        :return: True or False
+        """
+        try:
+            pickle.dumps(obj)
+            return True
+        except Exception as e:
+            return False
+
+    def __getstate__(self):
+        """
+        Internal function for serialization
+        """
+        state = self.__dict__.copy()
+        for key, val in state.items():
+            if not self.__is_picklable__(val):
+                state[key] = str(val)
+        return state
+
+    def __setstate__(self, state):
+        """
+        Internal function for deserialization
+        :param state: The state to set to the 'self' object of the class
+        """
+        self.__dict__.update(state)
+        self.__connect__()
 
     def get_issue(self, issue_key: str) -> Any:
         """

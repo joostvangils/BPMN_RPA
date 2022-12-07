@@ -1,5 +1,6 @@
 import xmltodict
 
+
 # The BPMN-RPA XML module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -36,7 +37,44 @@ class Xml:
         :param xml_file:
         """
         self.xml_file = xml_file
+        self.xml_dict = None
+        self.__connect__()
+
+    def __connect__(self):
+        """
+        Internal function to connect the XML file to the dictionary
+        """
         self.xml_dict = xmltodict.parse(open(self.xml_file).read())
+
+    def __is_picklable__(self, obj: any) -> bool:
+        """
+        Internal function to determine if the object is pickable.
+        :param obj: The object to check.
+        :return: True or False
+        """
+        try:
+            pickle.dumps(obj)
+            return True
+        except Exception as e:
+            return False
+
+    def __getstate__(self):
+        """
+        Internal function for serialization
+        """
+        state = self.__dict__.copy()
+        for key, val in state.items():
+            if not self.__is_picklable__(val):
+                state[key] = str(val)
+        return state
+
+    def __setstate__(self, state):
+        """
+        Internal function for deserialization
+        :param state: The state to set to the 'self' object of the class
+        """
+        self.__dict__.update(state)
+        self.__connect__()
 
     def get_xml_dictionary(self):
         """
@@ -71,7 +109,7 @@ class Xml:
         """
         self.xml_dict[element] = element_dict
 
-    def remove_xml_element(self,  element):
+    def remove_xml_element(self, element):
         """
         Removes the element from the dictionary
         :param element: Element to remove

@@ -1,4 +1,6 @@
 import ftplib
+import pickle
+
 
 # The BPMN-RPA FTP module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,11 +27,51 @@ class FTP:
         :param user: The user name to connect with.
         :param password: The password to connect with.
         """
+        self.user = user
+        self.password = password
+        self.ftp = None
+        self.host = host
+        self.__connect__()
+
+    def __connect__(self):
+        """
+        Internal function to connect to the FTP server.
+        """
         self.ftp = ftplib.FTP()
         # open FTP connection
-        self.ftp.connect(host, 21)
+        self.ftp.connect(self.host, 21)
         # login
-        self.ftp.login(user, password)
+        self.ftp.login(self.user, self.password)
+
+    def __is_picklable__(self, obj: any) -> bool:
+        """
+        Internal function to determine if the object is pickable.
+        :param obj: The object to check.
+        :return: True or False
+        """
+        try:
+            pickle.dumps(obj)
+            return True
+        except Exception as e:
+            return False
+
+    def __getstate__(self):
+        """
+        Internal function for serialization
+        """
+        state = self.__dict__.copy()
+        for key, val in state.items():
+            if not self.__is_picklable__(val):
+                state[key] = str(val)
+        return state
+
+    def __setstate__(self, state):
+        """
+        Internal function for deserialization
+        :param state: The state to set to the 'self' object of the class
+        """
+        self.__dict__.update(state)
+        self.__connect__()
 
     def close_ftp(self):
         """

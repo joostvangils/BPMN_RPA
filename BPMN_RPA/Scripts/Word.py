@@ -1,3 +1,5 @@
+import pickle
+
 import win32com
 import win32com.client
 
@@ -28,6 +30,46 @@ class Word:
         self.doc = self.word.Documents.Open(self.path)
         self.doc.Activate()
 
+    def __connect__(self):
+        """
+        Internal function to connect to the Word document
+        """
+        self.word = win32com.client.Dispatch("Word.Application")
+        self.word.Visible = 0
+        self.doc = self.word.Documents.Open(self.path)
+        self.doc.Activate()
+
+    def __is_picklable__(self, obj: any) -> bool:
+        """
+        Internal function to determine if the object is pickable.
+        :param obj: The object to check.
+        :return: True or False
+        """
+        try:
+            pickle.dumps(obj)
+            return True
+        except Exception as e:
+            return False
+
+    def __getstate__(self):
+        """
+        Internal function for serialization
+        """
+        self.word_close(save_changes=True)
+        state = self.__dict__.copy()
+        for key, val in state.items():
+            if not self.__is_picklable__(val):
+                state[key] = str(val)
+        return state
+
+    def __setstate__(self, state):
+        """
+        Internal function for deserialization
+        :param state: The state to set to the 'self' object of the class
+        """
+        self.__dict__.update(state)
+        self.__connect__()
+
     def word_replace(self, old, new):
         """
         Replaces text in the Word document
@@ -37,6 +79,14 @@ class Word:
         self.word.Selection.Find.ClearFormatting()
         self.word.Selection.Find.Replacement.ClearFormatting()
         self.word.Selection.Find.Execute(old, False, False, False, False, False, True, 1, True, new, 2)
+
+    def word_close(self, save_changes=True):
+        """
+        Closes the Word document
+        :param save_changes: Save changes to the Word document
+        """
+        self.doc.Close(SaveChanges=save_changes)
+        self.word.Quit()
 
     def word_save(self):
         """
