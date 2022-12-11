@@ -3,6 +3,22 @@ import pickle
 import psycopg2
 
 
+# The BPMN-RPA PostgreSQL module is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# The BPMN-RPA PostgreSQL module is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# The BPMN-RPA SQLserver module is based on the psycopg2 module (copyright Federico Di Gregorio),
+# which is licensed under the GNU Lesser General Public License (LGPL) version 3: https://www.gnu.org/licenses/lgpl-3.0.en.html
+
 class PostgreSQL:
 
     def __init__(self, host, port, user, password, database):
