@@ -1,7 +1,10 @@
 import json
 import pickle
+import shutil
+import subprocess
 
 import spacy
+from spacy.tokens import DocBin
 
 
 # The BPMN-RPA TextMining module is free software: you can redistribute it and/or modify
@@ -38,6 +41,7 @@ class TextMining:
         """
         self.standard_model = standard_model
         self.__connect__()
+        self.nlp = None
 
     def __connect__(self):
         """
@@ -1878,3 +1882,109 @@ class TextMining:
         """
         doc = self.nlp(text)
         return [(token.text, token.lemma_, token.pos_, token.dep_, token.shape_) for token in doc]
+
+    def __create_config__(self):
+        """
+        Fill the base_config.cfg file with remaining defaults and save it as config.cfg.
+        After you’ve saved the starter config to a file base_config.cfg, you can use the init fill-config command to fill in the remaining defaults. Training configs should always be complete and without hidden defaults, to keep your experiments reproducible.
+        """
+        # Check if english model is present
+        nlp = None
+        try:
+            nlp = spacy.load("en_core_web_lg")
+        except Exception as e:
+            print("English model is not installed. Now downloading and installing...")
+            # Download the englisch model
+            subprocess.run("python -m spacy download en_core_web_lg", shell=True)
+        subprocess.run("python -m spacy init fill-config base_config.cfg config.cfg", shell=True)
+
+    def __train__(self, data, folder, language="en"):
+        """
+        Train the model with the config.cfg file.
+        :param data: The data to train the model with.
+        :param folder: The folder to save the model to.
+        :param language: The language of the data. Default is "en".
+        """
+        nlp = spacy.blank(language)
+        cfglang = ""
+        # check if right language is used in config.cfg file
+        with open("config.cfg", "r") as f:
+            while True:
+                line = f.readline()
+                if not line:
+                    break
+                if line.startswith("lang = "):
+                    cfglang = line[7:].replace("\n", "")
+                    break
+        if cfglang != language:
+            # replace the language in the config.cfg file
+            with open("config.cfg", "r") as f:
+                lines = f.readlines()
+            with open("config.cfg", "w") as f:
+                for line in lines:
+                    if line.startswith("lang = "):
+                        f.write("lang = \"" + language + "\"\n")
+                    else:
+                        f.write(line)
+        training_data = data
+        # Get unique labels
+        labels = set([x[1] for x in training_data])
+        db = DocBin()
+        for text, label in training_data:
+            doc = nlp.make_doc(text)
+            # set doc label
+            for lbl in labels:
+                if lbl == label:
+                    doc.cats[lbl] = 1.0
+                else:
+                    doc.cats[lbl] = 0.0
+            db.add(doc)
+        db.to_disk("./train.spacy")
+        # The dev.spacy file should look exactly the same as the train.spacy file, but should contain new examples that the training process hasn't seen before to get a realistic evaluation of the performance of your model.
+        # To create this dev set, you can first split your original data into train/dev parts, and then run convert separately on each of them, calling the larger one train.spacy and the smaller one dev.spacy.
+        # Or you can use the split-train command to split your data into train and dev sets automatically.
+
+        db.to_disk("./dev.spacy")
+        from spacy.cli.train import train
+
+        # split train and dev data
+        split_train = subprocess.run("python -m spacy split-train ./train.spacy ./dev.spacy", shell=True)
+        train(config_path="./config.cfg", output_path="./output")
+        # move the model to the given path
+        source_dir = "./output/model-best"
+        shutil.copytree(source_dir, folder)
+
+    def __load_model__(self, model_path):
+        """
+        Load the model from the given path.
+        :param model_path: The path to the model.
+        """
+        self.nlp = spacy.load(model_path)
+
+    def save_model(self, model_path):
+        """
+        Save the model to the given path.
+        :param model_path: The path to the model.
+        """
+        self.nlp.to_disk(model_path)
+
+    def __load_data__(self, data_path):
+        """
+        Load the data from the given path.
+        :param data_path: The path to the data.
+        """
+        self.data = DocBin().from_disk(data_path)
+
+    def predict(self, text):
+        """
+        Predict the label of the given text.
+        :param text: The text to predict.
+        :return: The predicted label.
+        """
+        doc = self.nlp(text)
+        return max(doc.cats, key=doc.cats.get)
+
+data = [("dit is een test", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test")]
+
+tm = TextMining()
+tm.__train__(data, "nl")
