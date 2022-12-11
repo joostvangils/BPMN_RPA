@@ -1974,7 +1974,7 @@ class TextMining:
 
     def predict(self, text):
         """
-        Predict the label of the given text.
+        Predict the label of the given text by using the already loaded model.
         :param text: The text to predict.
         :return: The predicted label.
         """
