@@ -1943,10 +1943,7 @@ class TextMining:
         # The dev.spacy file should look exactly the same as the train.spacy file, but should contain new examples that the training process hasn't seen before to get a realistic evaluation of the performance of your model.
         # To create this dev set, you can first split your original data into train/dev parts, and then run convert separately on each of them, calling the larger one train.spacy and the smaller one dev.spacy.
         # Or you can use the split-train command to split your data into train and dev sets automatically.
-
-        db.to_disk("./dev.spacy")
         from spacy.cli.train import train
-
         # split train and dev data
         split_train = subprocess.run("python -m spacy split-train ./train.spacy ./dev.spacy", shell=True)
         train(config_path="./config.cfg", output_path="./output")
@@ -1983,8 +1980,3 @@ class TextMining:
         """
         doc = self.nlp(text)
         return max(doc.cats, key=doc.cats.get)
-
-data = [("dit is een test", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test"), ("dit is een voorbeeld", "voorbeeld"), ("hier gaat het om kleur","kleur"), ("dat moet getest worden", "test")]
-
-tm = TextMining()
-tm.__train__(data, "nl")
