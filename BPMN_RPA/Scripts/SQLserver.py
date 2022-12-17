@@ -1,5 +1,8 @@
+import re
+
 import pyodbc
 import pickle
+
 
 # The BPMN-RPA SQLserver module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,11 +18,11 @@ import pickle
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 # The BPMN-RPA SQLserver module is based on the pyodbc module (copyright Michael Kleehammer), which is licensed under the MIT license:
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”),
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
 # to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
 # and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions
 # The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 # INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 # IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
@@ -197,6 +200,17 @@ class SQLserver:
         self.connection.commit()
         return result
 
+    def sqlserver_escape_string(self, string: str, strip: bool=True) -> str:
+        """
+        Escape a string with single quotes for SQL-server use.
+        :param string: The string to escape.
+        :param strip: Optional. Strip the string before escaping. Default is True.
+        :return: The escaped string.
+        """
+        if strip:
+            string = string.strip()
+        return string.replace(r"'", r"''")
+
     def sqlserver_query_and_get_results(self, query):
         """
         Executes a query against the database and returns the results.
@@ -218,7 +232,7 @@ class SQLserver:
         :param column_names: List of column names
         :param column_types: List of column types
         """
-        query = "CREATE TABLE " + table_name + " ("
+        query = "IF NOT EXISTS (SELECT * FROM sys.tables t JOIN sys.schemas s ON (t.schema_id = s.schema_id) WHERE s.name = 'dbo' AND t.name = '" + table_name + "') CREATE TABLE " + table_name + " ("
         for i in range(len(column_names)):
             if i > 0:
                 query += ", "
@@ -365,3 +379,15 @@ class SQLserver:
                 query += " AND "
             query += where_column_names[i] + " = ?"
         return [row[0] for row in self.cursor.execute(query, where_column_values).fetchall()]
+
+    def sqlserver_clean_text_with_text_from_table(self, text, table_name, column_name):
+        """
+        Cleans a text with text from a table. It gets all the values of a column of a table and removes those values from the text.
+        :param text: Text to clean
+        :param table_name: Name of the table
+        :param column_name: Name of the column
+        :return: Cleaned text
+        """
+        for word in self.sqlserver_get_table_column_values(table_name, column_name):
+            text = text.replace(word, "")
+        return text

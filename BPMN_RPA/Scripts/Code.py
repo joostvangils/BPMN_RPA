@@ -456,7 +456,7 @@ class Code:
         engine = WorkflowEngine()
         doc = engine.open(filepath)
         steps = engine.get_flow(doc)
-        if input=="":
+        if input == "":
             input = "None"
         reserved = ["email", "code", "compare", "workflowengine"]
         name = ""
@@ -466,7 +466,7 @@ class Code:
         else:
             targetdir = "/".join(filepath.split("/")[:-1])
             name = filepath.split("/")[-1].replace(".flw", "")
-        if len(targetfolder)>0:
+        if len(targetfolder) > 0:
             targetdir = targetfolder
         if name.lower() in reserved:
             name += "_script"
@@ -826,3 +826,7 @@ class Code:
                 raise Exception(f'Error: flow {flow} does not contain a valid xml definition')
         else:
             raise Exception(f'Error: flow {flow} not found.')
+
+
+class BPMN_RPA_Code(Code):
+    pass

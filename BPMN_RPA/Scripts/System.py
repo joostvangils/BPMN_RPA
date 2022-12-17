@@ -207,8 +207,10 @@ def read_file(path: str) -> str:
     :param path: The full path to the file to read.
     :return: The contents of the file.
     """
-    with open(path, "r") as f:
-        return f.read()
+    f = open(path, "r")
+    retn = f.read()
+    f.close()
+    return retn
 
 
 def write_file(path: str, content: str):
@@ -510,3 +512,19 @@ def json_to_string(json_object: dict) -> str:
     """
     import json
     return json.dumps(json_object)
+
+
+def html_to_plain_text(html: str, strip: bool=True) -> str:
+    """
+    Convert HTML to plain text.
+    :param html: The HTML to convert.
+    :param strip: Optional. Whether to strip the text after converting to html. Default is True.
+    :return: The plain text.
+    """
+    # import beautifulsoup4
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup(html, "html.parser")
+    text = soup.get_text()
+    if strip:
+        return text.strip()
+    return text

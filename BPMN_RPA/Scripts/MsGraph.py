@@ -523,19 +523,20 @@ class ms_graph:
         response = requests.get('https://graph.microsoft.com/v1.0/users/{}'.format(email), headers=self.headers)
         return response.json()["id"]
 
-    def get_messages(self, email, number=10, with_attachments=True):
+    def get_messages(self, email, folder="Inbox", number=10, with_attachments=True):
         """
         Get messages from mailbox.
         :param email: The email address of the mailbox.
-        :param number: The number of messages to retrieve.
-        :param with_attachments: Optional. If True, attachments will be retrieved.
+        :param folder: Optional. The folder to get messages from. Default is Inbox.
+        :param number: Optional. The number of messages to retrieve. Default is 10.
+        :param with_attachments: Optional. If True, attachments will be retrieved. Default is True.
         :return: A list of messages.
         """
         retn = []
         if self.headers is None:
             self.get_access_token()
         id = self.get_user_id(email)
-        response = requests.get(f'https://graph.microsoft.com/v1.0/users/{id}/mailFolders/Inbox/messages?$top={number}', headers=self.headers)
+        response = requests.get(f'https://graph.microsoft.com/v1.0/users/{id}/mailFolders/{folder}/messages?$top={number}', headers=self.headers)
         for message in response.json()["value"]:
             if with_attachments:
                 response = requests.get(f'https://graph.microsoft.com/v1.0/users/{id}/messages/{message["id"]}/attachments', headers=self.headers)
@@ -646,3 +647,103 @@ class ms_graph:
             id = self.get_user_id(of_email)
         response = requests.get(f'https://graph.microsoft.com/v1.0/users/{id}/contacts', headers=self.headers)
         return response.json()["value"]
+
+    def empty_email_subfolder(self, email: str, subfolder: str, rootfolder: str = "Inbox"):
+        """
+        Empty a subfolder in the Inbox of a user. To make this work, you must have the following permissions: Mail.ReadWrite and Mail.Send.
+        Make sure the user has permissions on the folder. You can set these permissions in the folder properties in Outlook.
+        :param email: The email address of the mailbox.
+        :param rootfolder: The root folder of the subfolder. Default is Inbox.
+        :param subfolder: The subfolder to empty.
+        """
+        if self.headers is None:
+            self.get_access_token()
+        id = self.get_user_id(email)
+        # get id of inbox folder
+        root = requests.get(f'https://graph.microsoft.com/v1.0/users/{id}/mailFolders/{rootfolder}', headers=self.headers)
+        root_id = root.json()["id"]
+        # get all childfolders under the root_id folder
+        subfoldr = requests.get(f'https://graph.microsoft.com/v1.0/users/{id}/mailFolders/{root_id}/childFolders/', headers=self.headers)
+        # get the id of the folder to empty
+        for sub in subfoldr.json()["value"]:
+            if sub["displayName"] == subfolder:
+                folder_id = sub["id"]
+                break
+        # get all message-ids in the folder
+        response = requests.get(f'https://graph.microsoft.com/v1.0/users/{id}/mailFolders/{folder_id}/messages', headers=self.headers)
+        messages = response.json()["value"]
+        # delete all messages in the subfolder
+        for message in messages:
+            requests.delete(f'https://graph.microsoft.com/v1.0/users/{id}/messages/{message["id"]}', headers=self.headers)
+
+    def empty_email_folder(self, email: str, folder: str):
+        """
+        Empty a folder in the Inbox of a user. To make this work, you must have the following permissions: Mail.ReadWrite and Mail.Send.
+        Make sure the user has permissions on the folder. You can set these permissions in the folder properties in Outlook.
+        :param email: The email address of the mailbox.
+        :param folder: The folder to empty.
+        """
+        if self.headers is None:
+            self.get_access_token()
+        id = self.get_user_id(email)
+        # get all mailfolders
+        response = requests.get(f'https://graph.microsoft.com/v1.0/users/{id}/mailFolders', headers=self.headers)
+        # get the id of the folder to empty
+        for sub in response.json()["value"]:
+            if sub["displayName"] == folder:
+                folder_id = sub["id"]
+                break
+        # get all message-ids in the folder
+        response = requests.get(f'https://graph.microsoft.com/v1.0/users/{id}/mailFolders/{folder_id}/messages', headers=self.headers)
+        messages = response.json()["value"]
+        # delete all messages in the subfolder
+        for message in messages:
+            requests.delete(f'https://graph.microsoft.com/v1.0/users/{id}/messages/{message["id"]}', headers=self.headers)
+
+    def get_messages_from_subfolder(self, email: str, subfolder: str, rootfolder: str = "Inbox", number = 10, with_attachments=False):
+        """
+        Get all messages from a subfolder in the Inbox of a user. To make this work, you must have the following permissions: Mail.ReadWrite and Mail.Send.
+        Make sure the user has permissions on the folder. You can set these permissions in the folder properties in Outlook.
+        :param email: The email address of the mailbox.
+        :param rootfolder: The root folder of the subfolder. Default is Inbox.
+        :param number: The number of messages to return. Default is 10.
+        :param subfolder: The subfolder to get the messages of.
+        :param with_attachments: Optional. If True, the attachments will be downloaded and added to the message object. Default is False.
+        :return: A list of messages.
+        """
+        if self.headers is None:
+            self.get_access_token()
+        id = self.get_user_id(email)
+        # get id of inbox folder
+        root = requests.get(f'https://graph.microsoft.com/v1.0/users/{id}/mailFolders/{rootfolder}', headers=self.headers)
+        root_id = root.json()["id"]
+        # get all childfolders under the root_id folder
+        subfoldr = requests.get(f'https://graph.microsoft.com/v1.0/users/{id}/mailFolders/{root_id}/childFolders/', headers=self.headers)
+        # get the id of the folder to empty
+        for sub in subfoldr.json()["value"]:
+            if sub["displayName"] == subfolder:
+                folder_id = sub["id"]
+                break
+        retn = []
+        # get all messages in the subfolder
+        response = requests.get(f'https://graph.microsoft.com/v1.0/users/{id}/mailFolders/{folder_id}/messages?$top={number}', headers=self.headers)
+        for message in response.json()["value"]:
+            if with_attachments:
+                response = requests.get(f'https://graph.microsoft.com/v1.0/users/{id}/messages/{message["id"]}/attachments', headers=self.headers)
+                if response.json()["value"] != []:
+                    message["attachments"] = response.json()["value"]
+            retn.append(self.MessageObject(message))
+        return retn
+
+    def set_message_category_by_id(self, email: str, message_id: str, category: str):
+        """
+        Set a category on a message. To make this work, you must have the following permissions: Mail.ReadWrite and Mail.Send.
+        :param email: The email address of the mailbox.
+        :param message_id: The id of the message.
+        :param category: The name of the category to set.
+        """
+        if self.headers is None:
+            self.get_access_token()
+        id = self.get_user_id(email)
+        response = requests.patch(f'https://graph.microsoft.com/v1.0/users/{id}/messages/{message_id}', headers=self.headers, json={"categories": [category]})
+        return response.json()

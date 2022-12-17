@@ -1,11 +1,13 @@
 import json
+import os
 import pickle
 import shutil
 import subprocess
+import sys
 
+import BPMN_RPA.Scripts.SQLserver as SQLserver
 import spacy
-from spacy.tokens import DocBin
-
+import tensorflow
 
 # The BPMN-RPA TextMining module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,6 +34,15 @@ from spacy.tokens import DocBin
 # THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+#check if the attribute is present
+hasattr(tensorflow, '__version__')
+
+#if the attribute is not present
+if not hasattr(tensorflow, '__version__'):
+    #add the attribute
+    tensorflow.__version__ = sys.version
+
+
 class TextMining:
 
     def __init__(self, standard_model='en_core_web_lg'):
@@ -40,8 +51,8 @@ class TextMining:
         :param standard_model: The standard model to use. Default is 'en_core_web_lg'. To download this model, see https://spacy.io/models/en. If you want to use any other language, please refer to https://spacy.io/models
         """
         self.standard_model = standard_model
-        self.__connect__()
         self.nlp = None
+        self.__connect__()
 
     def __connect__(self):
         """
@@ -1898,17 +1909,20 @@ class TextMining:
             subprocess.run("python -m spacy download en_core_web_lg", shell=True)
         subprocess.run("python -m spacy init fill-config base_config.cfg config.cfg", shell=True)
 
-    def __train__(self, data, folder, language="en"):
+    def train(self, data, folder, model_name="model_best", language="en"):
         """
-        Train the model with the config.cfg file.
-        :param data: The data to train the model with.
+        Train the model with the data from the given database.
+        :param data: The data to train the model with
         :param folder: The folder to save the model to.
+        :param model_name: The name of the model. Default is "model_best".
         :param language: The language of the data. Default is "en".
         """
         nlp = spacy.blank(language)
         cfglang = ""
         # check if right language is used in config.cfg file
-        with open("config.cfg", "r") as f:
+        module_path = os.path.dirname(__file__)
+        cfg = module_path + "/config.cfg"
+        with open(cfg, "r") as f:
             while True:
                 line = f.readline()
                 if not line:
@@ -1918,19 +1932,21 @@ class TextMining:
                     break
         if cfglang != language:
             # replace the language in the config.cfg file
-            with open("config.cfg", "r") as f:
+            with open(cfg, "r") as f:
                 lines = f.readlines()
-            with open("config.cfg", "w") as f:
+            with open(cfg, "w") as f:
                 for line in lines:
                     if line.startswith("lang = "):
                         f.write("lang = \"" + language + "\"\n")
                     else:
                         f.write(line)
-        training_data = data
         # Get unique labels
-        labels = set([x[1] for x in training_data])
-        db = DocBin()
-        for text, label in training_data:
+        labels = set([x[1] for x in data])
+        db = spacy.tokens.DocBin()
+        train = []
+        dev = []
+        all = []
+        for text, label in data:
             doc = nlp.make_doc(text)
             # set doc label
             for lbl in labels:
@@ -1938,20 +1954,33 @@ class TextMining:
                     doc.cats[lbl] = 1.0
                 else:
                     doc.cats[lbl] = 0.0
-            db.add(doc)
-        db.to_disk("./train.spacy")
+            all.append(doc)
         # The dev.spacy file should look exactly the same as the train.spacy file, but should contain new examples that the training process hasn't seen before to get a realistic evaluation of the performance of your model.
-        # To create this dev set, you can first split your original data into train/dev parts, and then run convert separately on each of them, calling the larger one train.spacy and the smaller one dev.spacy.
-        # Or you can use the split-train command to split your data into train and dev sets automatically.
         from spacy.cli.train import train
-        # split train and dev data
-        split_train = subprocess.run("python -m spacy split-train ./train.spacy ./dev.spacy", shell=True)
-        train(config_path="./config.cfg", output_path="./output")
+        # split the training data to 20% dev data
+        if len(all) >= 5:
+            train_data, test_data = all[:int(len(all) * 0.2)], all[int(len(all) * 0.2):]
+        else:
+            train_data, test_data = all, all
+        # Create docbin
+        train_db = spacy.tokens.DocBin(docs=train_data)
+        dev_db = spacy.tokens.DocBin(docs=test_data)
+        # Delete files if they exist
+        if os.path.exists("./train.spacy"):
+            os.remove("./train.spacy")
+        if os.path.exists("./dev.spacy"):
+            os.remove("./dev.spacy")
+        train_db.to_disk("./train.spacy")
+        dev_db.to_disk("./dev.spacy")
+        train(config_path=cfg, output_path="./output")
         # move the model to the given path
+        # delete the folder with the same name as the model_name if it exists
+        if os.path.exists(folder + "/" + model_name):
+            shutil.rmtree(folder + "/" + model_name)
         source_dir = "./output/model-best"
-        shutil.copytree(source_dir, folder)
+        shutil.copytree(source_dir, folder + "/" + model_name)
 
-    def __load_model__(self, model_path):
+    def load_model(self, model_path):
         """
         Load the model from the given path.
         :param model_path: The path to the model.
@@ -1970,7 +1999,7 @@ class TextMining:
         Load the data from the given path.
         :param data_path: The path to the data.
         """
-        self.data = DocBin().from_disk(data_path)
+        self.data = spacy.tokens.DocBin().from_disk(data_path)
 
     def predict(self, text):
         """
@@ -1979,4 +2008,103 @@ class TextMining:
         :return: The predicted label.
         """
         doc = self.nlp(text)
-        return max(doc.cats, key=doc.cats.get)
+        return max(doc.cats)
+
+    def data_to_jsonl(self, data: list, file_path: str):
+        """
+        Saves the given data to a jsonl file.
+        :param data: The data to save.
+        :param file_path: The path to the file.
+        """
+        with open(file_path, "w") as f:
+            for item in data:
+                f.write(json.dumps(item) + "\n")
+
+    def __get_data_from_database__(self, host, database, table_name):
+        """
+        Get the data from the sql server database by using a generator with yield.
+        :param host: The host of the database.
+        :param database: The name of the database.
+        :param table_name: The name of the table in the database. This table must have columns named 'text' and 'label'.
+        :return: The data from the database.
+        """
+        sqlserver = SQLserver.SQLserver(host, database)
+        results = sqlserver.sqlserver_query_and_get_results("SELECT * FROM " + table_name)
+        for result in results:
+            yield result.text, result.label
+
+    def train_from_sql_server_database(self, database, table_name, folder, model_name="model_best", host="localhost", language="en"):
+        """
+        Train the model with the data from the given database.
+        :param host: Optional. The host of the database. Default is "localhost".
+        :param database: The path to the database.
+        :param table_name: The name of the table in the database. This table must have columns named 'text' and 'label'.
+        :param folder: The folder to save the model to.
+        :param model_name: The name of the model. Default is "model_best".
+        :param language: The language of the data. Default is "en".
+        """
+        nlp = spacy.blank(language)
+        cfglang = ""
+        # check if right language is used in config.cfg file in the same folder as this module
+        module_path = os.path.dirname(__file__)
+        cfg = module_path + "./config.cfg"
+        with open(cfg, "r") as f:
+            print("opened")
+            while True:
+                line = f.readline()
+                if not line:
+                    break
+                if line.startswith("lang = "):
+                    cfglang = line[7:].replace("\n", "")
+                    break
+        if cfglang != language:
+            # replace the language in the config.cfg file
+            with open(cfg, "r") as f:
+                lines = f.readlines()
+            with open(cfg, "w") as f:
+                for line in lines:
+                    if line.startswith("lang = "):
+                        f.write("lang = \"" + language + "\"\n")
+                    else:
+                        f.write(line)
+        # Get unique labels
+        labels = set([x[1] for x in self.__get_data_from_database__(host, database, table_name)])
+        db = spacy.tokens.DocBin()
+        train = []
+        dev = []
+        all = []
+        for text, label in self.__get_data_from_database__(host, database, table_name):
+            doc = nlp.make_doc(text)
+            # set doc label
+            for lbl in labels:
+                if lbl == label:
+                    doc.cats[lbl] = 1.0
+                else:
+                    doc.cats[lbl] = 0.0
+            all.append(doc)
+        # The dev.spacy file should look exactly the same as the train.spacy file, but should contain new examples that the training process hasn't seen before to get a realistic evaluation of the performance of your model.
+        from spacy.cli.train import train
+        # split the training data to 20% dev data
+        if len(all) >= 5:
+            train_data, test_data = all[:int(len(all) * 0.2)], all[int(len(all) * 0.2):]
+        else:
+            train_data, test_data = all, all
+        # Create docbin
+        train_db = spacy.tokens.DocBin(docs=train_data)
+        dev_db = spacy.tokens.DocBin(docs=test_data)
+        # Delete files if they exist
+        if os.path.exists("./train.spacy"):
+            os.remove("./train.spacy")
+        if os.path.exists("./dev.spacy"):
+            os.remove("./dev.spacy")
+        train_db.to_disk("./train.spacy")
+        dev_db.to_disk("./dev.spacy")
+        train(config_path=cfg, output_path="./output")
+        # move the model to the given path
+        # delete the folder with the same name as the model_name if it exists
+        if os.path.exists(folder + "/" + model_name):
+            shutil.rmtree(folder + "/" + model_name)
+        source_dir = "./output/model-best"
+        shutil.copytree(source_dir, folder + "/" + model_name)
+
+

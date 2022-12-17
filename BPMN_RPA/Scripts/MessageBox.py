@@ -37,6 +37,9 @@ def show(title: str, message: str, option: str = "ok", topmost=True) -> int:
         pass
     root.withdraw()
     title = str(title)
+    if isinstance(message, list):
+        if len(message) == 0:
+            message = ""
     message = str(message)
     option = option.lower()
     if option == "ok":
@@ -80,6 +83,9 @@ def messagebox_show(title: str, message: str, option: str = "ok", topmost=True) 
         pass
     root.withdraw()
     title = str(title)
+    if isinstance(message, list):
+        if len(message) == 0:
+            message = ""
     message = str(message)
     option = option.lower()
     if option == "ok":
@@ -122,6 +128,9 @@ def messagebox_show_with_yes_no_buttons(title: str, message: str, topmost=True) 
         pass
     root.withdraw()
     title = str(title)
+    if isinstance(message, list):
+        if len(message) == 0:
+            message = ""
     message = str(message)
     retn = tkinter.messagebox.askyesno(title, message)
     root.destroy()
@@ -146,6 +155,9 @@ def messagebox_show_with_ok_cancel_buttons(title: str, message: str, topmost=Tru
         pass
     root.withdraw()
     title = str(title)
+    if isinstance(message, list):
+        if len(message) == 0:
+            message = ""
     message = str(message)
     retn = tkinter.messagebox.askokcancel(title, message)
     root.destroy()
@@ -170,6 +182,9 @@ def messagebox_show_with_yes_no_cancel_buttons(title: str, message: str, topmost
         pass
     root.withdraw()
     title = str(title)
+    if isinstance(message, list):
+        if len(message) == 0:
+            message = ""
     message = str(message)
     retn = tkinter.messagebox.askyesnocancel(title, message)
     root.destroy()
@@ -194,6 +209,9 @@ def messagebox_show_with_retry_cancel_buttons(title: str, message: str, topmost=
         pass
     root.withdraw()
     title = str(title)
+    if isinstance(message, list):
+        if len(message) == 0:
+            message = ""
     message = str(message)
     retn = tkinter.messagebox.askretrycancel(title, message)
     root.destroy()
@@ -219,6 +237,9 @@ def messagebox_show_warning(title: str, message: str, topmost=True) -> str:
     root.withdraw()
     title = str(title)
     message = str(message)
+    if isinstance(message, list):
+        if len(message) == 0:
+            message = ""
     retn = tkinter.messagebox.showwarning(title, message)
     root.destroy()
     return retn
@@ -242,6 +263,9 @@ def messagebox_show_error(title: str, message: str, topmost=True) -> str:
         pass
     root.withdraw()
     title = str(title)
+    if isinstance(message, list):
+        if len(message) == 0:
+            message = ""
     message = str(message)
     retn = tkinter.messagebox.showerror(title, message)
     root.destroy()
@@ -266,6 +290,9 @@ def messagebox_show_question(title: str, message: str, topmost=True) -> str:
         pass
     root.withdraw()
     title = str(title)
+    if isinstance(message, list):
+        if len(message) == 0:
+            message = ""
     message = str(message)
     retn = tkinter.messagebox.askquestion(title, message)
     root.destroy()
@@ -291,6 +318,9 @@ def inputbox(title: str, message: str, default: str = "", topmost=True) -> str:
         pass
     root.withdraw()
     title = str(title)
+    if isinstance(message, list):
+        if len(message) == 0:
+            message = ""
     message = str(message) + "                                               "
     default = str(default)
     # make the textbox extendable

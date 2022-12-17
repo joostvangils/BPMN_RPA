@@ -93,3 +93,10 @@ def create_unique_id():
     :return: Unique ID as string
     """
     return uuid.uuid4().hex
+
+
+def dummy_function():
+    """
+    Dummy function for testing purposes
+    """
+    pass

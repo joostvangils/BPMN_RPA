@@ -1,0 +1,7 @@
+{
+  "labels":[
+    "Goed",
+    "Fout"
+  ],
+  "threshold":0.5
+}

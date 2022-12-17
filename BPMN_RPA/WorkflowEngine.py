@@ -40,12 +40,13 @@ import xmltodict
 
 class WorkflowEngine:
 
-    def __init__(self, input_parameter: any = None, pythonpath: str = "", installation_directory: str = ""):
+    def __init__(self, input_parameter: any = None, pythonpath: str = "", installation_directory: str = "", delete_records_older_than_days=0):
         """
         Class for automating DrawIO diagrams
         :param input_parameter: An object holding arguments to be passed as input to the WorkflowEngine.  in a flow, use get_input_parameter to retrieve the value.
         :param pythonpath: The full path to the python.exe file
         :param installation_directory: The folder where your BPMN_RPA files are installed. This folder will be used for the orchestrator database.
+        :param delete_records_older_than_days: The number of days after which the orchestrator database will clean up records. Default is 0, which means no cleanup.
         """
         settings = {}
         if len(pythonpath) != 0:
@@ -117,6 +118,8 @@ class WorkflowEngine:
         else:
             self.packages_folder = pythonpath + "/dist-packages"
         self.db = SQL(db_folder)
+        if delete_records_older_than_days > 0:
+            self.db.remove_records_with_timestamp_older_than(delete_records_older_than_days)
         self.db.orchestrator()  # Run the orchestrator database
         self.id = -1  # Holds the ID for our flow
         self.error = None  # Indicator if the flow has any errors in its execution
@@ -130,6 +133,7 @@ class WorkflowEngine:
         self.current_step = None
         self.runlog = []
         self.variables = {}  # Dictionary to hold WorkflowEngine variables
+
 
     def get_input_parameter(self, as_dictionary: bool = False) -> any:
         """
@@ -548,7 +552,10 @@ class WorkflowEngine:
                                                 "Message(mime_content="):
                                             if not tv.__contains__("."):
                                                 if len(replace_value) == 1 and not isinstance(replace_value[0], list):
-                                                    val = val.replace(tv, replace_value[0])
+                                                    try:
+                                                        val = val.replace(tv, replace_value[0])
+                                                    except Exception as e:
+                                                        val = replace_value[0]
                                                 else:
                                                     if len(replace_value) == 0:
                                                         self.print_log(status="Ending loop",
@@ -561,7 +568,10 @@ class WorkflowEngine:
                                                                 val = val.replace(tv,
                                                                                   replace_value[loopvars[0].counter])
                                                             else:
-                                                                val = list(replace_value[loopvars[0].counter])
+                                                                try:
+                                                                    val = list(replace_value[loopvars[0].counter])
+                                                                except Exception as e:
+                                                                    val = [replace_value[loopvars[0].counter]]
                                                                 if len(lst) > 1:
                                                                     for lt in lst[1:]:
                                                                         val = val[int(lt.replace("]", ""))]
@@ -590,17 +600,38 @@ class WorkflowEngine:
                                                                             tmp = tmp.replace(tv, str(
                                                                                 replace_value[int(nr)]))
                                                                     val = tmp
-
                                             else:
                                                 if loopvars[0].counter < len(replace_value):
-                                                    replace_value = self.get_attribute_value(lst[0], replace_value[
-                                                        loopvars[0].counter])
+                                                    replace_value = self.get_attribute_value(lst[0], replace_value[loopvars[0].counter])
+                                                    if str(tv).endswith("]%") and str(tv).__contains__("."):
+                                                        # get last number from val
+                                                        nr = str(tv).split("[")[-1].replace("]%", "")
+                                                        if nr.isnumeric():
+                                                            if len(replace_value) > int(nr):
+                                                                replace_value = replace_value[int(nr)]
                                                 else:
                                                     replace_value = self.get_attribute_value(lst[0], replace_value[0])
+                                                    if str(tv).endswith("]%") and str(tv).__contains__("."):
+                                                        # get last number from val
+                                                        nr = str(tv).split("[")[-1].replace("]%", "")
+                                                        if nr.isnumeric():
+                                                            if len(replace_value) > int(nr):
+                                                                replace_value = replace_value[int(nr)]
+
                                                 if isinstance(replace_value, str):
                                                     val = val.replace(tv, str(replace_value))
                                                 else:
-                                                    val = replace_value
+                                                    if val is not None:
+                                                        if isinstance(val, str):
+                                                            if val.__contains__(tv):
+                                                                if isinstance(replace_value, list):
+                                                                    if len(replace_value) == 0:
+                                                                        replace_value = ""
+                                                                val = val.replace(tv, str(replace_value))
+                                                        else:
+                                                            val = replace_value
+                                                    else:
+                                                        val = replace_value
                                         else:
                                             if str(replace_value).__contains__("Message(mime_content="):
                                                 if attr is None:
@@ -941,12 +972,24 @@ class WorkflowEngine:
                                     self.print_log(status="Running", result=f"{step.name} executed.")
                 else:
                     if hasattr(step, "function") and method_to_call is not None:
-                        if step.function != "print_log":
-                            self.print_log(status="Running", result=f"{method_to_call.__name__} executed.")
+                        if step.function.lower() in ["loop_items_check", "is_first_item_equal_to_second_item", "is_first_item_less_than_second_item", "is_first_item_greater_than_second_item", "is_first_item_less_or_equal_than_second_item", "is_first_item_greater_or_equal_than_second_item", "is_time_interval_less_or_equal", "is_time_number_of_seconds_ago", "item1_contains_item2", "does_list_contain_item", "does_list_contain_any_items", "is_object_empty"]:
+                            if step.function.lower() == "loop_items_check" and str(output_previous_step).lower() == "true":
+                                try:
+                                    self.print_log(status="Running", result=f"{method_to_call.__name__} executed with value {str(output_previous_step)} (loop item: {int(self.get_loop_variable_number(step_input['loop_variable']) + 1)}).")
+                                except Exception as e:
+                                    pass
+                            else:
+                                self.print_log(status="Running", result=f"{method_to_call.__name__} executed with value {str(output_previous_step)}.")
+                        else:
+                            if step.function != "print_log":
+                                self.print_log(status="Running", result=f"{method_to_call.__name__} executed.")
                     else:
                         if hasattr(step, "name"):
                             if len(step.name) > 0:
-                                self.print_log(status="Running", result=f"{step.name} executed.")
+                                if step.name.lower() == "exclusive gateway":
+                                    self.print_log(status="Running", result=f"{step.name} executed with value {str(output_previous_step)}.")
+                                else:
+                                    self.print_log(status="Running", result=f"{step.name} executed.")
             except Exception as ex:
                 self.set_error(ex)
                 raise Exception(f"Error: {ex}\n{self.error}")
@@ -965,6 +1008,16 @@ class WorkflowEngine:
             step = self.get_next_step(step, steps, output_previous_step)
         if output_previous_step is not None:
             return output_previous_step
+
+    def get_loop_variable_number(self, var_name):
+        """
+        Get the loop variable number.
+        :param var_name: The name of the loop variable.
+        """
+        for lv in self.loopvariables:
+            if lv.name == var_name:
+                return lv.counter
+        return 0
 
     def set_error(self, ex: any):
         """
@@ -1492,6 +1545,15 @@ class SQL:
             self.set_error(ex)
             raise Exception(self.error)
 
+    def remove_records_with_timestamp_older_than(self, table: str, days: int):
+        """
+        Remove records from a table with a timestamp older than the given days
+        :param table: The table to remove records from
+        :param days: The number of days to keep records
+        """
+        sql = f"DELETE FROM {table} WHERE timestamp < datetime('now', '-{days} day');"
+        self.run_sql(sql)
+
 
 class Visio:
 
@@ -1747,4 +1809,3 @@ class Visio:
         for k, v in properties.items():
             setattr(retn, k, v)
         return retn
-
