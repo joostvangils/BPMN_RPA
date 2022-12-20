@@ -174,5 +174,7 @@ class RiskMatrix:
         self.plt.show()
 
     def save_as_png(self, full_path: str):
+        if not full_path.lower().endswith('.png'):
+            full_path += '.png'
         self.plt.savefig(full_path)
 
