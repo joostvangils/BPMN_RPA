@@ -57,7 +57,7 @@ import matplotlib.pyplot as plt
 
 class RiskMatrix:
 
-    def __init__(self, title="Risk Matrix", x_label='probability', y_label='Impact'):
+    def __init__(self, title="Risk Matrix", x_label='probability', y_label='Impact', draw_limit=True, limit_label='Risk tolerance limit'):
         self.plt = plt
         self.fig = self.plt.figure()
         self.plt.subplots_adjust(wspace=0, hspace=0)
@@ -68,10 +68,12 @@ class RiskMatrix:
         self.plt.xlabel(x_label)
         self.plt.ylabel(y_label)
         self.plt.title(title)
+        # This example is for a 5 * 5 matrix
         nrows = 5
         ncols = 5
         self.axes = [self.fig.add_subplot(nrows, ncols, r * ncols + c + 1) for r in range(0, nrows) for c in
                      range(0, ncols)]
+        # remove the x and y ticks
         for ax in self.axes:
             ax.set_xticks([])
             ax.set_yticks([])
@@ -89,73 +91,88 @@ class RiskMatrix:
             self.axes[_].set_facecolor('orange')
         for _ in self.red:
             self.axes[_].set_facecolor('red')
+        if draw_limit:
+            self.axes[0].axhline(y=4.95, xmin=0, xmax=1, color="blue", linestyle="-")
+            self.axes[0].axvline(x=4.95, ymin=0, ymax=1, color="blue", linestyle="-")
+            self.axes[1].axhline(y=0.05, xmin=0, xmax=1, color="blue", linestyle="-")
+            self.axes[6].axvline(x=4.94, ymin=0, ymax=1, color="blue", linestyle="-")
+            self.axes[17].axhline(y=4.95, xmin=0, xmax=1, color="blue", linestyle="-")
+            self.axes[11].axvline(x=4.94, ymin=0, ymax=1, color="blue", linestyle="-")
+            self.axes[18].axhline(y=4.95, xmin=0, xmax=1, color="blue", linestyle="-")
+            self.axes[18].axvline(x=4.95, ymin=0, ymax=1, color="blue", linestyle="-")
+            self.axes[24].axhline(y=4.95, xmin=0, xmax=1, color="blue", linestyle="-", label=limit_label)
+            self.fig.legend(loc="lower center",fontsize=5)
 
-    def plot(self, text, kans=3, effect=3):
+    def plot(self, text, probability=3, impact=3, fontsize=7):
         color = 'black'
-        if kans == 1 and effect == 1:
+        if impact == 1 and probability == 1:
             cell = 20
             color = 'white'
-        if kans == 1 and effect == 2:
+        if impact == 1 and probability == 2:
             cell = 21
             color = 'white'
-        if kans == 1 and effect == 3:
+        if impact == 1 and probability == 3:
             cell = 22
-        if kans == 1 and effect == 4:
+        if impact == 1 and probability == 4:
             cell = 23
-        if kans == 1 and effect == 5:
+        if impact == 1 and probability == 5:
             cell = 24
-        if kans == 2 and effect == 1:
+        if impact == 2 and probability == 1:
             cell = 15
             color = 'white'
-        if kans == 2 and effect == 2:
+        if impact == 2 and probability == 2:
             cell = 16
             color = 'white'
-        if kans == 2 and effect == 3:
+        if impact == 2 and probability == 3:
             cell = 17
-        if kans == 2 and effect == 4:
+        if impact == 2 and probability == 4:
             cell = 18
-        if kans == 2 and effect == 5:
+        if impact == 2 and probability == 5:
             cell = 19
-        if kans == 3 and effect == 1:
+        if impact == 3 and probability == 1:
             cell = 10
             color = 'white'
-        if kans == 3 and effect == 2:
+        if impact == 3 and probability == 2:
             cell = 11
-        if kans == 3 and effect == 3:
+        if impact == 3 and probability == 3:
             cell = 12
-        if kans == 3 and effect == 4:
+        if impact == 3 and probability == 4:
             cell = 13
-        if kans == 3 and effect == 5:
+        if impact == 3 and probability == 5:
             cell = 14
             color = 'white'
-        if kans == 4 and effect == 1:
+        if impact == 4 and probability == 1:
             cell = 5
-        if kans == 4 and effect == 2:
+        if impact == 4 and probability == 2:
             cell = 6
-        if kans == 4 and effect == 3:
+        if impact == 4 and probability == 3:
             cell = 7
-        if kans == 4 and effect == 4:
+        if impact == 4 and probability == 4:
             cell = 8
             color = 'white'
-        if kans == 4 and effect == 5:
+        if impact == 4 and probability == 5:
             cell = 9
             color = 'white'
-        if kans == 5 and effect == 1:
+        if impact == 5 and probability == 1:
             cell = 0
-        if kans == 5 and effect == 2:
+        if impact == 5 and probability == 2:
             cell = 1
-        if kans == 5 and effect == 3:
+        if impact == 5 and probability == 3:
             cell = 2
-        if kans == 5 and effect == 4:
+        if impact == 5 and probability == 4:
             cell = 3
             color = 'white'
-        if kans == 5 and effect == 5:
+        if impact == 5 and probability == 5:
             cell = 4
             color = 'white'
-        self.axes[cell].text(x=1, y=2.5, s=text, ha='center', va='center', c=color)
+        self.axes[cell].text(x=1, y=2.5, s=text, ha='center', va='center', c=color, size=fontsize)
 
     def show(self, bitmap_icon_path=''):
         if len(bitmap_icon_path) > 0:
             thismanager = self.plt.get_current_fig_manager()
             thismanager.window.wm_iconbitmap(bitmap_icon_path)
         self.plt.show()
+
+    def save_as_png(self, full_path: str):
+        self.plt.savefig(full_path)
+
