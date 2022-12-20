@@ -103,12 +103,10 @@ class RiskMatrix:
         self.plt.xlabel(x_label)
         self.plt.ylabel(y_label)
         self.plt.title(title)
-        # This example is for a 5 * 5 matrix
         nrows = 5
         ncols = 5
         self.axes = [self.fig.add_subplot(nrows, ncols, r * ncols + c + 1) for r in range(0, nrows) for c in
                      range(0, ncols)]
-        # remove the x and y ticks
         for ax in self.axes:
             ax.set_xticks([])
             ax.set_yticks([])
