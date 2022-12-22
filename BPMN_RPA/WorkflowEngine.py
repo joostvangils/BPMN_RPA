@@ -40,15 +40,19 @@ import xmltodict
 
 class WorkflowEngine:
 
-    def __init__(self, input_parameter: any = None, pythonpath: str = "", installation_directory: str = "", delete_records_older_than_days=0):
+    def __init__(self, input_parameter: any = None, pythonpath: str = "", installation_directory: str = "", delete_records_older_than_days=0, subflow: bool = False):
         """
         Class for automating DrawIO diagrams
-        :param input_parameter: An object holding arguments to be passed as input to the WorkflowEngine.  in a flow, use get_input_parameter to retrieve the value.
-        :param pythonpath: The full path to the python.exe file
+        :param input_parameter: An object holding arguments to be passed as input to the WorkflowEngine. In a flow, use get_input_parameter to retrieve the value.
+        :param pythonpath: The full path to the python.exe file.
         :param installation_directory: The folder where your BPMN_RPA files are installed. This folder will be used for the orchestrator database.
         :param delete_records_older_than_days: The number of days after which the orchestrator database will clean up records. Default is 0, which means no cleanup.
+        :param subflow: Optional. This parameter is used to indicate that the flow is a subflow (started from another flow). This is used to make a distinction between the logging of the original flow and the instance of the flow. Default is False.
         """
         settings = {}
+        self.subflow = subflow
+        if input_parameter is None:
+            input_parameter = ""
         if len(pythonpath) != 0:
             if os.name == 'nt':
                 self.set_python_path(pythonpath)
@@ -134,7 +138,6 @@ class WorkflowEngine:
         self.runlog = []
         self.variables = {}  # Dictionary to hold WorkflowEngine variables
 
-
     def get_input_parameter(self, as_dictionary: bool = False) -> any:
         """
         Returns the input parameter that was given when creating an instance of the WorkflowEngine
@@ -144,7 +147,10 @@ class WorkflowEngine:
         if as_dictionary:
             if not isinstance(self.input_parameter, dict):
                 if isinstance(self.input_parameter, str):
-                    self.input_parameter = self.input_parameter.replace("true", "True").replace("false", "False").replace("yes", "Yes").replace("no", "No")
+                    self.input_parameter = self.input_parameter.replace("true", "True").replace("false",
+                                                                                                "False").replace("yes",
+                                                                                                                 "Yes").replace(
+                        "no", "No")
                 self.input_parameter = eval(self.input_parameter)
         self.print_log(f"Got input parameter {str(self.input_parameter)}", "Processing Input")
         return self.input_parameter
@@ -207,7 +213,8 @@ class WorkflowEngine:
                     except Exception as e:
                         print(e)
                         str_content = str_content[:-1]
-                        str_content = "".join([x for x in str_content if x != '' and x != '']).strip().strip('\x00').strip('\x01').strip('\x0b')
+                        str_content = "".join([x for x in str_content if x != '' and x != '']).strip().strip(
+                            '\x00').strip('\x01').strip('\x0b')
                     if decoded is None:
                         try:
                             decoded = base64.b64decode(str_content).decode("ascii", errors='ignore')
@@ -602,7 +609,8 @@ class WorkflowEngine:
                                                                     val = tmp
                                             else:
                                                 if loopvars[0].counter < len(replace_value):
-                                                    replace_value = self.get_attribute_value(lst[0], replace_value[loopvars[0].counter])
+                                                    replace_value = self.get_attribute_value(lst[0], replace_value[
+                                                        loopvars[0].counter])
                                                     if str(tv).endswith("]%") and str(tv).__contains__("."):
                                                         # get last number from val
                                                         nr = str(tv).split("[")[-1].replace("]%", "")
@@ -843,9 +851,11 @@ class WorkflowEngine:
                         step_input = None
                         if hasattr(step, "module"):
                             if os.name == 'nt':
-                                if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(".py"):
+                                if not str(step.module).__contains__("\\") and str(step.module).lower().__contains__(
+                                        ".py"):
                                     step.module = f"{self.packages_folder}\\BPMN_RPA\\Scripts\\{step.module}"
-                                if not str(step.module).__contains__(":") and str(step.module).__contains__("\\") and str(
+                                if not str(step.module).__contains__(":") and str(step.module).__contains__(
+                                        "\\") and str(
                                         step.module).__contains__(".py"):
                                     step.module = f"{self.packages_folder}\\{step.module}"
                             if os.name != 'nt':
@@ -972,14 +982,24 @@ class WorkflowEngine:
                                     self.print_log(status="Running", result=f"{step.name} executed.")
                 else:
                     if hasattr(step, "function") and method_to_call is not None:
-                        if step.function.lower() in ["loop_items_check", "is_first_item_equal_to_second_item", "is_first_item_less_than_second_item", "is_first_item_greater_than_second_item", "is_first_item_less_or_equal_than_second_item", "is_first_item_greater_or_equal_than_second_item", "is_time_interval_less_or_equal", "is_time_number_of_seconds_ago", "item1_contains_item2", "does_list_contain_item", "does_list_contain_any_items", "is_object_empty"]:
-                            if step.function.lower() == "loop_items_check" and str(output_previous_step).lower() == "true":
+                        if step.function.lower() in ["loop_items_check", "is_first_item_equal_to_second_item",
+                                                     "is_first_item_less_than_second_item",
+                                                     "is_first_item_greater_than_second_item",
+                                                     "is_first_item_less_or_equal_than_second_item",
+                                                     "is_first_item_greater_or_equal_than_second_item",
+                                                     "is_time_interval_less_or_equal", "is_time_number_of_seconds_ago",
+                                                     "item1_contains_item2", "does_list_contain_item",
+                                                     "does_list_contain_any_items", "is_object_empty"]:
+                            if step.function.lower() == "loop_items_check" and str(
+                                    output_previous_step).lower() == "true":
                                 try:
-                                    self.print_log(status="Running", result=f"{method_to_call.__name__} executed with value {str(output_previous_step)} (loop item: {int(self.get_loop_variable_number(step_input['loop_variable']) + 1)}).")
+                                    self.print_log(status="Running",
+                                                   result=f"{method_to_call.__name__} executed with value {str(output_previous_step)} (loop item: {int(self.get_loop_variable_number(step_input['loop_variable']) + 1)}).")
                                 except Exception as e:
                                     pass
                             else:
-                                self.print_log(status="Running", result=f"{method_to_call.__name__} executed with value {str(output_previous_step)}.")
+                                self.print_log(status="Running",
+                                               result=f"{method_to_call.__name__} executed with value {str(output_previous_step)}.")
                         else:
                             if step.function != "print_log":
                                 self.print_log(status="Running", result=f"{method_to_call.__name__} executed.")
@@ -987,7 +1007,8 @@ class WorkflowEngine:
                         if hasattr(step, "name"):
                             if len(step.name) > 0:
                                 if step.name.lower() == "exclusive gateway":
-                                    self.print_log(status="Running", result=f"{step.name} executed with value {str(output_previous_step)}.")
+                                    self.print_log(status="Running",
+                                                   result=f"{step.name} executed with value {str(output_previous_step)}.")
                                 else:
                                     self.print_log(status="Running", result=f"{step.name} executed.")
             except Exception as ex:
@@ -1054,8 +1075,12 @@ class WorkflowEngine:
                 result += "."
             step_time = datetime.now().strftime("%H:%M:%S")
             if self.step_nr is not None:
-                print(f"{step_time}: Step {self.step_nr} - {result}")
-                self.runlog.append(f"{step_time}: Step {self.step_nr} - {result}")
+                if self.subflow:
+                    print(f"{step_time}: Subflow Step {self.step_nr} - {result}")
+                    self.runlog.append(f"{step_time}: Subflow Step {self.step_nr} - {result}")
+                else:
+                    print(f"{step_time}: Step {self.step_nr} - {result}")
+                    self.runlog.append(f"{step_time}: Step {self.step_nr} - {result}")
             else:
                 print(f"{step_time}: {result}")
                 self.runlog.append(f"{step_time}: {result}")
@@ -1100,7 +1125,10 @@ class WorkflowEngine:
             sql = f"INSERT INTO Steps (run, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', 'End', 'Ended', '{ok}');"
             step_time = datetime.now().strftime("%H:%M:%S")
             finished = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            end_result = f"{step_time}: Flow '{self.flowname}': {ok}"
+            if self.subflow:
+                end_result = f"{step_time}: Subflow Flow '{self.flowname}': {ok}"
+            else:
+                end_result = f"{step_time}: Flow '{self.flowname}': {ok}"
             print(end_result)
             self.db.run_sql(sql=sql, tablename="Steps")
             # Update the result of the flow
@@ -1327,14 +1355,16 @@ class WorkflowEngine:
                 try:
                     conn = \
                         [x for x in outgoing_connector if
-                         ((str(x.value).lower() == "true" or str(x.value).lower() == "yes") and x.source == current_step.id)][0]
+                         ((str(x.value).lower() == "true" or str(
+                             x.value).lower() == "yes") and x.source == current_step.id)][0]
                 except (ValueError, Exception):
                     raise Exception("Your Exclusive Gateway doesn't contain a 'True' or 'False' sequence arrow output.")
             else:
                 try:
                     conn = \
                         [x for x in outgoing_connector if
-                         ((str(x.value).lower() == "false" or str(x.value).lower() == "no") and x.source == current_step.id)][0]
+                         ((str(x.value).lower() == "false" or str(
+                             x.value).lower() == "no") and x.source == current_step.id)][0]
                 except (ValueError, Exception):
                     raise Exception("Your Exclusive Gateway doesn't contain a 'True' or 'False' sequence arrow output.")
             try:
@@ -1597,13 +1627,19 @@ class Visio:
                         for sec in section:
                             if sec["@N"] == "Property":
                                 if not isinstance(sec["Row"], list):
-                                    if {"@N": "Label", "@V": "Type"} in sec["Row"].get("Cell") and {"@N": "Value", "@V": "Start", "@U": "STR"} in sec["Row"].get("Cell"):
+                                    if {"@N": "Label", "@V": "Type"} in sec["Row"].get("Cell") and {"@N": "Value",
+                                                                                                    "@V": "Start",
+                                                                                                    "@U": "STR"} in sec[
+                                        "Row"].get("Cell"):
                                         setattr(shape, "IsStart", True)
                                         return shape
                                 else:
                                     for rw in sec["Row"]:
                                         if "Cell" in rw:
-                                            if {"@N": "Label", "@V": "Type"} in rw.get("Cell") and {"@N": "Value", "@V": "Start", "@U": "STR"} in rw.get("Cell"):
+                                            if {"@N": "Label", "@V": "Type"} in rw.get("Cell") and {"@N": "Value",
+                                                                                                    "@V": "Start",
+                                                                                                    "@U": "STR"} in rw.get(
+                                                    "Cell"):
                                                 setattr(shape, "IsStart", True)
                                                 return shape
                 count += 1
@@ -1622,17 +1658,21 @@ class Visio:
             if f"visio/pages/page{count}.xml" in self.root:
                 connects = self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect")
                 if connects:
-                    for shp in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect"):
+                    for shp in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get(
+                            "Connect"):
                         conn = {"@ID": shp["@FromSheet"], "type": "connector"}
                         if shp["@FromCell"] == "BeginX":
-                            obj = [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get("Shape") if x["@ID"] == shp["@FromSheet"]][0]
+                            obj = [x for x in
+                                   self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Shapes").get(
+                                       "Shape") if x["@ID"] == shp["@FromSheet"]][0]
                             text = None
                             if "Text" in obj:
                                 text = obj["Text"]
                             if text is not None:
                                 conn.update({"value": text})
                             conn.update({"source": shp["@ToSheet"]})
-                            target = [y for y in [x for x in connects if x["@FromSheet"] == shp["@FromSheet"]] if y["@FromCell"] == "EndX"][0]["@ToSheet"]
+                            target = [y for y in [x for x in connects if x["@FromSheet"] == shp["@FromSheet"]] if
+                                      y["@FromCell"] == "EndX"][0]["@ToSheet"]
                             conn.update({"target": target})
                             retn.append(conn)
                     count += 1
@@ -1703,13 +1743,18 @@ class Visio:
         # region attributes from template
         if "@Master" in shape:
             master = shape["@Master"]
-            obj = [x for x in self.root[f"visio/masters/masters.xml"].get("Masters").get("Master") if x["@ID"] == master]
+            obj = [x for x in self.root[f"visio/masters/masters.xml"].get("Masters").get("Master") if
+                   x["@ID"] == master]
             if obj:
                 r_id = obj[0]["Rel"]["@r:id"]
-                obj = [x for x in self.root[f"visio/masters/_rels/masters.xml.rels"].get("Relationships").get("Relationship") if x["@Id"] == r_id]
+                obj = [x for x in
+                       self.root[f"visio/masters/_rels/masters.xml.rels"].get("Relationships").get("Relationship") if
+                       x["@Id"] == r_id]
                 if obj:
                     target_id = obj[0]["@Target"]
-                    obj = [x for x in self.root[f"visio/masters/{target_id}"]["MasterContents"]["Shapes"]["Shape"]["Section"] if x["@N"] == "Property"]
+                    obj = [x for x in
+                           self.root[f"visio/masters/{target_id}"]["MasterContents"]["Shapes"]["Shape"]["Section"] if
+                           x["@N"] == "Property"]
                     if obj:
                         if "Cell" in obj[0]["Row"]:
                             standard_attributes = obj[0]["Row"]["Cell"]
@@ -1730,7 +1775,8 @@ class Visio:
                 key, value = None, None
         labels = []
         if target_id is not None:
-            obj = [x for x in self.root[f"visio/masters/{target_id}"]["MasterContents"]["Shapes"]["Shape"]["Section"] if x["@N"] == "Property"]
+            obj = [x for x in self.root[f"visio/masters/{target_id}"]["MasterContents"]["Shapes"]["Shape"]["Section"] if
+                   x["@N"] == "Property"]
             if obj:
                 labels = obj[0]["Row"]
         # endregion
@@ -1779,10 +1825,12 @@ class Visio:
 
         if "Section" in shape:
             for rw in shape["Section"]:
-                if str(rw).lower().__contains__("('@v', 'exclusive gateway')") and str(rw).lower().__contains__("('@n', 'type')"):
+                if str(rw).lower().__contains__("('@v', 'exclusive gateway')") and str(rw).lower().__contains__(
+                        "('@n', 'type')"):
                     properties.update({"type": "exclusive gateway"})
                     properties.update({"name": ""})
-                if str(rw).lower().__contains__("('@v', 'parallel gateway')") and str(rw).lower().__contains__("('@n', 'type')"):
+                if str(rw).lower().__contains__("('@v', 'parallel gateway')") and str(rw).lower().__contains__(
+                        "('@n', 'type')"):
                     properties.update({"type": "parallel gateway"})
                     properties.update({"name": ""})
 
@@ -1790,11 +1838,15 @@ class Visio:
             count = 1
             while True:
                 if f"visio/pages/page{count}.xml" in self.root:
-                    if not [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect") if x["@FromCell"] == "EndX" and x["@ToSheet"] == shape["@ID"]]:
+                    if not [x for x in
+                            self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect")
+                            if x["@FromCell"] == "EndX" and x["@ToSheet"] == shape["@ID"]]:
                         properties.update({"IsStart": True})
                         properties.update({"name": "Start"})
                         properties.update({"type": "shape"})
-                    if not [x for x in self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect") if x["@FromCell"] == "BeginX" and x["@ToSheet"] == shape["@ID"]]:
+                    if not [x for x in
+                            self.root[f"visio/pages/page{count}.xml"].get("PageContents").get("Connects").get("Connect")
+                            if x["@FromCell"] == "BeginX" and x["@ToSheet"] == shape["@ID"]]:
                         properties.update({"name": "End"})
                         properties.update({"type": "shape"})
                     count += 1

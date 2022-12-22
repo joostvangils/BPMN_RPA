@@ -2,6 +2,7 @@ import os
 import dill as pickle
 from BPMN_RPA.WorkflowEngine import WorkflowEngine, SQL
 
+
 # The BPMN-RPA CheckListEngine is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -117,7 +118,9 @@ class ChecklistEngine:
                 print(f"Flow finished, instance '{self.flow_name}' removed.")
                 exit(0)
             self.save_flow_state()
-            if ask_permission and getattr(self.step, "IsStart") == False and not ("gateway" in str(getattr(self.step, "type").lower())) and str(getattr(self.step, "shape_description").lower()) != "end event.":
+            if ask_permission and getattr(self.step, "IsStart") == False and not (
+                    "gateway" in str(getattr(self.step, "type").lower())) and str(
+                    getattr(self.step, "shape_description").lower()) != "end event.":
                 if not self.ask_permission_for_next_step(msgbox=msgbox):
                     exit(0)
         except Exception as e:
@@ -139,7 +142,7 @@ class ChecklistEngine:
         else:
             flw = self.save_as
         self.engine.db = None
-        pickle.settings['recurse']=True
+        pickle.settings['recurse'] = True
         with open(f"{flw}", "wb") as f:
             pickle.dump(self.engine, f)
 
@@ -196,7 +199,8 @@ class ChecklistEngine:
         if msgbox:
             # Show messagebox
             import BPMN_RPA.Scripts.MessageBox as mb
-            result = mb.messagebox_show_with_yes_no_buttons(f"Continue with next step?", f"Do you want to execute the '{self.step.name}' step of flow '{instance_name}'?")
+            result = mb.messagebox_show_with_yes_no_buttons(f"Continue with next step?",
+                                                            f"Do you want to execute the '{self.step.name}' step of flow '{instance_name}'?")
         else:
             # Show console
             result = input(f"Do you want to execute the next step of flow '{instance_name}'? (y/n) ")
@@ -238,27 +242,37 @@ class ChecklistEngine:
         if self.save_as == "":
             self.save_as = self.flow_name
         e = graphviz.Graph('G', filename=folder + name, engine='dot', format='png')
-        e.attr('node', shape='ellipse', id=step.id, bordercolor="black", borderwidth="1", fontname="Arial", fontsize="10")
+        e.attr('node', shape='ellipse', id=step.id, bordercolor="black", borderwidth="1", fontname="Arial",
+               fontsize="10")
         e.node(name=step.id, label='Start')
         step = steps[0]
         ctr = 1
         current_step = self.engine.get_next_step(self.engine.current_step, self.steps, "")
         while True:
             step = steps[ctr]
-            if (str(getattr(step, "type")).lower() == "shape" or ("gateway" in str(getattr(step, "type")).lower())) and hasattr(step, "shape_description"):
+            if (str(getattr(step, "type")).lower() == "shape" or (
+                    "gateway" in str(getattr(step, "type")).lower())) and hasattr(step, "shape_description"):
                 if str(getattr(step, "shape_description").lower()) != "end event.":
                     if str(getattr(step, "shape_description").lower()) == "exclusive gateway.":
-                        e.node(name=step.id, label="X", shape='diamond', id=step.id, style="filled", color="lightgrey", bold="true", fontname="Arial", fontsize="10")
+                        e.node(name=step.id, label="X", shape='diamond', id=step.id, style="filled", color="lightgrey",
+                               bold="true", fontname="Arial", fontsize="10")
                     else:
                         if str(getattr(step, "shape_description").lower()) == "parallel gateway.":
-                            e.node(name=step.id, label="+", shape='diamond', id=step.id, style="filled", color="lightgrey", bold="true", fontname="Arial", fontsize="10")
+                            e.node(name=step.id, label="+", shape='diamond', id=step.id, style="filled",
+                                   color="lightgrey", bold="true", fontname="Arial", fontsize="10")
                         else:
                             if step == current_step:
-                                e.node(name=step.id, label=step.name, shape='box', id=step.id, style="filled", color="black", bordercolor="black", borderwidth="1", fillcolor="#4A6648", fontname="Arial", fontsize="10", fontcolor="white")
+                                e.node(name=step.id, label=step.name, shape='box', id=step.id, style="filled",
+                                       color="black", bordercolor="black", borderwidth="1", fillcolor="#4A6648",
+                                       fontname="Arial", fontsize="10", fontcolor="white")
                             else:
-                                e.node(name=step.id, label=step.name, shape='box', id=step.id, style="", color="black", bordercolor="black", borderwidth="1", fillcolor="white", fontname="Arial", fontsize="10")
+                                e.node(name=step.id, label=step.name, shape='box', id=step.id, style="", color="black",
+                                       bordercolor="black", borderwidth="1", fillcolor="white", fontname="Arial",
+                                       fontsize="10")
                 else:
-                    e.node(name=step.id, label='End', shape='ellipse', border='2', id=step.id, style="", fillcolor="white", color="black", bordercolor="black", borderwidth="1", fontname="Arial", fontsize="10")
+                    e.node(name=step.id, label='End', shape='ellipse', border='2', id=step.id, style="",
+                           fillcolor="white", color="black", bordercolor="black", borderwidth="1", fontname="Arial",
+                           fontsize="10")
             ctr += 1
             if ctr >= len(steps):
                 break
@@ -266,10 +280,10 @@ class ChecklistEngine:
             if hasattr(step, "type"):
                 if str(step.type) == "connector":
                     if hasattr(step, "value"):
-                        e.edge(step.source, step.target, dir="forward", arrowhead='normal', arrowsize='0.5', label=step.value, fontname="Arial", fontsize="10")
+                        e.edge(step.source, step.target, dir="forward", arrowhead='normal', arrowsize='0.5',
+                               label=step.value, fontname="Arial", fontsize="10")
                     else:
-                        e.edge(step.source, step.target, dir="forward", arrowhead='normal', arrowsize='0.5', fontname="Arial", fontsize="10")
+                        e.edge(step.source, step.target, dir="forward", arrowhead='normal', arrowsize='0.5',
+                               fontname="Arial", fontsize="10")
         print(f"Flow diagram saved: {folder + name}_diagram.png")
         e.render(filename=f"{folder + name}_diagram", view=False, cleanup=True)
-
-

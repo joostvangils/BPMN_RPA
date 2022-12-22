@@ -1,3 +1,4 @@
+import json
 import os
 import time
 from typing import Any
@@ -527,3 +528,22 @@ def html_to_plain_text(html: str, strip: bool=True) -> str:
     if strip:
         return text.strip()
     return text
+
+
+def run_other_flow(full_path_to_flow: str, flow_input: str = ""):
+    """
+    Run a BPMN-RPA flow.
+    :param full_path_to_flow: The full path to the flow to run.
+    :param flow_input: Optional. The input to pass to the flow to run as a json string. Default is an empty string.
+    """
+    from BPMN_RPA.WorkflowEngine import WorkflowEngine
+    engine = WorkflowEngine()
+    doc = engine.open(full_path_to_flow)
+    steps = engine.get_flow(doc)
+    # json string to dict
+    if str(flow_input) == "None":
+        flow_input = ""
+    if flow_input != "":
+        flow_input = json.loads(flow_input)
+    result = engine.run_flow(steps, flow_input)
+    return result
