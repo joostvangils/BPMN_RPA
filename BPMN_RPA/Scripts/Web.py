@@ -662,3 +662,11 @@ class Web:
         Close the browser.
         """
         self.driver.quit()
+
+    def set_textfield_by_name(self, field_name, value):
+        """
+        Set a value of a text field by its name.
+        :param field_name: The name of the text field
+        :param value: The value to set
+        """
+        self.driver.find_element(By.NAME, field_name).send_keys(value)

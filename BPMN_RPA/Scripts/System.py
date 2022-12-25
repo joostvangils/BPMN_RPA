@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import time
 from typing import Any
 import pyautogui
@@ -471,7 +472,8 @@ def convert_timezone_to_utc(date: str, timezone="Europe/Amsterdam") -> str:
     """
     import datetime
     import pytz
-    return datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.timezone(timezone)).astimezone(pytz.utc).strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S").replace(tzinfo=pytz.timezone(timezone)).astimezone(
+        pytz.utc).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def base64encode(string: str) -> str:
@@ -514,7 +516,7 @@ def json_to_string(json_object: dict) -> str:
     return json.dumps(json_object)
 
 
-def html_to_plain_text(html: str, strip: bool=True) -> str:
+def html_to_plain_text(html: str, strip: bool = True) -> str:
     """
     Convert HTML to plain text.
     :param html: The HTML to convert.
@@ -547,3 +549,27 @@ def run_other_flow(full_path_to_flow: str, flow_input: str = ""):
         flow_input = json.loads(flow_input)
     result = engine.run_flow(steps, flow_input)
     return result
+
+
+def run_python_script(full_path_to_script: str, script_input: str = "") -> str:
+    """
+    Run a python script and get the output.
+    :param full_path_to_script: The full path to the script to run.
+    :param script_input: Optional. The input to pass to the script to run as a json string. Default is an empty string.
+    :return: The output of the script as a string.
+    """
+    # json string to dict
+    if str(script_input) == "None":
+        script_input = ""
+    if script_input != "":
+        script_input = json.loads(script_input)
+    # run the script
+    output = subprocess.check_output(["python", full_path_to_script, json.dumps(script_input)])
+    return output.decode('utf-8')
+
+
+def dummy():
+    """
+    Dummy function which can be used as a placeholder.
+    """
+    pass

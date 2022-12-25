@@ -48,6 +48,7 @@ class ChecklistEngine:
         self.flow_name = flow_name
         self.save_as = full_path_save_as
         self.outputPreviousStep = None
+        self.PreviousStep = None
         self.step = None
         if full_path_save_as == "":
             self.save_as = flow_name.replace(".flw", "_running_instance")
@@ -87,6 +88,7 @@ class ChecklistEngine:
                         self.step = stp
                     break
         if self.step is None:
+            self.PreviousStep = self.step
             self.step = self.engine.get_next_step(self.engine.current_step, self.steps, self.outputPreviousStep)
         try:
             if self.engine.db is None:
@@ -94,10 +96,22 @@ class ChecklistEngine:
                 self.engine.db = SQL(db_path)
         except Exception as e:
             pass
+        if ask_permission and getattr(self.step, "IsStart") == False and not (
+                "gateway" in str(getattr(self.step, "type").lower())) and str(
+            getattr(self.step, "shape_description").lower()) != "end event.":
+            if not self.ask_permission_for_next_step(msgbox=msgbox):
+                exit(0)
         if hasattr(self.step, "shape_description"):
             if getattr(self.step, "shape_description") == "End event.":
                 self.outputPreviousStep = self.engine.run_flow(self.step, True)
-                os.remove(self.flow_name)
+                try:
+                    os.remove(self.flow_name)
+                except:
+                    pass
+                try:
+                    os.remove(self.flow_name+"_diagram.png")
+                except:
+                    pass
                 self.engine.print_log(f"Flow finished, instance '{self.flow_name}' removed.")
                 print(f"Flow finished, instance '{self.flow_name}' removed.")
                 # try to remove png file
@@ -118,11 +132,7 @@ class ChecklistEngine:
                 print(f"Flow finished, instance '{self.flow_name}' removed.")
                 exit(0)
             self.save_flow_state()
-            if ask_permission and getattr(self.step, "IsStart") == False and not (
-                    "gateway" in str(getattr(self.step, "type").lower())) and str(
-                    getattr(self.step, "shape_description").lower()) != "end event.":
-                if not self.ask_permission_for_next_step(msgbox=msgbox):
-                    exit(0)
+
         except Exception as e:
             print(e)
             self.save_flow_state()
@@ -234,11 +244,13 @@ class ChecklistEngine:
         if os.name == 'nt':
             if not folder.endswith("\\"):
                 folder += "\\"
-            name = os.path.basename(self.save_as).split('\\')[-1].split('.')[0]
+            name = os.path.basename(self.flow_name).split('\\')[-1].split('.')[0]
         else:
             if not folder.endswith("/"):
                 folder += "/"
             name = os.path.basename(self.save_as).split('/')[-1].split('.')[0]
+        if name == "":
+            name = os.path.basename(self.flow_name).split('/')[-1].split('.')[0]
         if self.save_as == "":
             self.save_as = self.flow_name
         e = graphviz.Graph('G', filename=folder + name, engine='dot', format='png')
