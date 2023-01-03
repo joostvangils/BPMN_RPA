@@ -37,19 +37,21 @@ from BPMN_RPA.WorkflowEngine import WorkflowEngine, SQL
 
 
 class ChecklistEngine:
-    def __init__(self, flow_name="", full_path_save_as="", input_parameter=""):
+    def __init__(self, flow_name="", full_path_save_as="", input_parameter="", save_images_in_folder: str = ""):
         """
         This Engine will start the flow and will svae the state of the flow after each step by pickeling the flow object.
         A Checklist can run multiple copies of the original flow. Therefore you must give each instance a separate name.
         :param flow_name: The full path of the flow to run, including the file name and extension. This may be the original flow (.flw) file when you are starting a first run of a new instance, or the full path to the instance of the flow with the saved state.
         :param input_parameter: The input parameter for the flow.
         :param full_path_save_as: The full path to save the flow instance to. This is used to save the state of the flow after each step. You can save the flow with another name than the original flow to create separate instances of the flow. It is advised to set this parameter when you are starting a new instance of the flow.
+        :param save_images_in_folder: The path to the folder where the images of the flow will be saved. If this parameter is empty, the images will be saved in the same folder as the instance.
         """
         self.flow_name = flow_name
         self.save_as = full_path_save_as
         self.outputPreviousStep = None
         self.PreviousStep = None
         self.step = None
+        self.save_images_in_folder = save_images_in_folder
         if full_path_save_as == "":
             self.save_as = flow_name.replace(".flw", "_running_instance")
         # Check if file exists. If not, throw exception
@@ -109,7 +111,7 @@ class ChecklistEngine:
                 except:
                     pass
                 try:
-                    os.remove(self.flow_name+"_diagram.png")
+                    os.remove(self.flow_name + "_diagram.png")
                 except:
                     pass
                 self.engine.print_log(f"Flow finished, instance '{self.flow_name}' removed.")
@@ -205,7 +207,10 @@ class ChecklistEngine:
         :param msgbox: If True, a messagebox will be shown to the user. If False, the user will be asked to enter Yes (y) or No (n) in the console.
         """
         instance_name = os.path.basename(self.flow_name).split(".")[0]
-        folder = self.flow_name.replace(os.path.basename(self.flow_name), "")
+        if self.save_images_in_folder != "":
+            folder = self.save_images_in_folder
+        else:
+            folder = self.flow_name.replace(os.path.basename(self.flow_name), "")
         if msgbox:
             # Show messagebox
             import BPMN_RPA.Scripts.MessageBox as mb
