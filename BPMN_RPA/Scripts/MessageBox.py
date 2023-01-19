@@ -272,7 +272,7 @@ def messagebox_show_error(title: str, message: str, topmost=True) -> str:
     return retn
 
 
-def messagebox_show_question(title: str, message: str, topmost=True) -> int:
+def messagebox_show_question(title: str, message: str, topmost=True) -> bool:
     """
     Show a question Messagebox on the screen with a specific Title, Message and buttons.
     :param title: The title of the MessageBox.
@@ -296,7 +296,7 @@ def messagebox_show_question(title: str, message: str, topmost=True) -> int:
     message = str(message)
     retn = tkinter.messagebox.askquestion(title, message)
     root.destroy()
-    if retn=='yes':
+    if retn == "yes":
         return True
     else:
         return False

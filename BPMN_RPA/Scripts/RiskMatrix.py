@@ -57,7 +57,8 @@ import matplotlib.pyplot as plt
 
 class RiskMatrix:
 
-    def __init__(self, title="Risk Matrix", x_label='probability', y_label='Impact', draw_limit=True, limit_label='Risk tolerance limit'):
+    def __init__(self, title="Risk Matrix", x_label='probability', y_label='Impact', draw_limit=True,
+                 limit_label='Risk tolerance limit'):
         self.plt = plt
         self.fig = self.plt.figure()
         self.plt.subplots_adjust(wspace=0, hspace=0)
@@ -101,10 +102,11 @@ class RiskMatrix:
             self.axes[18].axhline(y=4.95, xmin=0, xmax=1, color="blue", linestyle="-")
             self.axes[18].axvline(x=4.95, ymin=0, ymax=1, color="blue", linestyle="-")
             self.axes[24].axhline(y=4.95, xmin=0, xmax=1, color="blue", linestyle="-", label=limit_label)
-            self.fig.legend(loc="lower center",fontsize=5)
+            self.fig.legend(loc="lower center", fontsize=5)
 
     def plot(self, text, probability=3, impact=3, fontsize=7):
         color = 'black'
+        cell = 12
         if impact == 1 and probability == 1:
             cell = 20
             color = 'white'
@@ -165,7 +167,11 @@ class RiskMatrix:
         if impact == 5 and probability == 5:
             cell = 4
             color = 'white'
-        self.axes[cell].text(x=1, y=2.5, s=text, ha='center', va='center', c=color, size=fontsize)
+        if len(self.axes[cell].text) > 0:
+            txt = self.axes[cell].text + ", " + text
+        else:
+            txt = text
+        self.axes[cell].text(x=1, y=2.5, s=txt, ha='center', va='center', c=color, size=fontsize)
 
     def show(self, bitmap_icon_path=''):
         if len(bitmap_icon_path) > 0:
@@ -177,4 +183,3 @@ class RiskMatrix:
         if not full_path.lower().endswith('.png'):
             full_path += '.png'
         self.plt.savefig(full_path)
-
