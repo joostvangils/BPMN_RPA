@@ -57,6 +57,9 @@ class WorkflowEngine:
         """
         settings = {}
         self.subflow = subflow
+        self.use_sql_server = use_sql_server
+        self.information = ""
+        self.db_folder = ""
         if input_parameter is None:
             input_parameter = ""
         if len(pythonpath) != 0:
@@ -80,12 +83,12 @@ class WorkflowEngine:
                 pythonpath = data["pythonpath"]
         if len(installation_directory) != 0:
             self.set_db_path(installation_directory)
-            db_folder = installation_directory
+            self.db_folder = installation_directory
         else:
-            db_folder = self.get_db_path()
+            self.db_folder = self.get_db_path()
             if os.name == 'nt':
-                db_folder = db_folder.replace("/", "\\")
-        if db_folder is None or len(db_folder) == 0:
+                db_folder = self.db_folder.replace("/", "\\")
+        if self.db_folder is None or len(self.db_folder) == 0:
             if os.name == 'nt':
                 message = "\nYour installation directory is unknown. Please enter the path of your installation directory: "
             else:
@@ -103,7 +106,7 @@ class WorkflowEngine:
                 return
             else:
                 self.set_db_path(installdir)
-                db_folder = installdir
+                self.db_folder = installdir
         if pythonpath is None or len(pythonpath) == 0:
             if os.name == 'nt':
                 message = "\nThe path to your Python.exe file is unknown. Please enter the path to your Python.exe file: "
@@ -117,7 +120,7 @@ class WorkflowEngine:
             else:
                 self.set_python_path(pythonpath)
         if os.name != 'nt':
-            settings.update({'dbpath': db_folder})
+            settings.update({'dbpath': self.db_folder})
             settings.update({'pythonpath': pythonpath})
             with open('/etc/BPMN_RPA_settings', 'w') as outfile:
                 json.dump(settings, outfile)
@@ -127,7 +130,7 @@ class WorkflowEngine:
             self.packages_folder = "\\".join(pythonpath.split('\\')[0:-1]) + "\\Lib\\site-packages"
         else:
             self.packages_folder = pythonpath + "/dist-packages"
-        self.db = SQL(dbfolder=db_folder, useSQLserver=use_sql_server)
+        self.db = SQL(dbfolder=self.db_folder, useSQLserver=use_sql_server)
         if delete_records_older_than_days > 0:
             self.db.remove_records_with_timestamp_older_than(delete_records_older_than_days)
         self.db.orchestrator()  # Run the orchestrator database
@@ -179,7 +182,7 @@ class WorkflowEngine:
 
     def open(self, filepath: str, as_xml: bool = False) -> any:
         """
-        Open a DrawIO document
+        Open a flow document
         :param filepath: The full path (including extension) of the diagram file
         :param as_xml: Optional. Returns the file content as XML.
         :returns: A DrawIO dictionary object
@@ -196,6 +199,13 @@ class WorkflowEngine:
                         content = f.read()
                     decoded = base64.b64decode(content).decode("ascii", errors='ignore')
                     retn = json.loads(decoded)
+                    # get node where type = "information"
+                    info = [x for x in retn if str(x).startswith("{'type': 'information'")]
+                    if len(info) > 0:
+                        self.information = info[0]["description"]
+                        self.use_sql_server = info[0]["use_sql_server"]
+                        if self.use_sql_server:
+                            self.db = SQL(dbfolder=self.db_folder, useSQLserver=self.use_sql_server)
                     return retn
                 except UnicodeDecodeError as e:
                     # Found non-text data in the file
@@ -1606,7 +1616,8 @@ class SQL:
                 self.run_sql(sql)
             except Exception as ex:
                 self.set_error(ex)
-                raise Exception(self.error)
+                print(ex)
+                pass
 
         else:
 
@@ -1621,7 +1632,8 @@ class SQL:
                 self.run_sql(sql=sql)
             except Exception as ex:
                 self.set_error(ex)
-                raise Exception(self.error)
+                print(ex)
+                pass
 
     def remove_records_with_timestamp_older_than(self, table: str, days: int):
         """
