@@ -171,7 +171,7 @@ class Jira:
         while True:
             start_idx = block_num * block_size
             url = f"{self.rooturl}/rest/api/2/search?jql={jql}&startAt={start_idx}&maxResults={block_size}"
-            json_result = requests.get(url, verify=False)
+            json_result = requests.get(url, verify=True, auth=(self.jira_user, self.jira_pwd))
             issues = json.loads(json_result.text)["issues"]
             if len(issues) == 0:
                 # Retrieve issues until there are no more to come
@@ -230,7 +230,7 @@ class Jira:
         """
         s_data = {"fields": {storypoints_field: storypoints}}
         url = f"{self.rooturl}/rest/api/2/issue/{issuekey}"
-        json_result = requests.put(url, verify=False, json=s_data)
+        json_result = requests.put(url, verify=True, json=s_data, auth=(self.jira_user, self.jira_pwd))
         return json.loads(json_result.content)
 
     def add_component(self, issue_key: str, component_name: str) -> any:
@@ -608,7 +608,7 @@ class Jira:
         """
         # /jira/rest/api/2/issue/DRW-124?expand=changelog
         url = f"{self.rooturl}/rest/api/2/issue/{issuekey}?expand=changelog"
-        json_result = requests.get(url, verify=False)
+        json_result = requests.get(url, verify=True, auth=(self.jira_user, self.jira_pwd))
         hist = json.loads(json_result.content)
         tmp = []
         for rw in hist["changelog"]["histories"]:
@@ -639,7 +639,7 @@ class Jira:
         for key in keys:
             s_data = {"fields": {"customfield_10100": None}}
             url = f"{self.rooturl}/rest/api/2/issue/{key}"
-            requests.put(url, verify=False, json=s_data)
+            requests.put(url, verify=True, json=s_data, auth=(self.jira_user, self.jira_pwd))
             # issue_.update(issue_dict)
             print(f"Issue {key} updated to no epic.")
 

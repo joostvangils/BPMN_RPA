@@ -1,4 +1,6 @@
 import os
+import sys
+
 import dill as pickle
 from BPMN_RPA.WorkflowEngine import WorkflowEngine, SQL
 
@@ -102,7 +104,7 @@ class ChecklistEngine:
                 "gateway" in str(getattr(self.step, "type").lower())) and str(
             getattr(self.step, "shape_description").lower()) != "end event.":
             if not self.ask_permission_for_next_step(msgbox=msgbox):
-                exit(0)
+                sys.exit(0)
         if hasattr(self.step, "shape_description"):
             if getattr(self.step, "shape_description") == "End event.":
                 self.outputPreviousStep = self.engine.run_flow(self.step, True)
@@ -121,7 +123,7 @@ class ChecklistEngine:
                     os.remove(f"{self.flow_name.split('.')[0]}.png")
                 except Exception as e:
                     pass
-                exit(0)
+                sys.exit(0)
         try:
             tmp = self.outputPreviousStep  # Needed for gateway
             self.outputPreviousStep = self.engine.run_flow(self.step, True)
@@ -132,7 +134,7 @@ class ChecklistEngine:
                 os.remove(self.save_as)
                 self.engine.print_log(f"Flow finished, instance '{self.flow_name}' removed.")
                 print(f"Flow finished, instance '{self.flow_name}' removed.")
-                exit(0)
+                sys.exit(0)
             self.save_flow_state()
 
         except Exception as e:
@@ -189,7 +191,7 @@ class ChecklistEngine:
         self.load_flow_state(flow_path)
         while True:
             if not self.run_next_step(ask_permission=ask_permission, msgbox=msgbox):
-                exit(0)
+                sys.exit(0)
 
     def run_flow(self, ask_permission=False, msgbox=True):
         """
@@ -199,7 +201,7 @@ class ChecklistEngine:
         """
         while True:
             if not self.run_next_step(ask_permission=ask_permission, msgbox=msgbox):
-                exit(0)
+                sys.exit(0)
 
     def ask_permission_for_next_step(self, msgbox=True):
         """
@@ -230,7 +232,7 @@ class ChecklistEngine:
             self.create_flow_diagram(folder)
             print(f"Flow state saved: {self.flow_name}")
             print("Program exited.")
-            exit()
+            sys.exit()
 
     def create_flow_diagram(self, folder=""):
         """

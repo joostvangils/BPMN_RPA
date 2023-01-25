@@ -1,11 +1,14 @@
+from werkzeug.utils import secure_filename
+
 from BPMN_RPA.WorkflowEngine import WorkflowEngine
 import os
 import sys
-pad = sys.argv[1]
+pad = secure_filename(sys.argv[1])
 print(pad)
 input_parameter = None
 if len(sys.argv) == 3:
-    input_parameter = sys.argv[2]
+    # make sure that the input parameter is a string
+    input_parameter = str(sys.argv[2])
 if pad.lower().__contains__(".vsdx"):
     flow = pad.replace(".vsdx", "") + ".vsdx"
 if not pad.lower().__contains__(".flw"):
@@ -18,6 +21,6 @@ else:
     cont = True
 if cont:
     engine = WorkflowEngine(input_parameter=input_parameter)
-    doc = engine.open(fr"{flow}")
+    doc = engine.open(filepath=flow)
     steps = engine.get_flow(doc)
     engine.run_flow(steps)

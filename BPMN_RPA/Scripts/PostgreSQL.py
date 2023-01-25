@@ -126,7 +126,8 @@ class PostgreSQL:
         Execute a SQL script from a file
         :param filename: SQL script file
         """
-        self.cursor.execute(open(filename, 'r').read())
+        with open(filename, 'r') as file:
+            self.cursor.execute(file.read())
         self.connection.commit()
 
     def create_table(self, table_name, columns):

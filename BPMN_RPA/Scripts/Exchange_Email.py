@@ -175,8 +175,6 @@ class Email:
             # Create message
             if html:
                 body = HTMLBody(body)
-            else:
-                body = body
             m = Message(account=self.account,
                         folder=self.account.sent,
                         subject=subject,

@@ -1,3 +1,5 @@
+import pickle
+
 import xmltodict
 
 
@@ -44,7 +46,8 @@ class Xml:
         """
         Internal function to connect the XML file to the dictionary
         """
-        self.xml_dict = xmltodict.parse(open(self.xml_file).read())
+        with open(self.xml_file, 'r') as f:
+            self.xml_dict = xmltodict.parse(f.read())
 
     def __is_picklable__(self, obj: any) -> bool:
         """
@@ -81,7 +84,8 @@ class Xml:
         Reads an XML file into a dictionary
         :return: Dictionary
         """
-        self.xml_dict = xmltodict.parse(open(self.xml_file).read())
+        with open(self.xml_file, 'r') as f:
+            self.xml_dict = xmltodict.parse(f.read())
         return self.xml_dict
 
     def write_xml_file(self, xml_file):

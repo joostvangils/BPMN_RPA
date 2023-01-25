@@ -86,7 +86,8 @@ class FTP:
         :param local_file:  The full path to the file to create.
         """
         # download file
-        self.ftp.retrbinary("RETR " + remote_file, open(local_file, 'wb').write)
+        with open(local_file, 'wb') as f:
+            self.ftp.retrbinary('RETR ' + remote_file, f.write)
 
     def upload_ftp_file(self, local_file, remote_file):
         """
@@ -128,7 +129,8 @@ class FTP:
         :param destination: The full path to the destination.
         """
         # download file
-        self.ftp.retrbinary("RETR " + source, open(destination, 'wb').write)
+        with open(destination, 'wb') as f:
+            self.ftp.retrbinary('RETR ' + source, f.write)
 
     def move_ftp_file(self, source, destination):
         """
@@ -137,7 +139,8 @@ class FTP:
         :param destination: The full path to the destination.
         """
         # download file
-        self.ftp.retrbinary("RETR " + source, open(destination, 'wb').write)
+        with open(destination, 'wb') as f:
+            self.ftp.retrbinary('RETR ' + source, f.write)
         # delete file
         self.ftp.delete(source)
 

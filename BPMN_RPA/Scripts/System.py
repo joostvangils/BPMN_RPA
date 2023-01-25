@@ -199,7 +199,7 @@ def create_folder(path: str):
     Create a folder.
     :param path: The full path to the folder to create.
     """
-    os.mkdir(path)
+    os.makedirs(path)
 
 
 def read_file(path: str) -> str:
@@ -220,7 +220,7 @@ def write_file(path: str, content: str):
     :param path: The full path to the file to write.
     :param content: The contents to write to the file.
     """
-    with open(path, "w") as f:
+    with open(path, "wb") as f:
         f.write(content)
 
 

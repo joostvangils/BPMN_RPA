@@ -1,12 +1,15 @@
 import base64
 import copy
+import defusedxml.ElementTree
 import importlib
 import importlib.util as util
 import inspect
 import json
 import math
 import os
-import pickle
+import sys
+
+from werkzeug.utils import secure_filename
 
 if os.name == 'nt':
     import winreg
@@ -18,6 +21,7 @@ import zlib
 from datetime import datetime, timedelta
 from inspect import signature
 from sqlite3 import connect
+from pyodbc import connect as connectSQL
 from urllib import parse
 
 import xmltodict
@@ -40,13 +44,15 @@ import xmltodict
 
 class WorkflowEngine:
 
-    def __init__(self, input_parameter: any = None, pythonpath: str = "", installation_directory: str = "", delete_records_older_than_days=0, subflow: bool = False):
+    def __init__(self, input_parameter: any = None, pythonpath: str = "", installation_directory: str = "",
+                 delete_records_older_than_days=0, subflow: bool = False, use_sql_server: bool = False):
         """
         Class for automating DrawIO diagrams
         :param input_parameter: An object holding arguments to be passed as input to the WorkflowEngine. In a flow, use get_input_parameter to retrieve the value.
         :param pythonpath: The full path to the python.exe file.
         :param installation_directory: The folder where your BPMN_RPA files are installed. This folder will be used for the orchestrator database.
         :param delete_records_older_than_days: The number of days after which the orchestrator database will clean up records. Default is 0, which means no cleanup.
+        :param use_sql_server: Optional. This parameter is used to indicate that the SQLserver on the localhost will be used with a trusted connection. Default is False.
         :param subflow: Optional. This parameter is used to indicate that the flow is a subflow (started from another flow). This is used to make a distinction between the logging of the original flow and the instance of the flow. Default is False.
         """
         settings = {}
@@ -92,7 +98,7 @@ class WorkflowEngine:
                 if not str(installdir).endswith("/"):
                     installdir += "/"
             if not os.path.exists(installdir):
-                os.mkdir(installdir)
+                os.makedirs(installdir)
             if len(installdir) == 0:
                 return
             else:
@@ -121,7 +127,7 @@ class WorkflowEngine:
             self.packages_folder = "\\".join(pythonpath.split('\\')[0:-1]) + "\\Lib\\site-packages"
         else:
             self.packages_folder = pythonpath + "/dist-packages"
-        self.db = SQL(db_folder)
+        self.db = SQL(dbfolder=db_folder, useSQLserver=use_sql_server)
         if delete_records_older_than_days > 0:
             self.db.remove_records_with_timestamp_older_than(delete_records_older_than_days)
         self.db.orchestrator()  # Run the orchestrator database
@@ -169,6 +175,7 @@ class WorkflowEngine:
         # write it back to the file
         with open(flowpath, "w") as file:
             file.write(base64_string)
+        return base64_string
 
     def open(self, filepath: str, as_xml: bool = False) -> any:
         """
@@ -178,9 +185,9 @@ class WorkflowEngine:
         :returns: A DrawIO dictionary object
         """
         # Open an existing document.
+        decoded = None
         if filepath is not None:
             self.flowpath = filepath
-        xml_file = open(filepath, "r")
         if not filepath.__contains__(".vsdx"):
             if filepath.__contains__(".flw"):
                 self.flowname = filepath.split("\\")[-1].replace(".flw", "")
@@ -246,11 +253,13 @@ class WorkflowEngine:
                     return dict_list
             else:
                 self.flowname = filepath.split("\\")[-1].replace(".xml", "")
-                xml_root = ElTree.fromstring(xml_file.read())
+                xml_file = open(filepath, "r")
+                xml_root = defusedxml.ElementTree.parse(xml_file.read())
                 raw_text = xml_root[0].text
                 base64_decode = base64.b64decode(raw_text)
                 inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
                 url_decode = parse.unquote(inflated_xml)
+                xml_file.close()
                 if as_xml:
                     return url_decode
                 retn = xmltodict.parse(url_decode)
@@ -560,7 +569,7 @@ class WorkflowEngine:
                                             if not tv.__contains__("."):
                                                 if len(replace_value) == 1 and not isinstance(replace_value[0], list):
                                                     try:
-                                                        val = val.replace(tv, replace_value[0])
+                                                        val = str(val).replace(tv, replace_value[0])
                                                     except Exception as e:
                                                         val = replace_value[0]
                                                 else:
@@ -572,8 +581,9 @@ class WorkflowEngine:
                                                     else:
                                                         if loopvars[0].counter < len(replace_value):
                                                             if isinstance(replace_value[loopvars[0].counter], str):
-                                                                val = val.replace(tv,
-                                                                                  replace_value[loopvars[0].counter])
+                                                                val = str(val).replace(tv,
+                                                                                       replace_value[
+                                                                                           loopvars[0].counter])
                                                             else:
                                                                 try:
                                                                     val = list(replace_value[loopvars[0].counter])
@@ -584,7 +594,7 @@ class WorkflowEngine:
                                                                         val = val[int(lt.replace("]", ""))]
                                                         else:
                                                             if isinstance(replace_value[0], str):
-                                                                val = val.replace(tv, replace_value[0])
+                                                                val = str(val).replace(tv, replace_value[0])
                                                             else:
                                                                 val = replace_value[0]
                                                                 if len(lst) > 1:
@@ -627,7 +637,7 @@ class WorkflowEngine:
                                                                 replace_value = replace_value[int(nr)]
 
                                                 if isinstance(replace_value, str):
-                                                    val = val.replace(tv, str(replace_value))
+                                                    val = str(val).replace(tv, str(replace_value))
                                                 else:
                                                     if val is not None:
                                                         if isinstance(val, str):
@@ -635,7 +645,7 @@ class WorkflowEngine:
                                                                 if isinstance(replace_value, list):
                                                                     if len(replace_value) == 0:
                                                                         replace_value = ""
-                                                                val = val.replace(tv, str(replace_value))
+                                                                val = str(val).replace(tv, str(replace_value))
                                                         else:
                                                             val = replace_value
                                                     else:
@@ -661,7 +671,7 @@ class WorkflowEngine:
                                             else:
                                                 replace_value = self.get_attribute_value(lst[0], replace_value)
                                                 if val is not None and replace_value is not None:
-                                                    val = val.replace(tv, str(replace_value))
+                                                    val = str(val).replace(tv, str(replace_value))
                                                 else:
                                                     val = replace_value
                                 else:
@@ -694,20 +704,20 @@ class WorkflowEngine:
                                     elif tv.__contains__("."):
                                         replace_value = self.get_attribute_value(lst[0], replace_value)
                                         if isinstance(replace_value, str):
-                                            val = val.replace(tv, str(replace_value))
+                                            val = str(val).replace(tv, str(replace_value))
                                         else:
                                             if val != tv:
-                                                val = val.replace(tv, str(replace_value))
+                                                val = str(val).replace(tv, str(replace_value))
                                             else:
                                                 val = replace_value
                                     else:
                                         if isinstance(replace_value, list):
                                             val = replace_value
                                         elif isinstance(replace_value, str):
-                                            val = val.replace(tv, str(replace_value))
+                                            val = str(val).replace(tv, str(replace_value))
                                         else:
                                             if val != tv:
-                                                val = val.replace(tv, str(replace_value))
+                                                val = str(val).replace(tv, str(replace_value))
                                             else:
                                                 val = replace_value
                 mapping[str(key)] = val
@@ -779,25 +789,25 @@ class WorkflowEngine:
                 self.error = True
                 raise Exception('Your installation directory is unknown.')
             if not str(self.flowpath).__contains__("\\"):
-                self.flowpath = os.getcwd() + f"\\{self.flowpath}"
+                self.flowpath = os.getcwd() + "\\" + self.flowpath
         else:
             if db_path == "/":
                 self.error = True
                 raise Exception('Your installation directory is unknown.')
             if not str(self.flowpath).__contains__("/"):
-                self.flowpath = os.getcwd() + f"/{self.flowpath}"
-        sql = f"SELECT id FROM Flows WHERE name ='{self.flowname}' AND location='{self.flowpath}'"
-        flow_id = self.db.run_sql(sql=sql, tablename="Flows")
+                self.flowpath = secure_filename(os.getcwd() + "/" + self.flowpath)
+        sql = "SELECT id FROM Flows WHERE name =? AND location=?"
+        flow_id = self.db.run_sql(sql=sql, params=[self.flowname, self.flowpath], tablename="Flows")
         if flow_id is None:
-            sql = f"INSERT INTO Flows (name, location) VALUES ('{self.flowname}','{self.flowpath}');"
-            flow_id = self.db.run_sql(sql=sql, tablename="Flows")
+            sql = "INSERT INTO Flows (name, location) VALUES (?,?);"
+            flow_id = self.db.run_sql(sql=sql, params=[self.flowname, self.flowpath], tablename="Flows")
         if step_by_step is False or self.step_nr == 0:
             self.previous_step = None
             shape_steps = [x for x in steps if x.type == "shape"]
             step = [x for x in shape_steps if x.IsStart][0]
             # Log the start in the orchestrator database
-            sql = f"INSERT INTO Runs (name, flow_id, result) VALUES ('{self.flowname}', {flow_id}, 'The flow was aborted.');"
-            self.id = self.db.run_sql(sql=sql, tablename="Runs")
+            sql = "INSERT INTO Runs (name, flow_id, result) VALUES (?,?,'The flow was aborted.');"
+            self.id = self.db.run_sql(sql=sql, params=[self.flowname, flow_id], tablename="Runs")
             print("\n")
             self.print_log(status="Starting",
                            result=f"{datetime.today().strftime('%d-%m-%Y')} Starting flow '{self.flowname}'...")
@@ -845,8 +855,8 @@ class WorkflowEngine:
                         # Get variable from stack
                         if hasattr(step, "output_variable"):
                             var = self.variables.get(step.output_variable)
-                            if inspect.isclass(var):
-                                method_to_call = getattr(self.variables.get(step.output_variable), step.function)
+                            if inspect.isclass(var) and var is not None:
+                                method_to_call = getattr(var, step.function)
                     if method_to_call is None:
                         step_input = None
                         if hasattr(step, "module"):
@@ -856,7 +866,7 @@ class WorkflowEngine:
                                     step.module = f"{self.packages_folder}\\BPMN_RPA\\Scripts\\{step.module}"
                                 if not str(step.module).__contains__(":") and str(step.module).__contains__(
                                         "\\") and str(
-                                        step.module).__contains__(".py"):
+                                    step.module).__contains__(".py"):
                                     step.module = f"{self.packages_folder}\\{step.module}"
                             if os.name != 'nt':
                                 step.module = str(step.module).replace("\\", "/")
@@ -894,7 +904,7 @@ class WorkflowEngine:
                             else:
                                 if str(step.classname).startswith("%") and str(step.classname).endswith("%"):
                                     class_object = self.variables.get(step.classname)
-                                    if len(step.function) > 0:
+                                    if len(step.function) > 0 and class_object is not None:
                                         method_to_call = getattr(class_object, step.function)
 
                                 else:
@@ -907,7 +917,7 @@ class WorkflowEngine:
                     if module_object is None and hasattr(step, "classname"):
                         if str(step.classname).startswith("%") and str(step.classname).endswith("%"):
                             class_object = self.variables.get(step.classname)
-                            if len(step.function) > 0:
+                            if len(step.function) > 0 and class_object is not None:
                                 method_to_call = getattr(class_object, step.function)
                     else:
                         if module_object is None:
@@ -1046,6 +1056,7 @@ class WorkflowEngine:
         :param ex: the exception
         """
         trace = []
+        err_ = None
         tb = ex.__traceback__
         while tb is not None:
             trace.append({
@@ -1086,15 +1097,14 @@ class WorkflowEngine:
                 self.runlog.append(f"{step_time}: {result}")
                 self.step_nr = ""
             result = result.replace("'", "''").strip()
-            if len(status) > 0:
-                status = f" - {status}"
             if self.step_name is not None:
                 step_name = self.step_name.replace("'", "''")
             else:
                 result = "Starting"
                 step_name = "Start"
-            sql = f"INSERT INTO Steps (run, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', '{step_name}', '{result}', '{self.step_nr}{status}');"
-            self.db.run_sql(sql)
+            sql = "INSERT INTO Steps (run, name, step, status, result) VALUES (?,?,?,?,?);"
+            self.db.run_sql(sql=sql,
+                            params=[self.id, self.flowname, step_name, status, str(self.step_nr) + " " + result])
         except Exception as ex:
             self.set_error(ex)
             raise Exception(self.error)
@@ -1104,14 +1114,14 @@ class WorkflowEngine:
         Exit the flow with exitcode not OK -1
         """
         self.end_flow()
-        exit(-1)
+        sys.exit(-1)
 
     def exitcode_ok(self):
         """
         Exit the flow with exitcode OK 0
         """
         self.end_flow()
-        exit(0)
+        sys.exit(0)
 
     def end_flow(self):
         """
@@ -1122,18 +1132,18 @@ class WorkflowEngine:
         try:
             if self.error:
                 ok = "The flow has ended with ERRORS."
-            sql = f"INSERT INTO Steps (run, name, step, status, result) VALUES ('{self.id}', '{self.flowname}', 'End', 'Ended', '{ok}');"
+            sql = "INSERT INTO Steps (run, name, step, status, result) VALUES (?,?,?,?,?);"
             step_time = datetime.now().strftime("%H:%M:%S")
             finished = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             if self.subflow:
-                end_result = f"{step_time}: Subflow Flow '{self.flowname}': {ok}"
+                end_result = step_time + ": Subflow Flow '" + self.flowname + "': " + ok
             else:
-                end_result = f"{step_time}: Flow '{self.flowname}': {ok}"
+                end_result = step_time + ": Flow '" + self.flowname + "': " + ok
             print(end_result)
-            self.db.run_sql(sql=sql, tablename="Steps")
+            self.db.run_sql(sql=sql, params=[self.id, self.flowname, 'End', 'Ended', ok], tablename="Steps")
             # Update the result of the flow
-            sql = f'UPDATE Runs SET result= \'{ok}\', finished=\'{finished}\' where id = {self.id};'
-            self.db.run_sql(sql=sql, tablename="Runs")
+            sql = "UPDATE Runs SET result=?, finished=? where id =?;"
+            self.db.run_sql(sql=sql, params=[ok, finished, self.id], tablename="Runs")
         except Exception as ex:
             self.set_error(ex)
             raise Exception(f"Error: {ex}\n{self.error}")
@@ -1406,37 +1416,54 @@ class WorkflowEngine:
 
 class SQL:
 
-    def __init__(self, dbfolder: str):
+    def __init__(self, dbfolder: str, useSQLserver: bool = False):
         """
         Class for SQLite actions on the Orchestrator database.
         :param dbfolder: The folder of the SQLite orchestrator database
+        :param useSQLserver: Use SQL Server instead of SQLite. TheSQLserver on localhost is used with a trusted connection. The database is called 'orchestrator'. This database must be created in advance with the right permissions. Default is False.
         """
-        if os.name == 'nt':
-            if dbfolder == "\\":
-                return
-            if not dbfolder.endswith("\\"):
-                dbfolder += "\\"
+        self.useSQLserver = useSQLserver
+        if not self.useSQLserver:
+            if os.name == 'nt':
+                if dbfolder == "\\":
+                    return
+                if not dbfolder.endswith("\\"):
+                    dbfolder += "\\"
+            else:
+                if not dbfolder.endswith("/"):
+                    dbfolder += "/"
+            self.connection = connect(f'{dbfolder}orchestrator.db')
+            self.connection.execute("PRAGMA foreign_keys = 1")
+            self.connection.execute("PRAGMA JOURNAL_MODE = 'WAL'")
+            # if os.name == 'posix':
+            #    self.connection.execute("PRAGMA SQLITE_ENABLE_LOCKING_STYLE = 1")
+            #    self.connection.execute("PRAGMA journal=OFF")
         else:
-            if not dbfolder.endswith("/"):
-                dbfolder += "/"
-        self.connection = connect(f'{dbfolder}orchestrator.db')
-        self.connection.execute("PRAGMA foreign_keys = 1")
-        self.connection.execute("PRAGMA JOURNAL_MODE = 'WAL'")
-        # if os.name == 'posix':
-        #    self.connection.execute("PRAGMA SQLITE_ENABLE_LOCKING_STYLE = 1")
-        #    self.connection.execute("PRAGMA journal=OFF")
+            # use the odbc driver for SQL Server
+            self.connection = connectSQL(
+                "Driver={ODBC Driver 17 for SQL Server};Server=localhost;Database=orchestrator;Trusted_Connection=yes;")
         self.error = None
 
-    def run_sql(self, sql, tablename: str = ""):
+    def run_sql(self, sql: str, params: any = None, tablename: str = ""):
         """
         Run SQL command and commit.
         :param sql: The SQL command to execute.
+        :param params: An array with the parameters for the sql command.
         :param tablename: Optional. The tablename of the table used in the SQL command, for returning the last id of the primary key column.
         :return: The last inserted id of the primary key column
         """
-        if not hasattr(self, "connection"):
-            return
-        self.connection.execute(sql)
+        cursor = None
+        if not self.useSQLserver:
+            if not hasattr(self, "connection"):
+                return
+        if not self.useSQLserver:
+            self.connection.execute(sql, params)
+        else:
+            cursor = self.connection.cursor()
+            if params is None:
+                cursor.execute(sql)
+            else:
+                cursor.execute(sql, params)
         if not sql.lower().startswith("select"):
             self.connection.commit()
             if len(tablename) > 0:
@@ -1448,7 +1475,10 @@ class SQL:
             else:
                 return None
         else:
-            row = self.connection.cursor().fetchone()
+            if not self.useSQLserver:
+                row = self.connection.cursor().fetchone()
+            else:
+                row = cursor.fetchone()
             if row is not None:
                 return row[0]
             else:
@@ -1460,6 +1490,7 @@ class SQL:
         :param ex: the exception
         """
         trace = []
+        err_ = None
         tb = ex.__traceback__
         while tb is not None:
             trace.append({
@@ -1475,7 +1506,7 @@ class SQL:
             })
         self.error = err_
 
-    def get_inserted_id(self, tablename: str) -> int:
+    def get_inserted_id(self, tablename: str) -> any:
         """
         Get the last inserted id of the primary key column of the table
         :param tablename: The name of the table to get the last id of
@@ -1562,18 +1593,35 @@ class SQL:
         """
         Create tables for the Orchestrator database
         """
-        try:
-            sql = "CREATE TABLE IF NOT EXISTS Flows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, location TEXT NOT NULL, description TEXT, timestamp DATE DEFAULT (datetime('now','localtime')));"
-            self.run_sql(sql)
-            sql = "CREATE TABLE IF NOT EXISTS Runs (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, flow_id INTEGER NOT NULL, name TEXT NOT NULL, result TEXT, started DATE DEFAULT (datetime('now','localtime')), finished DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_saved FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
-            self.run_sql(sql)
-            sql = "CREATE TABLE IF NOT EXISTS Steps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, run INTEGER NOT NULL, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_runs FOREIGN KEY (run) REFERENCES Runs (id) ON DELETE CASCADE);"
-            self.run_sql(sql)
-            sql = "CREATE TABLE IF NOT EXISTS Survey (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, question_id STRING NOT NULL, question STRING NOT NULL, answer_id string NOT NULL, answer STRING NOT NULL, recipient STRING NOT NULL, received INTEGER DEFAULT 0, timestamp DATE DEFAULT (datetime('now','localtime')));"
-            self.run_sql(sql)
-        except Exception as ex:
-            self.set_error(ex)
-            raise Exception(self.error)
+        if not self.useSQLserver:
+
+            try:
+                sql = "CREATE TABLE IF NOT EXISTS Flows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, location TEXT NOT NULL, description TEXT, timestamp DATE DEFAULT (datetime('now','localtime')));"
+                self.run_sql(sql)
+                sql = "CREATE TABLE IF NOT EXISTS Runs (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, flow_id INTEGER NOT NULL, name TEXT NOT NULL, result TEXT, started DATE DEFAULT (datetime('now','localtime')), finished DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_saved FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
+                self.run_sql(sql)
+                sql = "CREATE TABLE IF NOT EXISTS Steps (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, run INTEGER NOT NULL, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp DATE DEFAULT (datetime('now','localtime')), CONSTRAINT fk_runs FOREIGN KEY (run) REFERENCES Runs (id) ON DELETE CASCADE);"
+                self.run_sql(sql)
+                sql = "CREATE TABLE IF NOT EXISTS Survey (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, question_id STRING NOT NULL, question STRING NOT NULL, answer_id string NOT NULL, answer STRING NOT NULL, recipient STRING NOT NULL, received INTEGER DEFAULT 0, timestamp DATE DEFAULT (datetime('now','localtime')));"
+                self.run_sql(sql)
+            except Exception as ex:
+                self.set_error(ex)
+                raise Exception(self.error)
+
+        else:
+
+            try:
+                sql = "IF NOT EXISTS (select * from sysobjects where name='Flows') CREATE TABLE Flows (id INTEGER NOT NULL PRIMARY KEY IDENTITY(1,1), name nvarchar(255) NOT NULL, location nvarchar(255) NOT NULL, description nvarchar(MAX), timestamp DATETIME DEFAULT GETDATE());"
+                self.run_sql(sql=sql)
+                sql = "IF NOT EXISTS (select * from sysobjects where name='Runs') CREATE TABLE Runs (id INTEGER NOT NULL PRIMARY KEY IDENTITY(1,1), flow_id INTEGER NOT NULL, name nvarchar(255) NOT NULL, result nvarchar(255), started DATETIME DEFAULT GETDATE(), finished DATETIME DEFAULT GETDATE(), CONSTRAINT fk_saved FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
+                self.run_sql(sql=sql)
+                sql = "IF NOT EXISTS (select * from sysobjects where name='Steps') CREATE TABLE Steps (id INTEGER NOT NULL PRIMARY KEY IDENTITY(1,1), run INTEGER NOT NULL, status nvarchar(255), name nvarchar(255) NOT NULL,step nvarchar(255),result nvarchar(255),timestamp DATETIME DEFAULT GETDATE(), CONSTRAINT fk_runs FOREIGN KEY (run) REFERENCES Runs (id) ON DELETE CASCADE);"
+                self.run_sql(sql=sql)
+                sql = "IF NOT EXISTS (select * from sysobjects where name='Survey') CREATE TABLE Survey (id INTEGER NOT NULL PRIMARY KEY IDENTITY(1,1), question_id NVARCHAR(255) NOT NULL, question NVARCHAR(MAX) NOT NULL, answer_id NVARCHAR(MAX) NOT NULL, answer NVARCHAR(MAX) NOT NULL, recipient NVARCHAR(255) NOT NULL, received INTEGER DEFAULT 0, timestamp DATETIME DEFAULT GETDATE());"
+                self.run_sql(sql=sql)
+            except Exception as ex:
+                self.set_error(ex)
+                raise Exception(self.error)
 
     def remove_records_with_timestamp_older_than(self, table: str, days: int):
         """
@@ -1603,14 +1651,13 @@ class Visio:
         Open the VSDX file and store its cointents into memory.
         :param file: The filename to read.
         """
-        docs = zipfile.ZipFile(file, "r")
-        self.root = {}
-        for d in docs.filelist:
-            # print(d)
-            if str(d.filename).lower().endswith(".xml") or str(d.filename).lower().endswith(".rels"):
-                doc = docs.read(d)
-                dct = xmltodict.parse(doc)
-                self.root.update({d.filename: dct})
+        with zipfile.ZipFile(file, "r") as docs:
+            self.root = {}
+            for d in docs.filelist:
+                if str(d.filename).lower().endswith(".xml") or str(d.filename).lower().endswith(".rels"):
+                    doc = docs.read(d)
+                    dct = xmltodict.parse(doc)
+                    self.root.update({d.filename: dct})
 
     def get_start(self):
         """
@@ -1639,7 +1686,7 @@ class Visio:
                                             if {"@N": "Label", "@V": "Type"} in rw.get("Cell") and {"@N": "Value",
                                                                                                     "@V": "Start",
                                                                                                     "@U": "STR"} in rw.get(
-                                                    "Cell"):
+                                                "Cell"):
                                                 setattr(shape, "IsStart", True)
                                                 return shape
                 count += 1

@@ -4,7 +4,8 @@ from os import path
 
 def parse_requirements(filename):
     """Load requirements from a pip requirements file."""
-    lineiter = (line.strip() for line in open(filename))
+    with open(filename) as f:
+        lineiter = (line.strip() for line in f)
     return [line for line in lineiter if line and not line.startswith("#")]
 
 

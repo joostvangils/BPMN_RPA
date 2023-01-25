@@ -1,5 +1,7 @@
 import sys
 
+from werkzeug.utils import secure_filename
+
 # The BPMN-RPA Checklist resume module is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -16,8 +18,9 @@ import sys
 from BPMN_RPA.CheckListEngine import ChecklistEngine
 
 try:
-    flow = sys.argv[1]
+    # Sanitize input and allow only secure filenames
+    flow = secure_filename(sys.argv[1])
 except:
     raise Exception("Please provide a path to the flow as argument")
 chkLst = ChecklistEngine()
-chkLst.resume_flow(flow, ask_permission=True, msgbox=True)
+chkLst.resume_flow(flow_path=flow, ask_permission=True, msgbox=True)

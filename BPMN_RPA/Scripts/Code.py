@@ -111,19 +111,20 @@ class Code:
         :returns: A DrawIO dictionary object
         """
         # Open an existing document.
-        xml_file = open(filepath, "r")
-        header = xml_file.readlines()
-        xml_file.seek(0, 0)
-        root = eltree.fromstring(header[0])
-        xml_root = eltree.fromstring(xml_file.read())
-        raw_text = xml_root[0].text
-        base64_decode = base64.b64decode(raw_text)
-        inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
-        url_decode = urllib.parse.unquote(inflated_xml)
+        with open(filepath, "r") as f:
+            header = f.readlines()
+            f.seek(0, 0)
+            root = eltree.fromstring(header[0])
+            xml_root = eltree.fromstring(f.read())
+            raw_text = xml_root[0].text
+            base64_decode = base64.b64decode(raw_text)
+            inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
+            url_decode = urllib.parse.unquote(inflated_xml)
         if as_xml:
             return url_decode
         retn = xmltodict.parse(url_decode)
         return retn, root
+
 
     @staticmethod
     def saveflow(filepath: str, dct: any, original: any) -> any:
@@ -277,8 +278,8 @@ class Code:
         :return: The library content.
         """
         # Open an existing document.
-        xml_file = open(filepath, "r")
-        xml_root = eltree.fromstring(xml_file.read())
+        with open(filepath, "r") as xml_file:
+            xml_root = eltree.fromstring(xml_file.read())
         if xml_root.text is not None:
             retn = json.loads(xml_root.text)
             return retn

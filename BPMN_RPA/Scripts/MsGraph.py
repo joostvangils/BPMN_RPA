@@ -424,13 +424,9 @@ class ms_graph:
         :param accessToken: The access token.
         :return: The expiry of the token.
         """
+        # Decode the access token
         decodedAccessToken = jwt.decode(accessToken, verify=False)
         return decodedAccessToken['exp']
-        accessTokenFormatted = json.dumps(decodedAccessToken, indent=2)
-        # Token Expiry
-        tokenExpiry = datetime.fromtimestamp(int(decodedAccessToken['exp']))
-        print("Token Expires at: " + str(tokenExpiry))
-        return tokenExpiry
 
     def msgraph_request(self, resource, requestHeaders):
         """
