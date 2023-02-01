@@ -206,6 +206,7 @@ class WorkflowEngine:
                         self.use_sql_server = info[0]["use_sql_server"]
                         if self.use_sql_server:
                             self.db = SQL(dbfolder=self.db_folder, useSQLserver=self.use_sql_server)
+                            self.db.orchestrator()  # Run the orchestrator database
                     return retn
                 except UnicodeDecodeError as e:
                     # Found non-text data in the file

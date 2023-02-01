@@ -6,7 +6,7 @@ def parse_requirements(filename):
     """Load requirements from a pip requirements file."""
     with open(filename) as f:
         lineiter = (line.strip() for line in f)
-    return [line for line in lineiter if line and not line.startswith("#")]
+        return [line for line in lineiter if line and not line.startswith("#")]
 
 
 if __name__ == "__main__":
@@ -16,7 +16,7 @@ if __name__ == "__main__":
         long_description = f.read()
     setuptools.setup(
         name="BPMN_RPA",  # Replace with your own username
-        version="7.0.1",
+        version="7.1.2",
         author="Joost van Gils",
         author_email="joostvangils@1ic.nl",
         description="Robotic Process Automation by running BPMN diagram flows.",
