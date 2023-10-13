@@ -10,7 +10,6 @@ import zlib
 import urllib.parse
 from pathlib import Path
 
-import jsonpickle
 import xmltodict
 from lxml import etree as eltree
 from BPMN_RPA.WorkflowEngine import WorkflowEngine

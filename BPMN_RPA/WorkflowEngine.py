@@ -70,7 +70,8 @@ class WorkflowEngine:
         else:
             if os.name == 'nt':
                 pythonpath = self.get_python_path()
-                pythonpath = pythonpath.replace("/", "\\")
+                if not pythonpath is None:
+                    pythonpath = pythonpath.replace("/", "\\")
             else:
                 sett = '/etc/BPMN_RPA_settings'
                 if not os.path.exists(sett):
@@ -86,8 +87,9 @@ class WorkflowEngine:
             self.db_folder = installation_directory
         else:
             self.db_folder = self.get_db_path()
-            if os.name == 'nt':
-                db_folder = self.db_folder.replace("/", "\\")
+            if not self.db_folder is None:
+                if os.name == 'nt':
+                    db_folder = self.db_folder.replace("/", "\\")
         if self.db_folder is None or len(self.db_folder) == 0:
             if os.name == 'nt':
                 message = "\nYour installation directory is unknown. Please enter the path of your installation directory: "
@@ -203,7 +205,8 @@ class WorkflowEngine:
                     info = [x for x in retn if str(x).startswith("{'type': 'information'")]
                     if len(info) > 0:
                         self.information = info[0]["description"]
-                        self.use_sql_server = info[0]["use_sql_server"]
+                        if "use_sql_server" in info[0]:
+                            self.use_sql_server = info[0]["use_sql_server"]
                         if self.use_sql_server:
                             self.db = SQL(dbfolder=self.db_folder, useSQLserver=self.use_sql_server)
                             self.db.orchestrator()  # Run the orchestrator database
@@ -1468,13 +1471,19 @@ class SQL:
             if not hasattr(self, "connection"):
                 return
         if not self.useSQLserver:
-            self.connection.execute(sql, params)
+            if params:
+                self.connection.execute(sql, params)
+            else:
+                self.connection.execute(sql)
         else:
             cursor = self.connection.cursor()
             if params is None:
                 cursor.execute(sql)
             else:
-                cursor.execute(sql, params)
+                if params:
+                    cursor.execute(sql, params)
+                else:
+                    cursor.execute(sql)
         if not sql.lower().startswith("select"):
             self.connection.commit()
             if len(tablename) > 0:
