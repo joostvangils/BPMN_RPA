@@ -174,6 +174,7 @@ As from BPMN-RPA version 4.x.x and above, you can perform step-by-step flow exec
 An example:
 
 ```Python
+from BPMN_RPA.WorkflowEngine import WorkflowEngine
 engine = WorkflowEngine()
 doc = engine.open("c:\\test.flw")
 steps = engine.get_flow(doc)
@@ -201,6 +202,7 @@ c:\> python BPMN_RPA_Starter.py test.xml
 
 Start a flow in code:
 ```Python
+from BPMN_RPA.WorkflowEngine import WorkflowEngine
 engine = WorkflowEngine()
 doc = engine.open("test.xml")
 steps = engine.get_flow(doc)
@@ -216,7 +218,7 @@ It is likely that you want to create several CheckList instances of the original
 
 To start a new instance of a flow, just use the CheckListEngine constructor:
 ```Python
-from BPMN_RPA import CheckListEngine
+from BPMN_RPA.CheckListEngine import CheckListEngine
 
 # Start a new instance of the flow 'example.flow' and create an instance file called 'example_instance1'
 chkLst = ChecklistEngine(flow_name="\\my_flows\\example.flw", full_path_save_as="\\instances\\example_instance_1")
@@ -234,7 +236,7 @@ When you want to pause the flow, just click 'No' in the MessageBox or press 'n' 
 
 To resume a flow at any time you like from a saved state, use the CheckListEngine constructor and call the 'resume_flow' function:
 ```Python
-from BPMN_RPA import CheckListEngine
+from BPMN_RPA.CheckListEngine import CheckListEngine
 
 # Resume the flow instance 'example_instance1'
 chkLst = ChecklistEngine()
