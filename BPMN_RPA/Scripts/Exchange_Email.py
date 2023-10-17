@@ -1,15 +1,14 @@
 # System imports
 import os
 import uuid
-import BPMN_RPA.WorkflowEngine
-import urllib3
 from datetime import datetime, timedelta
+
+import urllib3
 from exchangelib import Account, Configuration, Credentials, DELEGATE, EWSDateTime
 from exchangelib import Message, Mailbox, FileAttachment, HTMLBody
-from exchangelib.fields import FieldPath
-from exchangelib.items import Persona
 from exchangelib.protocol import BaseProtocol, NoVerifyHTTPAdapter
-from exchangelib import Q
+
+import BPMN_RPA.WorkflowEngine
 
 
 class Email:

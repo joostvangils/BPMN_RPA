@@ -70,8 +70,7 @@ class WorkflowEngine:
         else:
             if os.name == 'nt':
                 pythonpath = self.get_python_path()
-                if not pythonpath is None:
-                    pythonpath = pythonpath.replace("/", "\\")
+                pythonpath = pythonpath.replace("/", "\\")
             else:
                 sett = '/etc/BPMN_RPA_settings'
                 if not os.path.exists(sett):
@@ -87,9 +86,8 @@ class WorkflowEngine:
             self.db_folder = installation_directory
         else:
             self.db_folder = self.get_db_path()
-            if not self.db_folder is None:
-                if os.name == 'nt':
-                    db_folder = self.db_folder.replace("/", "\\")
+        if self.db_folder is not None:
+            db_folder = self.db_folder.replace("/", "\\")
         if self.db_folder is None or len(self.db_folder) == 0:
             if os.name == 'nt':
                 message = "\nYour installation directory is unknown. Please enter the path of your installation directory: "
@@ -182,11 +180,10 @@ class WorkflowEngine:
             file.write(base64_string)
         return base64_string
 
-    def open(self, filepath: str, as_xml: bool = False) -> any:
+    def open(self, filepath: str) -> any:
         """
         Open a flow document
         :param filepath: The full path (including extension) of the diagram file
-        :param as_xml: Optional. Returns the file content as XML.
         :returns: A DrawIO dictionary object
         """
         # Open an existing document.
@@ -205,8 +202,7 @@ class WorkflowEngine:
                     info = [x for x in retn if str(x).startswith("{'type': 'information'")]
                     if len(info) > 0:
                         self.information = info[0]["description"]
-                        if "use_sql_server" in info[0]:
-                            self.use_sql_server = info[0]["use_sql_server"]
+                        self.use_sql_server = info[0]["use_sql_server"]
                         if self.use_sql_server:
                             self.db = SQL(dbfolder=self.db_folder, useSQLserver=self.use_sql_server)
                             self.db.orchestrator()  # Run the orchestrator database
@@ -267,16 +263,8 @@ class WorkflowEngine:
                     return dict_list
             else:
                 self.flowname = filepath.split("\\")[-1].replace(".xml", "")
-                xml_file = open(filepath, "r")
-                xml_root = defusedxml.ElementTree.parse(xml_file.read())
-                raw_text = xml_root[0].text
-                base64_decode = base64.b64decode(raw_text)
-                inflated_xml = zlib.decompress(base64_decode, -zlib.MAX_WBITS).decode("utf-8")
-                url_decode = parse.unquote(inflated_xml)
-                xml_file.close()
-                if as_xml:
-                    return url_decode
-                retn = xmltodict.parse(url_decode)
+                xml_file = open(filepath, "r").read()
+                retn = xmltodict.parse(xml_file)
                 return retn
         else:
             # It is a MsVisio file!
@@ -406,8 +394,8 @@ class WorkflowEngine:
         connectors = []
         shapes = []
         connectorvalues = {}
-        objects = ordered_dict['mxGraphModel']['root']['object']
-        for shape in ordered_dict['mxGraphModel']['root']['mxCell']:
+        objects = ordered_dict['mxfile']['diagram']['mxGraphModel']['root']['object']
+        for shape in ordered_dict['mxfile']['diagram']['mxGraphModel']['root']['mxCell']:
             style = shape.get("@style")
             if style is not None:
                 if str(style).__contains__("edgeLabel"):
@@ -1466,24 +1454,21 @@ class SQL:
         :param tablename: Optional. The tablename of the table used in the SQL command, for returning the last id of the primary key column.
         :return: The last inserted id of the primary key column
         """
+        if params is None:
+            params = []
         cursor = None
         if not self.useSQLserver:
             if not hasattr(self, "connection"):
                 return
         if not self.useSQLserver:
-            if params:
-                self.connection.execute(sql, params)
-            else:
-                self.connection.execute(sql)
+
+            self.connection.execute(sql, params)
         else:
             cursor = self.connection.cursor()
             if params is None:
                 cursor.execute(sql)
             else:
-                if params:
-                    cursor.execute(sql, params)
-                else:
-                    cursor.execute(sql)
+                cursor.execute(sql, params)
         if not sql.lower().startswith("select"):
             self.connection.commit()
             if len(tablename) > 0:
