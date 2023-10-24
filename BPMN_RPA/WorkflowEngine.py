@@ -202,7 +202,8 @@ class WorkflowEngine:
                     info = [x for x in retn if str(x).startswith("{'type': 'information'")]
                     if len(info) > 0:
                         self.information = info[0]["description"]
-                        self.use_sql_server = info[0]["use_sql_server"]
+                        if "use_sql_server" in info[0]:
+                            self.use_sql_server = info[0]["use_sql_server"]
                         if self.use_sql_server:
                             self.db = SQL(dbfolder=self.db_folder, useSQLserver=self.use_sql_server)
                             self.db.orchestrator()  # Run the orchestrator database
