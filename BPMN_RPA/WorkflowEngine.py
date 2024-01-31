@@ -1657,7 +1657,7 @@ class SQL:
                     self.run_sql(sql)
                     sql = "CREATE TABLE IF NOT EXISTS Steps (id SERIAL PRIMARY KEY, run INTEGER NOT NULL, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp DATE DEFAULT (now()), CONSTRAINT fk_runs FOREIGN KEY (run) REFERENCES Runs (id) ON DELETE CASCADE);"
                     self.run_sql(sql)
-                    sql = "CREATE TABLE IF NOT EXISTS Survey (id SERIAL PRIMARY KEY, question_id STRING NOT NULL, question STRING NOT NULL, answer_id string NOT NULL, answer STRING NOT NULL, recipient STRING NOT NULL, received INTEGER DEFAULT 0, timestamp DATE DEFAULT (now()));"
+                    sql = "CREATE TABLE IF NOT EXISTS Survey (id SERIAL PRIMARY KEY, question_id TEXT NOT NULL, question TEXT NOT NULL, answer_id TEXT NOT NULL, answer TEXT NOT NULL, recipient TEXT NOT NULL, received INTEGER DEFAULT 0, timestamp DATE DEFAULT (now()));"
                     self.run_sql(sql)
                 except Exception as ex:
                     self.set_error(ex)
