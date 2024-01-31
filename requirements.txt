@@ -18,6 +18,7 @@ msal
 openai
 pypiwin32
 pywin32
+psycopg2-binary
 keyboard
 uuid
 pyodbc

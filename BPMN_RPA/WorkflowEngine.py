@@ -1,6 +1,5 @@
 import base64
 import copy
-import defusedxml.ElementTree
 import importlib
 import importlib.util as util
 import inspect
@@ -9,20 +8,18 @@ import math
 import os
 import sys
 
+import psycopg2
 from werkzeug.utils import secure_filename
 
 if os.name == 'nt':
     import winreg
 else:
-    import site
-import xml.etree.ElementTree as ElTree
+    pass
 import zipfile
-import zlib
 from datetime import datetime, timedelta
 from inspect import signature
 from sqlite3 import connect
 from pyodbc import connect as connectSQL
-from urllib import parse
 
 import xmltodict
 
@@ -45,7 +42,7 @@ import xmltodict
 class WorkflowEngine:
 
     def __init__(self, input_parameter: any = None, pythonpath: str = "", installation_directory: str = "",
-                 delete_records_older_than_days=0, subflow: bool = False, use_sql_server: bool = False, use_postgresql: bool = False, connection_string: str = None):
+                 delete_records_older_than_days=0, subflow: bool = False, use_sql_server: bool = False, use_postgresql: bool = False, connection_string: str = ""):
         """
         Class for automating DrawIO diagrams
         :param input_parameter: An object holding arguments to be passed as input to the WorkflowEngine. In a flow, use get_input_parameter to retrieve the value.
@@ -1448,12 +1445,22 @@ class SQL:
             self.connection.execute("PRAGMA JOURNAL_MODE = 'WAL'")
         elif self.useSQLserver:
             # SQL Server
-            self.connection = connectSQL("Driver={ODBC Driver 17 for SQL Server};Server=localhost;Database=orchestrator;Trusted_Connection=yes;")
+            if len(connection_string) == 0:
+                self.connection = connectSQL("Driver={ODBC Driver 17 for SQL Server};Server=localhost;Database=orchestrator;Trusted_Connection=yes;")
+            else:
+                self.connection = connectSQL(connection_string)
         elif self.usePostgreSQL:
             # PostgreSQL
-            self.connection = connectSQL('DRIVER={PostgreSQL Unicode};DATABASE=orchestrator;SERVER=localhost;Trusted_Connection=yes;')
-        if len(connection_string) > 0:
-            self.connection = connectSQL(connection_string)
+            try:
+                if len(connection_string) == 0:
+                    self.connection = psycopg2.connect("dbname=orchestrator host=localhost user=postgres password=postgres")
+                else:
+                    self.connection = psycopg2.connect(connection_string.replace(";", " ").replace("database=", "dbname="))
+            except Exception as ex:
+                    self.set_error(ex)
+                    explenation = str(ex)
+                    print(explenation + "Remember: you must manually create the 'orchestrator' database first. We will now try to use the SQlite database instead.")
+                    return
         self.error = None
 
     def run_sql(self, sql: str, params: any = None, tablename: str = ""):
@@ -1467,12 +1474,16 @@ class SQL:
         if params is None:
             params = []
         cursor = None
+        if self.usePostgreSQL:
+                sql = sql.replace("?", "%s")
         if not self.useSQLserver:
             if not hasattr(self, "connection"):
                 return
-        if not self.useSQLserver:
+        if not self.useSQLserver and not self.usePostgreSQL:
             self.connection.execute(sql, params)
         else:
+            if self.usePostgreSQL:
+                self.connection.rollback()
             cursor = self.connection.cursor()
             if params is None:
                 cursor.execute(sql)
@@ -1489,7 +1500,7 @@ class SQL:
             else:
                 return None
         else:
-            if not self.useSQLserver:
+            if not self.useSQLserver and not self.usePostgreSQL:
                 row = self.connection.cursor().fetchone()
             else:
                 row = cursor.fetchone()
