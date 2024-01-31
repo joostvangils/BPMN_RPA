@@ -1,5 +1,5 @@
-Upload.bat
-./BPMN_RPA/.pypirc
-./build/*
-./dist/*
-./tests/*
+/Upload.bat
+/BPMN_RPA/.pypirc
+/build/*
+/dist/*
+/tests/*
