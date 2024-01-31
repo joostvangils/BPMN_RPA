@@ -51,7 +51,7 @@ class WorkflowEngine:
         :param delete_records_older_than_days: The number of days after which the orchestrator database will clean up records. Default is 0, which means no cleanup.
         :param use_sql_server: Optional. This parameter is used to indicate that the SQLserver on the localhost will be used with a trusted connection. Default is False.
         :param use_postgresql: Optional. This parameter is used to indicate that the PostgreSQL database on the localhost will be used with a trusted connection. Default is False.
-        :param connection_string: Optional. The connection string for the database. If this is set, the use_sql_server and the use_postgresql parameter will be ignored and the connection string will be used.
+        :param connection_string: Optional. The connection string for the database. If this is set, it must be set with either the use_sql_server or the use_postgresql parameter.
         :param subflow: Optional. This parameter is used to indicate that the flow is a subflow (started from another flow). This is used to make a distinction between the logging of the original flow and the instance of the flow. Default is False.
         """
         settings = {}
