@@ -195,6 +195,10 @@ def is_object_empty(inspected_object: any) -> bool:
         return inspected_object == ""
     if isinstance(inspected_object, list):
         return len(inspected_object) == 0
+    if isinstance(inspected_object, tuple):
+        return False
+    if isinstance(inspected_object, set):
+        return len(inspected_object) == 0
     if isinstance(inspected_object, dict):
         return len(inspected_object.keys()) == 0
     if isinstance(inspected_object, inspected_object):
