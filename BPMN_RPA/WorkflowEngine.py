@@ -1419,14 +1419,18 @@ class WorkflowEngine:
 
 class SQL:
 
-    def __init__(self, dbfolder: str, useSQLserver: bool = False):
+    def __init__(self, dbfolder: str = "", use_sql_server: bool = False, use_postgresql: bool = False, connection_string: str = ""):
         """
-        Class for SQLite actions on the Orchestrator database.
-        :param dbfolder: The folder of the SQLite orchestrator database
-        :param useSQLserver: Use SQL Server instead of SQLite. TheSQLserver on localhost is used with a trusted connection. The database is called 'orchestrator'. This database must be created in advance with the right permissions. Default is False.
+        Class for database actions on SQLite, SQL Server, or PostgreSQL.
+        :param dbfolder: Optional. The folder for the database.
+        :param use_sql_server: Use a MsSQL Server. Default is False.
+        :param use_postgresql: Use a PostgreSQL Server. Default is False. Settting this to True will override the use_sql_server parameter.
+        :param connection_string: Optional. The connection string for the database. If this is set, the dbfolder parameter will be ignored and the connection string will be used.
         """
-        self.useSQLserver = useSQLserver
-        if not self.useSQLserver:
+        self.useSQLserver = use_sql_server
+        self.usePostgreSQL = use_postgresql
+        if not self.useSQLserver and not self.usePostgreSQL:
+            # SQLite
             if os.name == 'nt':
                 if dbfolder == "\\":
                     return
@@ -1438,13 +1442,14 @@ class SQL:
             self.connection = connect(f'{dbfolder}orchestrator.db')
             self.connection.execute("PRAGMA foreign_keys = 1")
             self.connection.execute("PRAGMA JOURNAL_MODE = 'WAL'")
-            # if os.name == 'posix':
-            #    self.connection.execute("PRAGMA SQLITE_ENABLE_LOCKING_STYLE = 1")
-            #    self.connection.execute("PRAGMA journal=OFF")
-        else:
-            # use the odbc driver for SQL Server
-            self.connection = connectSQL(
-                "Driver={ODBC Driver 17 for SQL Server};Server=localhost;Database=orchestrator;Trusted_Connection=yes;")
+        elif self.useSQLserver:
+            # SQL Server
+            self.connection = connectSQL("Driver={ODBC Driver 17 for SQL Server};Server=localhost;Database=orchestrator;Trusted_Connection=yes;")
+        elif self.usePostgreSQL:
+            # PostgreSQL
+            self.connection = connectSQL('DRIVER={PostgreSQL Unicode};DATABASE=orchestrator;SERVER=localhost;Trusted_Connection=yes;')
+        if len(connection_string) > 0:
+            self.connection = connectSQL(connection_string)
         self.error = None
 
     def run_sql(self, sql: str, params: any = None, tablename: str = ""):
@@ -1462,7 +1467,6 @@ class SQL:
             if not hasattr(self, "connection"):
                 return
         if not self.useSQLserver:
-
             self.connection.execute(sql, params)
         else:
             cursor = self.connection.cursor()
@@ -1599,7 +1603,7 @@ class SQL:
         """
         Create tables for the Orchestrator database
         """
-        if not self.useSQLserver:
+        if not self.useSQLserver and not self.usePostgreSQL:
 
             try:
                 sql = "CREATE TABLE IF NOT EXISTS Flows (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, location TEXT NOT NULL, description TEXT, timestamp DATE DEFAULT (datetime('now','localtime')));"
@@ -1616,20 +1620,34 @@ class SQL:
                 pass
 
         else:
-
-            try:
-                sql = "IF NOT EXISTS (select * from sysobjects where name='Flows') CREATE TABLE Flows (id INTEGER NOT NULL PRIMARY KEY IDENTITY(1,1), name nvarchar(255) NOT NULL, location nvarchar(255) NOT NULL, description nvarchar(MAX), timestamp DATETIME DEFAULT GETDATE());"
-                self.run_sql(sql=sql)
-                sql = "IF NOT EXISTS (select * from sysobjects where name='Runs') CREATE TABLE Runs (id INTEGER NOT NULL PRIMARY KEY IDENTITY(1,1), flow_id INTEGER NOT NULL, name nvarchar(255) NOT NULL, result nvarchar(255), started DATETIME DEFAULT GETDATE(), finished DATETIME DEFAULT GETDATE(), CONSTRAINT fk_saved FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
-                self.run_sql(sql=sql)
-                sql = "IF NOT EXISTS (select * from sysobjects where name='Steps') CREATE TABLE Steps (id INTEGER NOT NULL PRIMARY KEY IDENTITY(1,1), run INTEGER NOT NULL, status nvarchar(255), name nvarchar(255) NOT NULL,step nvarchar(255),result nvarchar(255),timestamp DATETIME DEFAULT GETDATE(), CONSTRAINT fk_runs FOREIGN KEY (run) REFERENCES Runs (id) ON DELETE CASCADE);"
-                self.run_sql(sql=sql)
-                sql = "IF NOT EXISTS (select * from sysobjects where name='Survey') CREATE TABLE Survey (id INTEGER NOT NULL PRIMARY KEY IDENTITY(1,1), question_id NVARCHAR(255) NOT NULL, question NVARCHAR(MAX) NOT NULL, answer_id NVARCHAR(MAX) NOT NULL, answer NVARCHAR(MAX) NOT NULL, recipient NVARCHAR(255) NOT NULL, received INTEGER DEFAULT 0, timestamp DATETIME DEFAULT GETDATE());"
-                self.run_sql(sql=sql)
-            except Exception as ex:
-                self.set_error(ex)
-                print(ex)
-                pass
+            if self.useSQLserver:
+                try:
+                    sql = "IF NOT EXISTS (select * from sysobjects where name='Flows') CREATE TABLE Flows (id INTEGER NOT NULL PRIMARY KEY IDENTITY(1,1), name nvarchar(255) NOT NULL, location nvarchar(255) NOT NULL, description nvarchar(MAX), timestamp DATETIME DEFAULT GETDATE());"
+                    self.run_sql(sql=sql)
+                    sql = "IF NOT EXISTS (select * from sysobjects where name='Runs') CREATE TABLE Runs (id INTEGER NOT NULL PRIMARY KEY IDENTITY(1,1), flow_id INTEGER NOT NULL, name nvarchar(255) NOT NULL, result nvarchar(255), started DATETIME DEFAULT GETDATE(), finished DATETIME DEFAULT GETDATE(), CONSTRAINT fk_saved FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
+                    self.run_sql(sql=sql)
+                    sql = "IF NOT EXISTS (select * from sysobjects where name='Steps') CREATE TABLE Steps (id INTEGER NOT NULL PRIMARY KEY IDENTITY(1,1), run INTEGER NOT NULL, status nvarchar(255), name nvarchar(255) NOT NULL,step nvarchar(255),result nvarchar(255),timestamp DATETIME DEFAULT GETDATE(), CONSTRAINT fk_runs FOREIGN KEY (run) REFERENCES Runs (id) ON DELETE CASCADE);"
+                    self.run_sql(sql=sql)
+                    sql = "IF NOT EXISTS (select * from sysobjects where name='Survey') CREATE TABLE Survey (id INTEGER NOT NULL PRIMARY KEY IDENTITY(1,1), question_id NVARCHAR(255) NOT NULL, question NVARCHAR(MAX) NOT NULL, answer_id NVARCHAR(MAX) NOT NULL, answer NVARCHAR(MAX) NOT NULL, recipient NVARCHAR(255) NOT NULL, received INTEGER DEFAULT 0, timestamp DATETIME DEFAULT GETDATE());"
+                    self.run_sql(sql=sql)
+                except Exception as ex:
+                    self.set_error(ex)
+                    print(ex)
+                    pass
+            else:
+                try:
+                    sql = "CREATE TABLE IF NOT EXISTS Flows (id SERIAL PRIMARY KEY, name TEXT NOT NULL, location TEXT NOT NULL, description TEXT, timestamp DATE DEFAULT (now()));"
+                    self.run_sql(sql)
+                    sql = "CREATE TABLE IF NOT EXISTS Runs (id SERIAL PRIMARY KEY, flow_id INTEGER NOT NULL, name TEXT NOT NULL, result TEXT, started DATE DEFAULT (now()), finished DATE DEFAULT (now()), CONSTRAINT fk_saved FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
+                    self.run_sql(sql)
+                    sql = "CREATE TABLE IF NOT EXISTS Steps (id SERIAL PRIMARY KEY, run INTEGER NOT NULL, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp DATE DEFAULT (now()), CONSTRAINT fk_runs FOREIGN KEY (run) REFERENCES Runs (id) ON DELETE CASCADE);"
+                    self.run_sql(sql)
+                    sql = "CREATE TABLE IF NOT EXISTS Survey (id SERIAL PRIMARY KEY, question_id STRING NOT NULL, question STRING NOT NULL, answer_id string NOT NULL, answer STRING NOT NULL, recipient STRING NOT NULL, received INTEGER DEFAULT 0, timestamp DATE DEFAULT (now()));"
+                    self.run_sql(sql)
+                except Exception as ex:
+                    self.set_error(ex)
+                    print(ex)
+                    pass
 
     def remove_records_with_timestamp_older_than(self, table: str, days: int):
         """
