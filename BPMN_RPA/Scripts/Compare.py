@@ -204,3 +204,11 @@ def is_object_empty(inspected_object: any) -> bool:
     if isinstance(inspected_object, inspected_object):
         return inspected_object is None
     raise Exception("Cannot determine if given object is empty...")
+
+
+def is_object_not_empty(inspected_object: any) -> bool:
+    """
+    Check if an item is not empty.
+    :return: Boolean True or False.
+    """
+    return not is_object_empty(inspected_object)
