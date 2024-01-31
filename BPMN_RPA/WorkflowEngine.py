@@ -1651,13 +1651,13 @@ class SQL:
                     pass
             else:
                 try:
-                    sql = "CREATE TABLE IF NOT EXISTS Flows (id SERIAL PRIMARY KEY, name TEXT NOT NULL, location TEXT NOT NULL, description TEXT, timestamp DATE DEFAULT (now()));"
+                    sql = "CREATE TABLE IF NOT EXISTS Flows (id SERIAL PRIMARY KEY, name TEXT NOT NULL, location TEXT NOT NULL, description TEXT, timestamp timestamp DEFAULT (now()));"
                     self.run_sql(sql)
-                    sql = "CREATE TABLE IF NOT EXISTS Runs (id SERIAL PRIMARY KEY, flow_id INTEGER NOT NULL, name TEXT NOT NULL, result TEXT, started DATE DEFAULT (now()), finished DATE DEFAULT (now()), CONSTRAINT fk_saved FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
+                    sql = "CREATE TABLE IF NOT EXISTS Runs (id SERIAL PRIMARY KEY, flow_id INTEGER NOT NULL, name TEXT NOT NULL, result TEXT, started timestamp DEFAULT (now()), finished timestamp DEFAULT (now()), CONSTRAINT fk_saved FOREIGN KEY (flow_id) REFERENCES Flows (id) ON DELETE CASCADE);"
                     self.run_sql(sql)
-                    sql = "CREATE TABLE IF NOT EXISTS Steps (id SERIAL PRIMARY KEY, run INTEGER NOT NULL, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp DATE DEFAULT (now()), CONSTRAINT fk_runs FOREIGN KEY (run) REFERENCES Runs (id) ON DELETE CASCADE);"
+                    sql = "CREATE TABLE IF NOT EXISTS Steps (id SERIAL PRIMARY KEY, run INTEGER NOT NULL, status TEXT, name TEXT NOT NULL,step TEXT,result TEXT,timestamp timestamp DEFAULT (now()), CONSTRAINT fk_runs FOREIGN KEY (run) REFERENCES Runs (id) ON DELETE CASCADE);"
                     self.run_sql(sql)
-                    sql = "CREATE TABLE IF NOT EXISTS Survey (id SERIAL PRIMARY KEY, question_id TEXT NOT NULL, question TEXT NOT NULL, answer_id TEXT NOT NULL, answer TEXT NOT NULL, recipient TEXT NOT NULL, received INTEGER DEFAULT 0, timestamp DATE DEFAULT (now()));"
+                    sql = "CREATE TABLE IF NOT EXISTS Survey (id SERIAL PRIMARY KEY, question_id TEXT NOT NULL, question TEXT NOT NULL, answer_id TEXT NOT NULL, answer TEXT NOT NULL, recipient TEXT NOT NULL, received INTEGER DEFAULT 0, timestamp timestamp DEFAULT (now()));"
                     self.run_sql(sql)
                 except Exception as ex:
                     self.set_error(ex)
