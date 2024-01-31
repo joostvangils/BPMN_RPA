@@ -215,6 +215,7 @@ BPMN-RPA uses a SQLite database by default that is automatically generated. If y
 The WorkflowEngine has a 'use_sql_server' and 'use_postgresql' parameter in the constructor. Set the parameter to True to use MsSql server or PostgreSQL server instead of the default SQLite database. When using either use_sql_server or use_postgresql, you can also specify the 'connection_string' parameter. Default the following connection string is used: 
 - for MsSql server: "Driver={ODBC Driver 17 for SQL Server};Server=localhost;Database=orchestrator;Trusted_Connection=yes;"
 - for Postgres: "dbname=orchestrator host=localhost user=postgres password=postgres"
+
 If you want to use a different connection string, then you must specify the 'connection_string' parameter. The 'connection_string' parameter doesn't need to be specified when using SQLite.
 When running your first flow, all tables will be created in the 'orchestrator' database.
 
