@@ -1,3 +1,322 @@
-<mxlibrary>
-    [{"xml":"fVNNb4MwDP01uU5ApGnXlY1e1su6O0rBbbLmA4XQ0n8/5wMKUrsDxomfn58Th9BSjVvLOr4zLUhCPwktrTEuemosQUpSZKIl9IMURYYfKaon0TxEs45Z0O5Bgjn8QuMQIdnBF/OAnbHgd4zpPJMD1RNaRaJq0I0TRkekh9QBUDccmnPEfPndC7OCHSREYAzsOeugbqFvrOjuLGVMzcQRjeMQqrNgVZQSNWDQzLpK9IwNMTSc+bAFhjLayIIWNPqvpKB5Ruhm4cq1wnfE/oQMzZT/mePM4aEzMikIvb48pv4GN1idOO2Q2CPXgicK/r+9isl+lZ9uRA29m7orFncdTnk9Br27TVfQ+8NHF0acg401g27BJ+a44k7J5F45qtl3rPHYK45haM+XuYB1MD4dq3xRfQtGgbM3hFxF63hCpNHLOIgTT2lvaQ/PI6xPc+p9SNFJHU3LNLbT8v48AnT1ev4A","w":120,"h":80,"aspect":"fixed","title":"Are there more loop items?"},{"xml":"hVNLU4MwEP41uXYgmXG8Wmp78mK9Mylsm2hImCRY+u/dJUHa0eoB2Ne3++0DJqpu3HnZqxfXgmHimYnKOxeT1I0VGMN4oVsmNozzAh/Gt3e85eQteunBxl8A7vAOTcQIIw9UjAI2DgJaykB2HaHDT+NslNqixG07m8U2ZUeig4EErlxHxVb9Jfm2g22idjZ5CVbWOVmoSeU5TvsQ65R2M5nIugeMbX+aleyhbiE0XvdL9kpB80HkjgvxciEfspWvGH9gXJQFE+srcSLHxBOGvSnA95E44TcN6Q8Uv0aFifN/sFeIg7cZ5wcCOk9zkCZA6nLe4dT07XpDvMwDDzQLFGHE/a69G2wLBMRO1ip2JotnhUT3vWwo9oznNdGhMp/gI4x3z6W8qr4D10H0uNrirNuockQ+qUKBPqkMe8w2GZJ++oYux4dC7mhW8znO6nL2U+jNX/EF","w":120,"h":80,"aspect":"fixed","title":"Compare - Does first item contain second item?"},{"xml":"dVJNb4MwDP01uU5ApGnXla69bJd1d5SC12QLCUrCgH8/m4RSpPYQyZ/vPcdmvGzHoxOd/LANaMbfGC+dtSFa7ViC1qzIVMP4nhVFho8VhwfZfM5mnXBgwp0Ge/6BOmCFFmcio4K9BY+Rd+UpUVsThDJoCTMRcoDWM36IwKix1xD7StsSz1M3xdyhN3VQ1sRsg6iVRswqIVaIV0W0uZz4qqRn7ojhkxQdVA342qluhSsl1L8k55uU0QAbuf6qtHhmBc8zxnc3pr7lesXaLwkrxvVTgiXEyHQP5hNC70xCcD1BWEeTC+0hyl8WMU+z3ZEP0/J1noZEE0bUs3O2Nw1QY46eDK1O5iBxplMnaqod8EZmOUTzBy7A+HDn+Q37EWwLwdEuB9UEmSrSXWQS1EWmtpcUEz76l2vrekFopIkWd/nX5K63O5duTvsf","w":120,"h":80,"aspect":"fixed","title":"Compare - Does list contain any items?"},{"xml":"dVPBbsMgDP0arhMJ0rTrmi7VpO2y7h7RxC1sBCIga/r3w0CaVGoPkWz8nt8zOIRV/bSzfBCfpgNF2BthlTXGp6ifKlCKlFR2hG1JWdLwkbJ+UC1ilQ7cgvZ3CObwA60PCMUPKIaArQEXTj6kw0JrtOdSY08PPWF16hjMjQoSoTI9CjwNl1SrR916aXSqdqFdo0KzJrdqYqOIRI0me4jgdPwelZZ8L/gATQeutXJYOlcC2l80dsQBbuziAPxqunwmJSsoYZtVqNbarwH6LWDpM1/MPWa6iIWSNKg3qJ89HY29T/4CP1qd6XZEPkJpzZWDNO78eHH623d1/jLfusNLCSFMwf/GmlF3gMQiZML3KodnEeztB94i9hz2KtpBmT+wHqaHe1Ks1HdgevA2vC89y86LjMi7RAXIk8i0l3zGXcpPV+qydSHIE83p/A45XfY9Qm9+h38=","w":120,"h":80,"aspect":"fixed","title":"Compare - Does list contain item?"},{"xml":"dVNLT8MwDP41OYK6VkJcWccQBy6we5W13hJok5K42/j32HlsnbQdWvn9fXZsUdXD6c3JUX3YDnpRvYqqdtZilIZTDX0vykJ3olqJsizoE+X6jncRvMUoHRi8kWC339AiRfRyy2Ac8O5JX0mEjR6AXeDZYh394HeSXB8tgxgEdyC9WkcYYjz1EKvUdmDUx/Ev+taTaVFbE73aN0jVGzMNW3CN3TUeWms638i9jQnMoAkUQkY0vifIRpucMXd/KTlC04FvnR4vaLWC9ocJ75i6gjl3aoytkr6OEB8wNq39vc6VNOcqe30A1uRgJ4O5ViZWFm0cQpcnZuzxUZRPoqwWhaiWM5Gxw0hE9UKBm1CejYlPfqhbufrWUC5VZq1qM6d3q9Yn4ORMTF9a20PoduMmyINYy95DHHfesjD96wX0+Jc3wfOjkAgn2sClo0l1wIkL0hQOfRKPSiN8jbLl2CMdQCDGMAdwCKe7C72Yob+BHQAd7Vxx1B2qFJGWvlCg9yqlPSebTBu0P6dezoOE1FFW0ztk9XKYIfTqbv8B","w":120,"h":80,"aspect":"fixed","title":"Compare - Is datetime less or equal to interval?"},{"xml":"dVNNb9swDP01Oq5wbGDYdXGXoodd1twNxWYjbbLoSXSS/vuRkpy4WHKQIH49kk+katrx8hL0ZH7iAE41P1TTBkTKr/HSgnOqruygmmdV1xUfVe8eWDfJWk06gKc7AXj4DT2xh9MHSSYOr5HlZ02wtyOICaJoMPAFf2ct+IR8+Xk8gGjxna8IPfpBPPURVbPLmbmJ2UEGbnGUQp6mj2zbzb4niz5bbeyIE3YZtcP3riB2gpcCrkWlgKx79QThpF1n/RKwNr8ZPUE3QOyDnW7JWgP9H+FJKicjbdoCtPSj+Qyc8AtlGmx8xIXR/opytCcQSY84e/qfmz5zMFw5xPOTqr+qutlUqtmunpI7MaKa7+y4T/CiLPUsX3cv1t4j5YayatX6dXn3sH4BzcHn8C2ig9TtPsywELHTLkKme5m7xP7nkYz0sQxClE/hJ1x4JreBmRpAAjcsGRpdeZ6NJXibdC++Z16JVJikOUEguDwc8c0q+wvgCBR45KqzHcgUj7IGlQF7NCXsW9HpMkHHa+htYfhROlrE8g+LeFvV5Pppk/8B","w":120,"h":80,"aspect":"fixed","title":"Compare - Is datetime less or equal to number of seconds ago?"},{"xml":"lVNNc4MgEP01XDsqM51eG9tkeuil6d0huAm0CBawmn9fFjCameTQQ8x+vPf2w5XQupt2lvXi3bSgCH0ltLbG+GR1Uw1KkaqQLaEvpKqK8CPV9k62jNmiZxa0v0Ewhy/gPiAUO2AxBLy54JcOo9JDF/7gZ2Co6k14VLqdM3Sb5EOng4LErk2H1R76c8ptB829NDplpWuO0jrfIL+Juo03jQNudNukcpF1ASVeiu5XsHVYsB6aFhy3sl9q5U6w79HklnE0FgfgAvg3Ro8IEHDGTETnaR9JRcuC0M3KPK7aeg7QT4GEGF22FbfE5+K3ZNbjrnRS+D9CH+AHq5PGxhgFTKOaHVDOWFwkUw7SmuabiFu7Phfnz/P7c7jMYMIU7mVjzaBbQGIZPOE7lc1RhCb3PeOIHcO5xsawzC9YD9Pd8ytX1XdgOvAWVz/K1ouMyCdaCJAnkWlPOcZc8k8X6nLMwcgTzW4+79ldPqMIvfrK/gA=","w":120,"h":80,"aspect":"fixed","title":"Compare - Is first item equal to second item?"},{"xml":"jVPJTsMwEP0aX1EWCXGlgVQcuNDeLTeZ1gbHDrZD079nvKRJaStxiDP7ezMek7LqxrVhPX/XLUhSvpKyMlq7KHVjBVKSIhMtKV9IUWT4kaK+482DN+uZAeVuJOjdJzQOIyTbeTAf8GZRz623Cgcd/g4GmAODkuNM4U97Gb4H5rGcxqNQ7RRf1hEU+Q8SYs1Kd57DQ3+KvnpQjRNaRa+wdC+MddTn04RGtaEBgnpQaqHRqqWRUShxzohFonWzCFuaOeuBtmAbI/oZuOLQfHneezwChblpYS86v245MjonPJKizDNSrhbifsHxGSO3HK6BQrEmDuh2mWXvizp/CPyj0Ae4wahYY6W1hHCbWzPA1GHNpIU4s2mHwggv18u603Sz1k8WRRhxv1ZGD6oFn5ijxl0nk3jkSHLTs8bHHnG9AzEP8wPGwXh3XfMF+hp0B87gDmVH0TqeItJKZxzEgae0p2RjNuqHc+q8/CikjiY1PYdJnZ9dCL14lb8=","w":120,"h":80,"aspect":"fixed","title":"Compare - Is first item greater than or equal to second item?"},{"xml":"jVNNb4MwDP01uU58SNOuKxvVDrusvaMUXJItJCgxK/33c0godGulHUjs+PnZDi8sL7pxa3kv3k0DiuWvLC+sMRisbixAKZYlsmH5C8uyhD6WlXei6RRNem5B440Ec/iEGgmh+MEX84A3R37q/KlE6GhrLXAESxYKrmnLdDNH8zKUoG4HBYGhMJ2v+NCfQ6wcdI3S6BCVrjpK67Dy+VXkrjxz5aA2uqlC2SnzAgy54XS3gq2PBe+hasDVVvZLvUJA/eXbPdIyVV4mk+7WeKGNC+qRZXmasHyzMo+rxp4JuRfwlx0NLXW4jNs064FXPL8a+AfRB+BgdeDYGKNgGmRvB09n/GwlVw7CRc3qmO7tWjgOz/NfdP46yYSRlLOxZtAN+MSUPIGdiuZJUJO7ntceeyLhTo35Mt9gEca7QkxX1bdgOkBLeklOskEREVGsiQDZipj2FM+4C357SV1kTUacaHaj0Gd3eVAT9Oq9/QA=","w":120,"h":80,"aspect":"fixed","title":"Compare - Is first item greater than second item?"},{"xml":"jVNNc8IgEP01XDv5mOn0WtPG6aGX6p3BZBVaAimQGv99F0gMVp3pQdyPt/vekoWUVTeuDev5u25BkvKVlJXR2kWrGyuQkhSZaEn5Qooiwx8p6jvZPGSznhlQ7kaB3n1C4xAh2c6TecCbRT+3PiocdD4J1sccZwr/tMEDvgfmiZzGo1DtDC7ryIjiBwmxYaU7L+ChP8VcPajGCa1iVli6F8Y66uupp6La0NCfekZqodGqpVFLqD/DY4cY3SSwNMxZD7QF2xjRL6wVh+bLi97jEfiXcYVdZr4eNso5ox9JUeYZKVeJuU8EPiNyy+GaJTRr4tXcbpMOnvT5I+AfjT7ADUbFHiutJYTvuDUDzBPWTFqIFzavTri/y62y7jR/U+uvFU0Yca1WRg+qBV+Yo8ddJyfzyFHkpmeNxx5xq4MwT/MDxsF4d0vzhH0NugNncHuyo2gdnxDTJmccxIFPZU9TjNnoH86ly86jMU00u9MrmN3ltQXoxWP8BQ==","w":120,"h":80,"aspect":"fixed","title":"Compare - Is first item less or equal to second item?"},{"xml":"jVPJTsMwEP0aX1EWCXGlgSIOXGjvlutMa4NjR7ZD079nJk6alLYSh6azvHmz5IWVVdO/edGqD1eDYeUrKyvvXExW01dgDCsyXbPyhRVFhj9WrO9k8yGbtcKDjTcK3O4LZESEETtqRoD3gH4eKKojNJSEQLGohMW/wtZTqlwnfhy1M5DKK9dQu4f2lHLrzsqonU1ZHfhe+xA51XMi5kTLA0hna54aDmVnVCpM0c0Ctgwr0QKvIUiv27lZpUB+06x7fAxt5510uFoszXCGPLKizDNWrhbmfjHVMyK3Cq6po8OHTGe4TbPcdsHzZ4B/EH1C7LxNHCvnDAyLbH1HdM7THYUJkK40iWI42qVeQjxN7y/QLdGEHgWz8q6zNVBhjp6KjRnNo8IhN62QhD2iXofBqM0P+Aj9Xf3li+5v4BqIHpWSHXUd1YgYNZop0Ac1lj2NMRGSfziXzmpGY9xockd9T+78HQ3Qi8/sFw==","w":120,"h":80,"aspect":"fixed","title":"Compare - Is first item less than second item?"},{"xml":"dVJNb8IwDP01uU5tI027jm5MHHYZ3FFoPdItX0rcUf79nI9SkODQ1I7fs58dM97q6cMLJz9tD4rxd8Zbby1mS08tKMWaaugZf2NNU9HHmvWDaJ2ilRMeDN4h2MMPdEgIJQ6xWARsAvmXAGiHZ8bXORFpGhVkXGt1zPvkzjm2Hk2HgzU5OoR9zrHPGRJkK4WDfQ+h84NbsK2E7jeq/qZDmGgh6PgLFwXNM2t4XTG+ujITjL8SaCdhoaGlo8tJ79G+AEdvMnFlrYJUc+fHmMP62ItQAbLmjQmO2oC+9JMl59g85uTevkDA8zyoELsmEyYir7wdTQ+RWJMnUatiniTJ3zrRReyJNiCJjmX+wCNMD1+0vqr+AVYDeppXdRp6lAVRXr2SMBxlob2UOxGyf7xQl/0go3Q0u/MQirtsZoLeLO4/","w":120,"h":80,"aspect":"fixed","title":"Compare - Is object empty"},{"xml":"dVPbTsMwDP2avKIuFYhXKBchgZAYgscpa70lLEsq1123v8e5dN0Ee2h0Yh8756SOKKvt/hlVq998A1aUj6Ks0HtKaLuvwFohC9OI8kFIWfAn5NOF7Cxmi1YhOPqnwC9/oCZmWLUMhwVChaAIOLZTaNTSQurBcnrGkTIHWnwp28NVe0jZp97VZLxL+V3ILcgvzltU3u0AKSSs6bKeT+xzOnZMwRR476ntaWqSU9dT1+tEnGvVwqKBrkbTTjKOomSx8sgrAvXojFszVtFhOFEW5MOiA/z2uFlZPzy6tXFwJeSNkOWsEOX9CcxK75h/5w5jowvkP65D2XuUqSzXFC+uMbWiqHDQwDrwqAkPI6xTm6PQM+3BzCs3vyDhI/pOJ3/Gao+G/ak4K44v+cSDPJmf+CPOR6ujw/grunDtDGHPru7R966BUDjjnaatzXDQhmDeqjpwBx5tjnWEfgOVt+y6fFhaVW+i5HB4sAn7iwM8O9H0DH4L6ZIG05DOjDzkhQaz1rnsNsdUl/brY+n0HBhkn+M2P5BxOz3ESD17p78=","w":120,"h":80,"aspect":"fixed","title":"Create variable"},{"xml":"dVPLbuMwDPwaAe0lkG1g0XPTNuhhi8X2AwolZiK1kmjIdB5/X1KWE6ePg2GSGnI0FKmaZTiukunsX2zBq+ZRNcuESKMVjkvwXtXatap5UHWt+VP10y+nVT7VnUkQ6YcEXL/DhhjhzVrIBPAAHgg4tnUexny+ysB2PsZ+jD0NcUMO4xhNEHBf0P8M2TE6+q/WdPDWQr9Jrruk/C8p2py59E1vQg4xiR6id/Hj5vZ2oeo/qm4qrZr7mfm8ZVDr0tu2FcmSElHEvGDkIksJittbHLxA1l/YpithYgc7iPwjLBguzK3BdMqVZvxaALHNbWWhX+sn8IYcC8vYAjm4/CxkM8c1rnCSNTSnnYs+iwzmdFaZq7jQeQj8uCDHKNVPOIiejstvMYXFt8vnvuXOuLHNZm8cD4AvTRt6F3cTpNw8GddP3XtBer7QPqaEaTG+9DR2+eGvJ7Kn0zRBvcwDm3DkkbxPOMQWJLFiz1LwxTxYR/DamY1gD7wRWYDQ7CERHH+d8GrGvgIMQPKIrKSd5rIqW6AtuJ0taXclxrOX/d059bIvbBRFk1s2aHIvm5qhV4v8CQ==","w":120,"h":80,"aspect":"fixed","title":"Delete file"},{"xml":"dVJRbsMgDD0NvxVNtAMsabefTaq0A0wkcYENMAK6prefgXRppTUSkf38bD9jWNvb+TUIr95xAsPaPWv7gJiqZecejGEN1xNrd6xpOB3WvDyIbkuUexHApX8ScPiCMRHDiCE3y4S9m2rWhxIePieIY9A+aXQ3cZ4U0H88hVK54UeD503NuzZvsnuvK6aLgRqNuTqZdpZ52s3grdssYKeSzWq2ZP5ASHoU5i0rPGDUi5IBU0JLhCK9E+O3DHhyU48GQ2nRHst3U+PZaJlzE3pCxeKNNAFQSuchaAvF3pFe7SMcVqjDUzLaQY/O5Utrd3wFc1EV8KydJDBe7IB5AAkOgiCrq1eThcD8cDfbmxt7BaTG4UKUs56Sqoynuj6uQEuV7jERqy//MtdFk7Es4eouq7+66xMr1LsX+As=","w":50,"h":50,"aspect":"fixed","title":"End"},{"xml":"dVLRboMwDPwaXisK2gcU6HjZpErb+xTAg2xJHCWhhb+fk0Ch0oqEsM8+fLk4yUs51Ybp4R07EEl+TvLSILoYyakEIZIs5V2SV0mWpfQm2euT6jFUU80MKPcPAZsfaB11CNb4YVUoesrnrCHm56kVo+VXILRmDm5sji0fA9Pw1YFtDdeOo4r9J0U12JH6PWlVFsY8irZuFstM639NoZx6b8Wh0VIdFrAYnPRSjxRewTjeMvHm5V/Q8kVGg86hpIZwroK1v73BUXUlCjRhRP4dnt0/ToL3nutQE8qWrCXjgCiFBsMlhLgyA8pmtJcNKpr7DKqvJ84LHJ3gCkpUyhudV+kGUqbQfwo7ywb9me621TeCo2NeH0xP7/O4M7IGJD2GrE5vvHND7HiJV54OwPvBPWLMxry/M7floGC5mzVd1mVNt7UMrQ9b+wc=","w":50,"h":50,"aspect":"fixed","title":"Exclusive Gateway"},{"xml":"dVLbboMwDP0aHldR0D5g0MvDLq20vVcBXMiaxFFIV/r3sxMYrbQiAbZzji8nTvJSD1snbPeODagkXyd56RB9tPRQglJJlsomyVdJlqX0JtnmwekynKZWODD+HwJW31B7QihRcTEGrAfJkYv0Hf1q6oJ+H7sv+u5eY77N2dReookEIALDDgb9AU8R8tkJC4cG+tpJO2PH5L7jpEeFl7nSlIZMSjRWS5/GEaaJMnbvh+39VUE87bkqmXpoWcJFZbVZjMGi85pHXJL5A87LWqg3HnuPvRw7rNB71AQIehSiPrUOz6YpUaELJfJjeG5yvCjZMtejpagYvZoEB6IUFpzUEOwV9SttD/s5VODZK2mgRGP4JvJVOgeZYWjuor/qCrl3cI77KKIm3AEMD296eSPVFpAqumuQuyG9A+I5LkPagWw7fx8TffTbP+a8NmSM6k/uuEiTOy9sgN7t8y8=","w":50,"h":50,"aspect":"fixed","title":"Exit with code Not OK"},{"xml":"dVLbboMwDP0aXisK2gcMennYplXaB1QBPMiaxFGSrvTvZydpWaUNCeHL8bF9cFG3et47Yac3HEAV9baoW4cYkqXnFpQqqlIORb0pqqqkt6h2/2TXMVta4cCEPwqw+4I+EEKJjpsxYDtLjlxkmOjT0xT0eX9JTLuz6YNEk6BAUAYc8ZTSH5OwcBzA907aBZcpw8RUnwovC/+NIvco03j3BSp2H3fz4aogZT23I1PPIyu26qw2qxxspqB5ozWZ3+CC7IV65S0P6GUercMQUBMgrt+I/jQ6PJuhRYUutqg/4/OL41nJkWsDWoqK7PWkL1BJY8FJDdHe0LzSejgsoQbPQUkDLRrDwtebcglyhaG9G3/VHfLsnsgFGU0ShUeA+d8/u/6l1R6QWrprFHogpSPiKas7gRyn8BgTPvnjvXI5EzKy/Dc3H87NXQ40Qh/u9wc=","w":50,"h":50,"aspect":"fixed","title":"Exit with code OK"},{"xml":"tVPBbtswDP0aAd1lcGy06LXNmmCHoUBTYEeDsRlLnSIZMh0nfz9Skpu0aI49yCbFR/KRIlW13B/XAXr9x7doVfWkqmXwnpK0Py7RWlUWplXVL1WWBR9Vrq5YF9Fa9BDQ0RcOfvuGDTHCwlaSCWCNcmFcP1JyhT0ShhRpNbqGjHcJ2iHVEVh/gj2PJLcHCAa2FhNalbc56m1CbTT0WLc4NMH056gvSGNwAwNI49dU2AJyNYHAOnNAJ5qOvyYgkHEdi+Ci/0DgGgnld+9R//rwb2f99OQ64/CnKu9UWS0KVT1eiA9D3ZpYMISTqh6ktMgULHsUvx1bgXxIyTlw5OblIyTek80M51IibeBzEZ3Zza9xM1BIBcRYAvpxhWFqVqL2em5X/Z3NSq/3qTfyciuwQ7bOE1iK+nE4BzrNIzHIBLCIR57Ox+BH16I4LljTtLdZnLQh3PTQCHbi5Yg9kDQHDITHq8O+uMi+Rs8NiY2eTEs6I/JCFBpNp7Pbfb7jhuU5n13Pq8NCrmhW8/PN6nlpI/TDTv8H","w":120,"h":80,"aspect":"fixed","title":"Get input parameter"},{"xml":"dVJNb4MwDP01uaIUNGnnsbWapp3YfQrEalhDjILLx7+fQ8JopfWQyH7287PjiKLs5pNXvflEDVYUb6IoPSJFq5tLsFbkstWieBV5LvmI/PggelijslceHP1DwPoHGuIMq+ogFhIqcJqRCyxDZHMjVwsx+AFLjcrrrF9i8Hh1DbXoYnhg7k78gjmJRv/dEfhRJR2ZyaeIV0b18K1haHzb78VuGiGPF+CqkjBcBvhWrDsGY2qdximLtbbJV8n7Rxlo2cYYgiKba4MvHq9OQyAe2DPU2WROpiWoetWE3ImXwljspUSLnsHaqubCaBQfwRPMD5/+cNPTCbAD8svavyaTMtJ6pIH2bBLtOWFqiP75j7ovko005+am1W7u/oXW1Lsf9gs=","w":120,"h":80,"aspect":"fixed","title":"Keyboard - Send keys"},{"xml":"dVPbTsMwDP2avk5dKz6AdmxIgITEA49TmnhtIImjxIPt73Galm5iVEplH99ObKeoW3vaBeGHF1RgivqhqNuASFmypxaMKapSq6LeFFVV8imq7T/W9WgtvQjg6EYAdh8giT2M6FKx5PAudEIOGPj/iPQJ55yFCR0NZKcnOHcoglr5ybg9OkkaXTZ/c449Z9gPF/Eck61ZbSlMFbfCRMjgvaE/2NugD7dQ4WGvIMqg/VL5ir3gEz1IfdCSxZlMKdF22okxqioJ+ddB6lOAGEGtcoW5iSPf6/5GOs+diIkHi/bUp6mtOm/dagKbgWy645rFLwikpTDPqdOvGPXEuUMitOwwjqAR8rMPeHSqRcN3SCXqw/hd5Lg3uk+xhJ5RMWmSZwwc0ngI2sIob5iv9hFeF6jBIxntoEXn0vDrTbmArEUSTvFoGYxn22G6gESnRsKCtSa3J5GB0797tr7o2g6Qi4fU+m+taMged3kVywF0P9A1JmLW+9/IZWlZmAYxq9Maz+ryXEbXq9f0Aw==","w":50,"h":50,"aspect":"fixed","title":"Keyboard - Wait for hotkey"},{"xml":"dVLBTsMwDP2aXFGbSojrGGwXEIhxn7LGNEFpEyUu6/4ep/W6TtoOjZ7t9/ycxqJat8M2qmDevQYnqldRraP3OKF2WINzQhZWi+pFSFnQJ+TmTrUcq0VQETq8IfCHX6iRGE4dslkmvPmGEqrTdH5G2+VyCympBqZum76r0fpuoodM2bssysUvSL1jqymzQ4V9usoYFWCvIdXRhkunyThE30SyI4g+H4Zsi49YG0gYFfpIoVaoDirBPGjgQRdqaisLsgAg8ChkVRaiel7AxIOtcv9xDuUeCH+PjlylPj/zFAkh3O4V+dqrWc+ZG3q5eKDxj1y/XcKTg6ma8o8iCANmD993GrKwpMhg6xgejUXYBVVn7pF2Z5wt2/xBRBju7kK5cN+CbwHjiShHq9Ewg/elMGAbw7Inzil+1WaWXjaLAN/oHPKuncPLTo/Uq5X/Bw==","w":120,"h":80,"aspect":"fixed","title":"Log and print message"},{"xml":"dVLBbsMgDP0ajpsSctl52drLeuoHTDRYgQlwBGZJ/n4QyNpq6wHJfn4PP2xY19vl6MWkTijBsO6ddb1HpBLZpQdjGG+0ZN0b47xJh/HDg2q7VZtJeHD0jwAvXzBQYhhxyc0y4QPHBGDM8BD9puRNDODLZclXNFC4GAp2iG4gja6gYQ0EtlR6tFa4aieoSBJnl/AnU+pnJSb4lBAGr6frFbcmSMEfK89Fvb+T5/R+BIHW3WXIPVIIS5rBq8foJGRhmzJF1tRwVprgPIkhc+e0goSVNt/gCZaHI21vuh8BLZBfE2XWklRl1LE3CvSoquylYiKUfPyVXheUgvqiPa0r29Pr19iodz/nBw==","w":120,"h":80,"aspect":"fixed","title":"Logout current user"},{"xml":"nVVLb9swDP41Rk8rHAcZdm7WFgW2dlh3LxSbjrnJkiHRefz7kZScOOuyww5JRImPjx8fKZbr/vAYzNB99Q3YYnlfLNfBe0qn/rAGa4uqxKZYfi6qquRPUT1ceV3oazmYAI7+YuA3P6Em1rBmI8FE4Yv3A9+0aCGKKyeCtw2E5IxxjRaSro/p7mF0NaF36dZipAaz+stIw0hvOxPQbCa7olpl/6ukJUFrPzriKDOY5TdD3WQi8mtnBnhrINYBh3PE70BjEKBGcuHw/FN7RwYdui0L1AF/O9NrTr49XV2kma4YOpPiw/G2qD4W1XJRFsu72XEQTOzfiMlGLOIANbYIjSAQb4DsKsgL8fda9I4kceToQwYqjj5Y/CUuUiU4IidePrX5VYDFC+sZoPIiiSm3oFQolD1qMxgb/YQ0OVJrzdiohs9oawz12EcyrhZf/xEr0UFhTt27bJ69g0TFGNVP8jykWt/c3sytXwRm9L1qWEOtD30mMvvszfGPLN/VQ0vlB3A5Aaly7iGuBie4+he1l9occNQGC9Aqa+RzPa80zqmi1Gn6bR4WY5GOEyejMzuDVkckU5M6FzWUwcTUs6enfrDQ8zxDcx+CD1e69IfCz7OApxY3YYMUTDhqI/JQTy0nao3XIM6rjavt2MCJCSXV2FkIxhBQLbhmynKjZxVgp2xjHjUtUdAiBoiyja7OXDVbYDr2l7st0nFaI1G2AR/hwMvtLvD+aEAMFyx11Nt83HdI8DqYWnT3vFuVKQmzg0BwuLorF7Poj8A9SMrbHptpKy2mRdUBbrts9infceupvD2ZnjcvH3JGk5h38SSed76qXvwl/AY=","w":120,"h":80,"aspect":"fixed","title":"Loop files in folder"},{"xml":"dVNBTsMwEHyNJbggx5EQVwi0pyJEuSM32dYGx45sp01/z67jtGlVDq3WO7OeyWbCyqodll52auUaMKx8Y2XlnYtj1Q4VGMME1w0rX5kQHH9MLP5Bi4TyTnqw8caA2/xAHZFh5IbEiLCSv4CdUHsAGxQqpzvQTm9gpIRjiNA+dMcRqowMISMqGaDuord11M5m4Oq6DxnViIzntZIdfDeAPN2dx7IZeWWIS9tQS+4J1dSJDv+22iR6IIX3JROPTJQFZ+XL7bJLLp6R/aVocNun9aW24G5L9ybAuFomV5M0KVnZEnanbW36RtvdiZ60OQwRDePU/eQvGx5J8we6Ze4TYu/t3B75yqIzbxeLGTcgZhlIC76MR4jH06ukvWOJXlHSu942QIMFnlRsTS4PSkdYd7Im7gHjmaySzB58hOHfuBUz9SW4FqLH1PCDbqb3X+RIcgV6p/LYU+7JnKvdafQcXizyE03HHOfpeP5sEvXiq/oD","w":120,"h":80,"aspect":"fixed","title":"Make screenshot"},{"xml":"dVJNc4MgEP01XDOol56rTU45eWlPHaI7QgeEwSWaf99FsMaZ5uC477197AewqjbLxQsnr7YHzaoPVtXeWkyRWWrQmpVc9axqWFly+lh5fqEWq8qd8DDiPwZ7+4EOKUOLWywWExovBmKMDRMkO3USNCT1GumTeyTlHMYOlR2Ttlq++9Uf1c/nivzrgJrgxe7MZCuFowNg6rxyu9oqE7RA6oaLvTMeC8U/3Gm4UzphG7yM8LiTCR/bEFOsQyEstJR3b8PYQzQWhCQancNZKoTWiS7mznQnxAmththWRzXBE5Hq3sEjLC+XXjy1cwFrAD1tkM+qR5kzth1IUIPMtrfMiSnh4c+6XyEFecQN5kvd4P541tTD2/oF","w":120,"h":80,"aspect":"fixed","title":"Mouse - Drag mouse"},{"xml":"dVLJbsIwEP0aS+0FhURIPRcKJ9QDl/YUOfEIu3Jiyx5D8vf1qhAJDrZmeTPzZiHNfphOhmp+Vgwkab5IszdKYZKGaQ9SkroSjDQHUteVf6Q+vvBuo7fS1MCITwJU9wc9eoSkXSgWACcIhkE5CyFUWYFCjSmR5+QkJNw5IDZ6Tp6jG/uIi74rYBsztOv4n0cO1e9KOzhDlwzZ+O1QO2xv1Ajalcqk3sXkS+5dQl841dAysL0ResmVOkIe+umdibN41mH1NvmPjsz/c8AqZZgYKYJ936QKZbB1UNcztzgXgjbw8CJMfuifRrmRQQjceo3jILN45wLhomkfsHe/c2+jUlwD7d6TBOMNqe4NDML0cqnbBzonUAOgCQ3cBUOeEWWiHMSV57CPbKO2rK2ELifihdxiUfPRFHU5zghd3e4/","w":120,"h":80,"aspect":"fixed","title":"Mouse - Get mouse position"},{"xml":"dVJNk4MgDP01XDuolz3X3fbUU3+Ag5IVdkAcDNX++wbBtZ1pD8zk4+XlJYFVtV3OXozq4iQYVv2wqvbOYbLsUoMxrORasuqblSWnx8rTh2yxZvkoPAz4psC1f9AhIYxoY7MIuLgwAYXagOgGMqSbh8RDkoKBJ9hhvKfMKQwdaoKvORtzTSJo9vJjYlwhBn4xRa9KjNBImDqvx53jqm0wAqMSQc++V8XhRpMdEtM2dRnd14VMeN+ET7EfmbDQRo7ehUFCLCzIU2hNNmelEa6j6CJ2poNQTBjdR3kd9QRPgdT3Bh5h+bjx4knOGZwF9LQ1PmuJKiPyVbgC3atc9pVjYkp+/1+634+MPOLm5otu7v5zVujLx3oA","w":120,"h":80,"aspect":"fixed","title":"Mouse - Mouse button down"},{"xml":"dVJNk4MgDP01XDuolz3X3fbUU3+Ag5oVdkAYDNX++wbBtZ1pD8zk473kJYFVtVnOXjh5sT1oVv2wqvbWYrLMUoPWrOSqZ9U3K0tOj5WnD9lizXInPIz4hmDbP+iQEFq0sVkEXGyYgEJtQLQjGcGlKiQoaHgCHdw9ZU5h7FAReM2ZmGsSvdnIx1RtBWj4xRS9SuGg6WHqvHJ7hasyQQuMKgQ9804RhxvNdEh1tnnL6L6uYsL7JnqK3ciEhXZx9DaMPURiQZ5Eo7M5S4VwdaKL2JlOQTGh1RDFddQTPAVS3xt4hOXjrosnOWewBtDTxvisepQZke/BJahBZtpXjokp+cM/db8cGXnEzc233Nz9z6zQly/1AA==","w":120,"h":80,"aspect":"fixed","title":"Mouse - Mouse buton up"},{"xml":"dVJNb8MgDP01XKN8aFLPzdZqh57yAypKvMAGARGnSf/9TCFLIq0HJPs9P/ywYVVt5rPnTl5sC5pVH6yqvbUYIzPXoDUrc9Wy6p2VZU6HlacXbPFkc8c99PiPwN6+QSBVaH4LzULBxY4DECS0Ej9RT1ZGDRs6c4/InMZeoLJ95EzgrhvhcURcSA1fGNE6FAw7h589gr/zZCHPyreIN5I7uLYwCK/c2qhRZtQcg01Ox2wtZ1G5jKAM6X46Az6W1wzhfgphpvEcvR37FoKwoEyi0SmcpEJoHBehdqLtEMa16oIdAcE7AbHvHTzC/HL8xcbOGawB9DTKfFItylSRVpRLUJ1MskPCeBpb9yddl0lBeuKSpvUu6fqNnqW7X/YL","w":120,"h":80,"aspect":"fixed","title":"Mouse - Mouse click"},{"xml":"dVJNb8MgDP01XCuSXHZetvbUU37ARIgV2CAgYpr0388UsrTSckCyn5/9/AFrWrtegvDq6gYwrPlkTRucw2zZtQVjWM31wJoPVtecHqvPB9HqEeVeBJjwnwTXf4NEYhjRJ7FEuLo4A0GDi71JhjRa/uRC1FMkbOed/D1HznGSqN2UYzbFvnKFp/ROCU8wzDJov7M7baMRmLQEPXvQAIcbTXHKpbYJ6+S+Dj/jfetxToJkwkrTvwcXpwFSYkWeQmuKuSiN0HkhE3eh5RMmjB5Tf5I0IRCQdW8QENbD7VZP7VzAWcBAC+KLHlAVRrkAV6BHVdLeCibm7I9/qfutyCgjbm653ubuv+RBfflEvw==","w":120,"h":80,"aspect":"fixed","title":"Mouse - Mouse double click"},{"xml":"dVI9b8MgEP01rBG2l851mkyZsqRTRMzJUIFBGGzn3/cwUMdSM1i+99497gNI0+rl7JgVF8NBkeaLNK0zxqdILy0oRWoqOWmOpK4pfqQ+vVGrVaWWORj8Pwbz+IHOY4Zij1gsJlzMBMhoE0ZIduwkKCgq0gf7TMopDJ2XZkjaarnr1R/V22tF+r1Dx+DY5szkVTALdw5j56Td1KvUQTEfu2JbZ5SbecAfTDjbIR1Q5q4j3K9k9M8ywxjLYAgL7uTTmTBwiMYKkfBa5XAW0sPVsi7mznglyDEl+9hVhzXBIZHqTuA8LG93Xr20cwajwTtcIJ0l9yJnlBUIkL3Ito/MsTHh/s+63SAGecQC850WuL2dNXX3tH4B","w":120,"h":80,"aspect":"fixed","title":"Mouse - Move mouse"},{"xml":"dVLbboQgEP0aXzeupB+wautLm5i07w3oVGiBIcB29e/LRdfdpGtCnNuZORymII2aO0sNf8MRZEGeC9JYRJ8tNTcgZVGVYixIW1RVGU5RvTzIHlO2NNSC9v8AkH3D4EOFpCwOa1MyQj4WA9nvqaVSQmzbUQ8XuuSKd04NfI7gBiuMF6hz+SnP2yDTLWSjlWbcM3Z+ketAFxsHU81T1OHAjNKHNVhzryLPYzB/wXoxUPkauffoxEqCofeoQkG6VE2Hn8niWY8NSrRpBPlK302PkxRTxHo0IUpXbwiqQYDUBqxQkOzWclTs7Po9VLPrjJDfbkxqPHspNDSodVSZtOUeDJ7G+KvdohjGO22qdZcQzYJFejA/fMvjjY4dYKBjg9LlRYye54qn/NwlBzFxfx+jLvvTFbkvRjDWp9ncdVU2d1/JVHq3sX8=","w":50,"h":50,"aspect":"fixed","title":"Parallel Gateway"},{"xml":"dVLLTsMwEPwaS3CpHEdCXNtAekJIFIlj5Sbb2uDYlmOT9O/xK01a0UOi9c7s7uwDlVU3bg3V7E21IFD5isrKKGWT1Y0VCIEI5i0qXxAh2H+I1HfQIqJYUwPS/hOgDt/QWM8Q9BCKBcKHk95BpbIMjLeOQg0pjVfkBCRW5dWt9DkBtZON5UomyDi5n4Nqb+01tSyBCyeX2tmltxK07+f0ybljVMO+hb4xXM9FblV+KfMTsq4QeUKkLDAqN4vSa0/5ZBDacXFC0U2wVeGXgCgZj12Aj1zAMtVt1qw9pH2PqqjwdLyW5zD9CBL8cBmvChJ7a7g8Pa5SX9OKYu/X2+vteRpzH7r3Joy+2sYoJ1sIgYV/MduJbA6MW9hp2gTu4K8nSg5lfsFYGO9eQ7GovgXVgTWhg4G308KKfDGYAT+xHPacfTSv63QJnW/LG7mj6ZnHMT3nq47Uq6P/Aw==","w":120,"h":80,"aspect":"fixed","title":"Run another flow"},{"xml":"dVLLbsQgDPwarlUel56bdvfUS/cDViy4CxUvgdMkf18HSNNI3QOSPZ5hbAPrBzufIw/q3UswrH9j/RC9xxLZeQBjWNdoyfpX1nUNHdadHlTbXG0Cj+DwH4G/fYFAYhh+W81WwsfoCOAhGC04au/KHdTOaKBQfCrYaXQiMzKaloRgS2Xw1nJXuyjQRfEAVwlJRB12VbWjkwII/anF0f2pqLeJ8mXHYRMuW2Np9aAQZpr2JfrRSViFLWUKranhpDTCJXCxcidaNmHF5hsiwvxwee0f9zN4CxgXokxaoqqMuuBGgb6rKnuuGE8lv/9K96egoE60pfVxtnT/BJl6+CM/","w":120,"h":80,"aspect":"fixed","title":"Run application"},{"xml":"dVNLb4MwDP41uU4haNOuLV17mLqisjtKg9VkCgSFpMC/X170IbUHgh+f7c+xg/KinXaa9nyvGpAo/0J5oZUyUWqnAqREBIsG5RtECHYfItsX3ix4cU81dOZJgDr9ATMOIenJF/OAo+18yGy48gJzNGIWR8hKiKAC5Sv0XpQBVWrl0wzOsC73P/WxXD2KFdOiD/5qHgy0b/0cUxaSDkPMGA1b2zEjXOFg07arI5H6RuNgTW9NfaFa0NPCJ6XzoDu94rSHuoEh1L+m3cwdbQWjUjoaWId+y8d+PxDJM4zy9Z0YPK5tgn85XJHYqCXJs6AjGKu7GHb4Ru7iCFbaHTAxiJwIHjn4H/UHaB38ijGrh9jHMs7Q1uOkBzMvdzD4bp0Ikxv1WivbNeADM6dx08okjlwYqHrKPHZ0mxYI+zIX0Aaml5uT3VXfgWrBaH9/o2gMT4i0XZiDOPMU9plsNA36fA297aETUkeLmjZzUW8vIEAfHsg/","w":120,"h":80,"aspect":"fixed","title":"Run python code"},{"xml":"dVJNa8MwDP01uZY0YbDrkq5lsEGhhx2L46iJV9syjtKl/36ykzYprAYbSU9PX1aSl2bYeeHaL6xBJ/l7kpcekUbJDCVonWSpqpN8k2RZyjfJtk/QdURTJzxY+oeA1Q9IYg8tqpBsE8FA2fZWkkI72jqgY+VBnB0qDhQ9Dq1wcKyhk1652fUAIZ7guySkhPzUUPVNUFrgV3KDqzHWrd6Y/LGVjq4apipCRhbN0IQBrSpn7GoyFi2Z0MCaxQt4UlLoz9DUHjs1VVchERp2iN0WQp4bj72tS9ToY4r8FM8ixptWTeASOraKSZM8TmBK4cArA1HecL3KdbCfTQX2pJWFEq0Nc8436WwMjAvH+Qg/U3RXU2FooOMMgoXipLReVvYqQcrgSR7PsEDKMuVzR75VTS0jPMhinG7oBYanG7FeDH0HyLX7K7v8TnEYfRmXJm1BNS092kQ36s2dOa8XC9M/3tRp4W7qvNjR9WHv/wA=","w":50,"h":50,"aspect":"fixed","title":"Set breakpoint"},{"xml":"dVLLbsMgEPwarpWNLz3XbXLqyR8QEbMKVLwE69r++y4Bx7HUHNA+mNkddmFdb5dzFEF9ewmGdV+s66P3WDy79GAM442WrPtknDd0GD+9uG3vt00QERz+Q/DXHxiREEZcc7MMGNSUM9LPjkxaE4ItZUjRZKCgfCq50+RG1N6V7DO699YKV4UkKlorUvNUTG5TFQ5KBLhISGPUYa931IIKHoreCm97KM/hcQYJ101sytXJhYWG8BH95CRkYkuRQmuqOyuNMAQxZuxMO6BcafMLEWF5OdP2qfsZvAWMK0FmLVFVRJ17o0DfVKW915xIJb49qPuGyKkv2sK6sy3c/8Ydevg6fw==","w":120,"h":80,"aspect":"fixed","title":"Shutdown system"},{"xml":"dVJRboMwDD1NfhEQ7QCDbv3ZpEo9wBTAg2xJHCVuR28/h9DRSisS0nvOs/1iR8jWzvug/PSOAxghX4RsAyJlZOcWjBF1qQchd6KuS/5F/frgtFpOS68COPonAbsv6IkVRnWpWRJEUoFy3nFSHj4GiH3QnjS6rDhmRQlnrlpk6bVjnei9mUgXA2vtVJChncd0xaLz1hVrsJnIJgsVwzME0r0yb8nWAaNem3dIhJYFi99G9d9jwJMbWjQYlhbyc/luajwbPaZcQs9RtbKerQOnNB6CtrDgHfvVPsJhCzV4IqMdtOhcmpTclVuQGQ/LDSrw5Zt4sR2mC4zgIChGTR5NMgLzw4VUNxPbA3LjcGHJjx5oyoqnvLNyAj1OdB9TMfPxL3PbLoN1CVe67vtKt3e1SO+e3S8=","w":50,"h":50,"aspect":"fixed","title":"Start"},{"xml":"dVLLbsMgEPwa7n5ceq6b5FT1kN4jbFaBCgyCJXb+PovBjV01B6Td2Zl9wtrOzCfPnfy0AjRrD6ztvLWYLTN3oDVrKiVY+8GapqLHmuOLaL1EK8c9jPiPwPY/MCAxNO9TsUT4BuM0R8hS6iJqyJGMHOM4oLLjFvuK6CJebtwr3u/pneYhbIGz5A4uAsLglfubaG18cfczBbyvmUNKQSbMNNS7t3EUkIQ1eRKNLuYkFcLZ8SFxJ9opYbnMDTzC/HJH9ab6CawB9HeiTEqgLIyyx0qCusoieysYL/Nef6XPjZNRJlrdcoPVfd56oe6+wgM=","w":120,"h":80,"aspect":"fixed","title":"Template"},{"xml":"dVJNb8MgDP01XKt8qNLOy9aeduqhx4oQt7CSGIG7pP9+JpClldYDyH7v+Qsj6qaf9l46/YUdWFF/irrxiJSsfmrAWlEVphP1h6iqgo+odi/YcmYLJz0M9E8Att+giBVWtrFYFBwgAmf0cPF4Gzp2RjN0OKZc3NbNQpIeZzxs3D1xu9ugyOCQ2AB0WtOcHpOkwCQT1Xahtok9aOng1EFQ3rg1X2pM8gkOlDkb9dBaQRgvDU+9b1LC5Tmq6D6/VKD7Mk2IZdmEiZ/qfY6HGFiyp6m32Ry1ITg4qaJ25E0xFsjjFRq06BlsrVRXRlPxH/AE08t9lA897QF7IH+f5+pIZ0XeWaHBXHQOe8uYDMm//IWu22Ujz7m4ed+Lu/6rWfr07X4B","w":120,"h":80,"aspect":"fixed","title":"Windows - Set foreground window"},{"xml":"dVI7b4MwEP41XiswitS5tGSqOmToGBl8xa7ARuaIyb/vGZsAUjP4dI/vvnuZFWU/n50Y1KeV0LHigxWlsxaj1s8ldB3jmZaseGecZ/QYr55E8yWaDcKBwX8SbP0LDRKiE3UoFgBnCI7KOmidnYwk41sbaX3koramDiLUa1PwdtIxUk2mQW3Ng2bj2BN8TThMeL0Jp0W9MjF+Uj7UOkXQRYkBrhLGxunhQEpBVEDyZ9+hTwUyMQZhSMTZXiLfuhAezOOuRryvXYyhKqkw07LeFm4IiTlZCvsuqV5phMsgmoD1dCvyxTI3cAjz093nu+pnsD2guy/NS1QJke6TKdCtSmmvyUezLXb7SN0uSUqaaDXTbVdz+0ML9PDF/gA=","w":120,"h":80,"aspect":"fixed","title":"Windows - Get foreground window"},{"xml":"dVLNboQgEH4aro1iNum5tru9ND1skx43KLNCo0BwXN237yCoNekeIDN8PzMwsKLsppMXTn1YCS0r3lhRemsxRt1UQtsynmnJilfGeUaL8eMDNJ/RzAkPBv8R2OoHaiRGK6pQLBBOEA6+tZF2pOALJowu1NDQQiSN2hS8GXREjoOpUVuzGkT1Jv0c0A14uQmvRbV4MH4YZx7OvEOkvo9GrrgKyYKclXBwkdDXXrtdOQJRQdhnp8xeaRO0ege1vuqawljqKVot78NDun+6Hu9Lg30oSGEwLV68HYyEIMwpU9i1KRyVRjg7UQfuSKOjs1jmBp46ejiK/E/1E9gO0N/nTiWqxEjjyhToRiXZczoTfcybVboNloJ0oyVNo17S7UvN1N2P+wU=","w":120,"h":80,"aspect":"fixed","title":"Windows - Get window text"},{"xml":"dVPLjtswDPwaX4PERj6gcZq9tOgCLdCjIcuMra4sChKdxH9f6lUnQDdADGo0HI5IqWra+fHmhJ2+4wC6ar5WTesQKUXzowWtq3qvhqo5V3W9539VXz7ZPcTdvRUODP0nAfs/IIkZWvShWCD8FiogV3T8vSsz4J0DQv5IjR6SJLtbNOSMSPI7u6a9y2IkKTRp9856Hat1RStQWuGh82C8InXLMhehi/qPhexC3U04JfpSpqqPReKYaKlwR4o2TsDP4MnhCrkLv9ySdX9OwkI3gJdO2c3iy5HF87HviqaMeQtSXZUMzYgFc1N6KJ0ZdqlK6X508zoYT2ux6oMXDufHGMa96+1sdhk8TTSHcRw4vIEjJYX+Fkb0jqFj0XePRDgzIc7uJOTH6HAxQ4uazxFKNNf4e9L4otUYcgktoyKvJF8O4JSTBadmiPGZ/Srr4X2DTriQVgZaNCbcmua838AgI0hOyowM+nXuMRxAohmiYaEDzFP5gGKw1+yZ0dS0YBEen17bw1Mv3wDZklvjfAYeUGQc083eT6DGiV4x4dN6/Je5vQEO8njKMr+KstxeX6S+PM6/","w":50,"h":50,"aspect":"fixed","title":"Windows - Wait for window to close"},{"xml":"dVPRrpswDP0aXqsW1A9Y6XpfNu1Ke9gjCsEF74Y4Skxb/n5OAqPVdisVOcf28YntFFU9Pt68csN36sAU1deiqj0RZ2t81GBMUe6xK6pzUZZ7+Rfl5RPvIXn3Tnmw/J8Ean+DZokwqo3FYsAvhRG5kpfvHW1HdzGY5EMObGYUcZOBJSHFhJ2bs+8yWc1INnvvQtcIWbNSxZBaBWgC2ICMt4XmokyA7P4xsZu4uSmPql3LFOVxpTjmsFy4YeQtJuJnCOxphu4f4p+DctB0ELRHt2l8ubJ6vvYdeViw4EDjFXVsRqr41JRdpl/bnnS8TiTwvIoMUYSY46OPc961brS7BTwNPMY5HMS8gWfUynyLs3mn2KskuCVmGiUgDe2k9EfvabJdTUYuEEtU1/R74vhisI+5TE5QtZy0bAVIysmBxxGSfRa96AK8b9CJJjZooSZr47pU5/0GRhrFekDbCxjmsaV4AU22S4KVibDM4wNWga0RzYLmpkWJ8Ph0Xw9PvXwDEkl+ToPpZDIp4phXej8A9gO/Yirkc/83c1t+MZbxrMflOazH7dml0JdX+Qc=","w":50,"h":50,"aspect":"fixed","title":"Windows - Wait for window to open"}]
-</mxlibrary>
+<mxlibrary>[
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"More loop items?\" Function=\"loop_items_check\" Loop_variable=\"\" Shape_description=\"Check if there are more items to loop, or it has reached the end&amp;#10;&amp;#10;loop_variable: The name of the loopvariable to check.&amp;#10;&amp;#10;Return: True: the variable has more items to loop, False: the loop must end\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Are there more loop items?"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Does 1st item contain 2nd item?\" Module=\"Compare.py\" Function=\"item1_contains_item2\" First_item=\"\" Second_item=\"\" Shape_description=\"Check if item 1 contains item2.&amp;#10;&amp;#10;item1: The first object.&amp;#10;&amp;#10;item2: The second object.&amp;#10;&amp;#10;Return: True or False\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Compare - Does first item contain second item?"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Does List contain any items?\" Module=\"Compare.py\" Function=\"does_list_contain_any_items\" List_object=\"\" Shape_description=\"Check if a list contains items&amp;#10;&amp;#10;list_object: The list object to check&amp;#10;&amp;#10;Return: True or False\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Compare - Does list contain any items?"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Does List contain item?\" Module=\"Compare.py\" Function=\"does_list_contain_item\" List_object=\"\" Item=\"\" Shape_description=\"Check if list contains an item&amp;#10;&amp;#10;list_object: The list object&amp;#10;&amp;#10;item: The item to check for&amp;#10;&amp;#10;Return: True or False\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Compare - Does list contain item?"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Is DateTime less or equal to interval?\" Module=\"Compare.py\" Function=\"is_time_number_of_seconds_ago\" Date_Time=\"\" Interval_in_seconds=\"\" Shape_description=\"Check if the interval of a date-time is less or equal than the given amount of seconds compared to now.&amp;#10;&amp;#10;date_time: The datetime object&amp;#10;&amp;#10;interval_in_seconds: The interval in seconds&amp;#10;&amp;#10;Return: Boolean True or False\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Compare - Is datetime less or equal to interval?"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Is DateTime less or equal to number of seconds ago?\" Module=\"Compare.py\" Function=\"is_time_number_of_seconds_ago\" DateTime=\"\" Interval_in_seconds=\"\" Shape_description=\"Check if the interval of a date-time is less or equal than the given amount of seconds compared to now.&amp;#10;&amp;#10;date_time: The datetime object&amp;#10;&amp;#10;interval_in_seconds: The interval in seconds&amp;#10;&amp;#10;Return: Boolean True or False\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Compare - Is datetime less or equal to number of seconds ago?"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Is 1st item equal to 2nd item?\" Module=\"Compare.py\" Function=\"is_first_item_equal_to_second_item\" First_item=\"\" Second_item=\"\" Shape_description=\"Compare two items and check if they are equal&amp;#10;&amp;#10;first_item: The first item to compare&amp;#10;&amp;#10;second_item: The second item to compare&amp;#10;&amp;#10;Return: Boolean True or False\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Compare - Is first item equal to second item?"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Is 1st item greater than or equal to 2nd item?\" Module=\"Compare.py\" Function=\"is_first_item_greater_or_equal_than_second_item\" First_item=\"\" Second_item=\"\" Shape_description=\"Check if first item is greater or equal to second item&amp;#10;&amp;#10;first_item: The first item to compare&amp;#10;&amp;#10;second_item: The second item to compare&amp;#10;&amp;#10;Return: Boolean True or False\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Compare - Is first item greater than or equal to second item?"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Is 1st item greater than 2nd item?\" Module=\"Compare.py\" Function=\"is_first_item_greater_than_second_item\" First_item=\"\" Second_item=\"\" Shape_description=\"Check if first item is greater than second item&amp;#10;&amp;#10;first_item: The first item to compare&amp;#10;&amp;#10;second_item: The second item to compare&amp;#10;&amp;#10;Return: Boolean True or False\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Compare - Is first item greater than second item?"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Is 1st item less than or equal to 2nd item?\" Module=\"Compare.py\" Function=\"is_first_item_less_or_equal_than_second_item\" First_item=\"\" Second_item=\"\" Shape_description=\"Check if first item is less or equal to second item&amp;#10;&amp;#10;first_item: The first item to compare&amp;#10;&amp;#10;second_item: The second item to compare&amp;#10;&amp;#10;Return: Boolean True or False\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Compare - Is first item less or equal to second item?"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Is 1st item less than 2nd item?\" Module=\"Compare.py\" Function=\"is_first_item_less_than_second_item\" First_item=\"\" Second_item=\"\" Shape_description=\"Check if first item is less than second item&amp;#10;&amp;#10;first_item: The first item to compare&amp;#10;&amp;#10;second_item: The second item to compare&amp;#10;&amp;#10;Return: Boolean True or False\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Compare - Is first item less than second item?"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Is object empty?\" Module=\"Compare.py\" Function=\"is_object_empty\" Shape_description=\"Check if an item is empty&amp;#10;&amp;#10;item: The item to check&amp;#10;&amp;#10;Return: Boolean True or False\" Inspected_object=\"\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Compare - Is object empty"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Create variable\" Module=\"Set_Value.py\" Function=\"value_to_variable\" Convert_to_list=\"True\" Value=\"\" Output_variable=\"%variable%\" Shape_description=\"Function for returning a value to the WorkflowEngine.&amp;#10;&amp;#10;Value: Any value.&amp;#10;&amp;#10;Convert_to_list: Optional. Indicator whether to try to convert the value to a List.&amp;#10;&amp;#10;Return: The original input value.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;strokeColor=black;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Create variable"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Delete file\" Module=\"os\" Function=\"remove\" Path=\"\" Shape_description=\"Remove a file (same as unlink()).&amp;#10;&amp;#10;If dir_fd is not None, it should be a file descriptor open to a directory,&amp;#10;  and path should be relative; path will then be relative to that directory.&amp;#10;dir_fd may not be implemented on your platform.&amp;#10;  If it is unavailable, using it will raise a NotImplementedError.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Delete file"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"End\" Shape_description=\"End the current flow.\" id=\"2\"&gt;&lt;mxCell style=\"shape=mxgraph.bpmn.shape;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;align=center;perimeter=ellipsePerimeter;outlineConnect=0;outline=throwing;symbol=general;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"50\" height=\"50\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 50,
+    "h": 50,
+    "aspect": "fixed",
+    "title": "End"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"\" Type=\"Exclusive Gateway\" Shape_description=\"An exclusive gateway\" id=\"2\"&gt;&lt;mxCell style=\"shape=mxgraph.bpmn.shape;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;align=center;perimeter=rhombusPerimeter;background=gateway;outlineConnect=0;outline=none;symbol=exclusiveGw;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"50\" height=\"50\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 50,
+    "h": 50,
+    "aspect": "fixed",
+    "title": "Exclusive Gateway"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Exit with code NOT OK\" Function=\"exitcode_not_ok\" Shape_description=\"Exit the flow with exitcode not OK -1\" id=\"2\"&gt;&lt;mxCell style=\"shape=mxgraph.bpmn.shape;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;align=center;perimeter=ellipsePerimeter;outlineConnect=0;outline=end;symbol=error;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"50\" height=\"50\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 50,
+    "h": 50,
+    "aspect": "fixed",
+    "title": "Exit with code Not OK"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Exit with code OK\" Function=\"exitcode_ok\" Shape_description=\"Exit the flow with exitcode OK 0\" id=\"2\"&gt;&lt;mxCell style=\"shape=mxgraph.bpmn.shape;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;align=center;perimeter=ellipsePerimeter;outlineConnect=0;outline=end;symbol=signal;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"50\" height=\"50\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 50,
+    "h": 50,
+    "aspect": "fixed",
+    "title": "Exit with code OK"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Get input parameter\" Function=\"get_input_parameter\" Output_variable=\"%input%\" Shape_description=\"Returns the input parameter that was given when creating an instance of the WorkflowEngine.&amp;#10;&amp;#10;As_dictionary: Optional. Indicator whether to treat the given input as a dictionary object (string to dict).&amp;#10;&amp;#10;Return: The input_parameter that was given when creating an instance of the WorkflowEngine\" As_dictionary=\"False\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Get input parameter"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Send keys\" Module=\"Keyboard.py\" Function=\"sendkeys\" Text=\"\" Interval=\"0.05\" Shape_description=\"Send keystrokes to the active window.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;strokeColor=black;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Keyboard - Send keys"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Wait for Hotkey\" Module=\"Keyboard.py\" Function=\"wait_for_hotkey\" Key=\"\" Ctrl=\"False\" Alt=\"False\" Shift=\"False\" Shape_description=\"Wait for a specific hotkey combination to be pressed.\" id=\"2\"&gt;&lt;mxCell style=\"shape=mxgraph.bpmn.shape;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;align=center;perimeter=ellipsePerimeter;outlineConnect=0;outline=standard;symbol=conditional;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"50\" height=\"50\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 50,
+    "h": 50,
+    "aspect": "fixed",
+    "title": "Keyboard - Wait for hotkey"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Log and Print message\" Function=\"print_log\" Result=\"\" Status=\"\" Shape_description=\"Log progress to the Orchestrator database and print progress on screen&amp;#10;&amp;#10;status: Optional. The status of the step&amp;#10;&amp;#10;result: The result of the step\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Log and print message"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Log out current user\" Module=\"os\" Function=\"system\" Command=\"shutdown -l\" Shape_description=\"Log out the current user.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Logout current user"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Loop files in folder\" Module=\"os\" Function=\"listdir\" Output_variable=\"%files%\" Loopcounter=\"0\" Path=\"\" Shape_description=\"Return a list containing the names of the files in the directory.&amp;#10;&amp;#10;path can be specified as either str, bytes, or a path-like object.  If path is bytes,&amp;#10;  the filenames returned will also be bytes; in all other circumstances&amp;#10;  the filenames returned will be str.&amp;#10;If path is None, uses the path='.'.&amp;#10;On some platforms, path may also be specified as an open file descriptor;\\&amp;#10;  the file descriptor must refer to a directory.&amp;#10;  If this functionality is unavailable, using it raises NotImplementedError.&amp;#10;&amp;#10;The list is in arbitrary order.  It does not include the special&amp;#10;entries '.' and '..' even if they are present in the directory.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Loop files in folder"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Make screenshot\" Module=\"system.py\" Class=\"shell\" Function=\"screenshot\" Path=\"\" Shape_description=\"Make a screenshot and save it to file as PNG&amp;#10;&amp;#10;&amp;#10;path: The full path of the location and filename (including the PNG extension) to save the screenshot&amp;#10;&amp;#10;Return: The pathname of the screenshot file\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Make screenshot"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Drag mouse\" Module=\"Mouse.py\" Function=\"mouse_drag\" X=\"0\" Y=\"0\" Duration=\"0\" Shape_description=\"Simulate a mouse drage event.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;align=center;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Mouse - Drag mouse"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Get mouse position\" Module=\"Mouse.py\" Function=\"get_mouse_position\" X=\"0\" Y=\"0\" Duration=\"0\" Output_variable=\"%mouseposition%\" Shape_description=\"Get the current mouse position (x and y coordinates).\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;align=center;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Mouse - Get mouse position"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Mouse button down\" Module=\"Mouse.py\" Function=\"mouse_button_down\" Button=\"left\" Shape_description=\"Simulate a mouse button down event.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;align=center;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Mouse - Mouse button down"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Mouse button up\" Module=\"Mouse.py\" Function=\"mouse_button_up\" Button=\"left\" Shape_description=\"Simulate a mouse button up event.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;align=center;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Mouse - Mouse buton up"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Mouse click\" Module=\"Mouse.py\" Function=\"mouse_click\" Button=\"left\" Clicks=\"1\" Interval=\"0.25\" Shape_description=\"Simulate a mouse click.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;align=center;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Mouse - Mouse click"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Mouse double click\" Module=\"Mouse.py\" Function=\"mouse_doubleclick\" Shape_description=\"Simulate a mouse double click event.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;align=center;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Mouse - Mouse double click"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Move mouse\" Module=\"Mouse.py\" Function=\"mouse_move\" X=\"0\" Y=\"0\" Duration=\"0\" Shape_description=\"Simulate a mouse down event.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;align=center;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Mouse - Move mouse"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"\" Type=\"Parallel Gateway\" Shape_description=\"A parallel gateway\" id=\"2\"&gt;&lt;mxCell style=\"shape=mxgraph.bpmn.shape;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;align=center;perimeter=rhombusPerimeter;background=gateway;outlineConnect=0;outline=none;symbol=parallelGw;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"50\" height=\"50\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 50,
+    "h": 50,
+    "aspect": "fixed",
+    "title": "Parallel Gateway"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Run another flow\" Module=\"Code.py\" Function=\"run_flow\" Flow_path=\"\" Flow_input=\"\" Class=\"Code\" Shape_description=\"Run another WorkFlow.&amp;#10;Flow_path: The full path to the flow xml file.&amp;#10;&amp;#10;Flow_input: Optional. Any input (object or string).\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Run another flow"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Run application\" Module=\"os\" Function=\"system\" Command=\"\" Shape_description=\"Run a specific application.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Run application"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Run python code\" Module=\"C:\\PythonProjects\\BPMN_RPA\\BPMN_RPA\\Scripts\\System.py\" Class=\"\" Function=\"run_python_code\" Output_variable=\"\" Code=\"\" Shape_description=\"Dynamically run Python code&amp;#10;&amp;#10;code: The code to run&amp;#10;&amp;#10;Return: OK, or exception when an error occurs\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Run python code"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"\" Function=\"set_breakpoint\" Shape_description=\"Set a breakpoint to debug the code.\" id=\"2\"&gt;&lt;mxCell style=\"shape=mxgraph.bpmn.shape;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;align=center;perimeter=ellipsePerimeter;outlineConnect=0;outline=eventInt;symbol=signal;fillColor=#f8cecc;strokeColor=#CC0000;strokeWidth=2;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"50\" height=\"50\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 50,
+    "h": 50,
+    "aspect": "fixed",
+    "title": "Set breakpoint"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Shut down system\" Module=\"os\" Function=\"system\" Command=\"shutdown /s /t 1\" Shape_description=\"Shut down the system.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Shutdown system"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"start\" Shape_description=\"Start event.\" id=\"2\"&gt;&lt;mxCell style=\"shape=mxgraph.bpmn.shape;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;align=center;perimeter=ellipsePerimeter;outlineConnect=0;outline=standard;symbol=general;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"50\" height=\"50\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 50,
+    "h": 50,
+    "aspect": "fixed",
+    "title": "Start"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Template\" Module=\"\" Function=\"\" Output_variable=\"\" Class=\"\" Shape_description=\"\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Template"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Set foreground window\" Module=\"Windows.py\" Function=\"set_foreground_window\" Window=\"%window%\" Shape_description=\"Set a specific window to the foreground.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;strokeColor=black;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Windows - Set foreground window"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Get Foreground Window\" Module=\"win32gui\" Function=\"GetForegroundWindow\" Output_variable=\"%hwnd%\" Shape_description=\"Get the foreground window as an object.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Windows - Get foreground window"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Get Window Text\" Module=\"win32gui\" Function=\"GetWindowText\" Output_variable=\"%windowtext%\" Hwnd=\"%hwnd%\" Shape_description=\"Get the text of a specific window.\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80,
+    "aspect": "fixed",
+    "title": "Windows - Get window text"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Wait for window to close\" Module=\"Windows.py\" Function=\"wait_for_window\" Case_sensitive=\"False\" Output_variable=\"%window%\" Window_title=\"\" Destroyed=\"True\" Shape_description=\"Wait for a window with a specific title to be closed.\" id=\"2\"&gt;&lt;mxCell style=\"shape=mxgraph.bpmn.shape;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;align=center;perimeter=ellipsePerimeter;outlineConnect=0;outline=catching;symbol=conditional;strokeColor=black;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"50\" height=\"50\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 50,
+    "h": 50,
+    "aspect": "fixed",
+    "title": "Windows - Wait for window to close"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Wait for window to open\" Module=\"Windows.py\" Function=\"wait_for_window\" Case_sensitive=\"False\" Output_variable=\"%window%\" Window_title=\"\" Destroyed=\"False\" Shape_description=\"Wait for a window with a specific title to open.\" id=\"2\"&gt;&lt;mxCell style=\"shape=mxgraph.bpmn.shape;html=1;verticalLabelPosition=bottom;labelBackgroundColor=#ffffff;verticalAlign=top;align=center;perimeter=ellipsePerimeter;outlineConnect=0;outline=catching;symbol=conditional;strokeColor=black;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"50\" height=\"50\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 50,
+    "h": 50,
+    "aspect": "fixed",
+    "title": "Windows - Wait for window to open"
+  },
+  {
+    "xml": "&lt;mxGraphModel&gt;&lt;root&gt;&lt;mxCell id=\"0\"/&gt;&lt;mxCell id=\"1\" parent=\"0\"/&gt;&lt;object label=\"Is object NOT empty?\" Module=\"Compare.py\" Function=\"is_object_not_empty\" Shape_description=\"Check if an item is NOT empty&amp;#10;&amp;#10;item: The item to check&amp;#10;&amp;#10;Return: Boolean True or False\" Inspected_object=\"\" id=\"2\"&gt;&lt;mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"&gt;&lt;mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/&gt;&lt;/mxCell&gt;&lt;/object&gt;&lt;/root&gt;&lt;/mxGraphModel&gt;",
+    "w": 120,
+    "h": 80
+  }
+]</mxlibrary>
