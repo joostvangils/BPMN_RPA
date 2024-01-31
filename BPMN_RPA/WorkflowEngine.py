@@ -45,7 +45,7 @@ import xmltodict
 class WorkflowEngine:
 
     def __init__(self, input_parameter: any = None, pythonpath: str = "", installation_directory: str = "",
-                 delete_records_older_than_days=0, subflow: bool = False, use_sql_server: bool = False):
+                 delete_records_older_than_days=0, subflow: bool = False, use_sql_server: bool = False, use_postgresql: bool = False, connection_string: str = None):
         """
         Class for automating DrawIO diagrams
         :param input_parameter: An object holding arguments to be passed as input to the WorkflowEngine. In a flow, use get_input_parameter to retrieve the value.
@@ -53,11 +53,15 @@ class WorkflowEngine:
         :param installation_directory: The folder where your BPMN_RPA files are installed. This folder will be used for the orchestrator database.
         :param delete_records_older_than_days: The number of days after which the orchestrator database will clean up records. Default is 0, which means no cleanup.
         :param use_sql_server: Optional. This parameter is used to indicate that the SQLserver on the localhost will be used with a trusted connection. Default is False.
+        :param use_postgresql: Optional. This parameter is used to indicate that the PostgreSQL database on the localhost will be used with a trusted connection. Default is False.
+        :param connection_string: Optional. The connection string for the database. If this is set, the use_sql_server and the use_postgresql parameter will be ignored and the connection string will be used.
         :param subflow: Optional. This parameter is used to indicate that the flow is a subflow (started from another flow). This is used to make a distinction between the logging of the original flow and the instance of the flow. Default is False.
         """
         settings = {}
         self.subflow = subflow
         self.use_sql_server = use_sql_server
+        self.use_postgresql = use_postgresql
+        self.connection_string = connection_string
         self.information = ""
         self.db_folder = ""
         if input_parameter is None:
@@ -130,7 +134,7 @@ class WorkflowEngine:
             self.packages_folder = "\\".join(pythonpath.split('\\')[0:-1]) + "\\Lib\\site-packages"
         else:
             self.packages_folder = pythonpath + "/dist-packages"
-        self.db = SQL(dbfolder=self.db_folder, useSQLserver=use_sql_server)
+        self.db = SQL(dbfolder=self.db_folder, useSQLserver=self.use_sql_server, usePostgres=self.use_postgresql, connection_string=self.connection_string)
         if delete_records_older_than_days > 0:
             self.db.remove_records_with_timestamp_older_than(delete_records_older_than_days)
         self.db.orchestrator()  # Run the orchestrator database
@@ -1419,16 +1423,16 @@ class WorkflowEngine:
 
 class SQL:
 
-    def __init__(self, dbfolder: str = "", use_sql_server: bool = False, use_postgresql: bool = False, connection_string: str = ""):
+    def __init__(self, dbfolder: str = "", useSQLserver: bool = False, usePostgres: bool = False, connection_string: str = ""):
         """
         Class for database actions on SQLite, SQL Server, or PostgreSQL.
         :param dbfolder: Optional. The folder for the database.
-        :param use_sql_server: Use a MsSQL Server. Default is False.
-        :param use_postgresql: Use a PostgreSQL Server. Default is False. Settting this to True will override the use_sql_server parameter.
+        :param useSQLserver: Use a MsSQL Server. Default is False.
+        :param usePostgres: Use a PostgreSQL Server. Default is False. Settting this to True will override the use_sql_server parameter.
         :param connection_string: Optional. The connection string for the database. If this is set, the dbfolder parameter will be ignored and the connection string will be used.
         """
-        self.useSQLserver = use_sql_server
-        self.usePostgreSQL = use_postgresql
+        self.useSQLserver = useSQLserver
+        self.usePostgreSQL = usePostgres
         if not self.useSQLserver and not self.usePostgreSQL:
             # SQLite
             if os.name == 'nt':
