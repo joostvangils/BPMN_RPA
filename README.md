@@ -8,7 +8,7 @@ Create flows in BPMN notation and execute them in Windows and Linux. This packag
 With this Framework you can draw Business Process Model Notation based Diagrams and run those diagrams with a WorkflowEngine.
 You can run flows that were made with one of the following programs:
 * [BPMN-RPA Studio](https://www.1ic.nl/download) (Freeware). Watch: https://youtu.be/RJ75ASpemgE
-* DrawIO (Freeware based on the mxGraph model notation of https://app.diagrams.net/)
+* DrawIO (Freeware based on the mxGraph model notation of https://app.diagrams.net/). You can download the DrawIO desktop version [here](https://github.com/jgraph/drawio-desktop/releases).
 * Microsoft Visio
 
 There is no need for installing BPMN-RPA Studio, DrawIO or Visio to run the flows. Installing one of these applications is only needed for creating the flows.
@@ -210,7 +210,13 @@ steps = engine.get_flow(doc)
 engine.run_flow(steps)
 ```
 
-You can download the DrawIO desktop version [here](https://github.com/jgraph/drawio-desktop/releases)
+### Databases
+BPMN-RPA uses a SQLite database by default. If you want to use MsSql server or PostgreSQL server instead, then install MsSqlServer or PostgreSQL on the local machine and manually create a database called "Orchestrator".
+The WorkflowEngine has a 'use_sql_server' and 'use_postgresql' parameter in the constructor. Set the parameter to True to use MsSql server or PostgreSQL server instead of the default SQLite database. When using either use_sql_server or use_postgresql, you must also specify the 'server' parameter. The 'server' parameter must contain the server name and the instance name (if applicable) of the MsSql server or PostgreSQL server. The 'server' parameter must be in the following format: 'server_name\instance_name' (p.e.: 'localhost\sqlexpress' or 'localhost'). The 'server' parameter is optional when using SQLite. When using MsSql server or PostgreSQL server, you must also specify the 'database' parameter. The 'database' parameter must contain the name of the database to use. The 'database' parameter is optional when using SQLite. When using MsSql server or PostgreSQL server, you must also specify the 'trusted_connection' parameter. The 'trusted_connection' parameter must be set to True or False. The 'trusted_connection' parameter is optional when using SQLite. When using MsSql server or PostgreSQL server, you must also specify the 'user' parameter. The 'user' parameter must contain the user name to use for the connection. The 'user' parameter is optional when using SQLite. When using MsSql server or PostgreSQL server, you must also specify the 'password' parameter. The 'password' parameter must contain the password to use for the connection. The 'password' parameter is optional when using SQLite. When using MsSql server or PostgreSQL server, you must also specify the 'port' parameter. The 'port' parameter must contain the port number to use for the connection. The 'port' parameter is optional when using SQLite. When using MsSql server or PostgreSQL server, you must also specify the 'driver' parameter. The 'driver' parameter must contain the driver name to use for the connection. The 'driver' parameter is optional when using SQLite. When using MsSql server or PostgreSQL server, you must also specify the 'sslmode' parameter. The 'sslmode' parameter must contain the sslmode to use for the connection. The 'sslmode' parameter is optional when using SQLite. When using MsSql server or PostgreSQL server, you must also specify the 'sslrootcert' parameter. The 'sslrootcert' parameter must contain the sslrootcert to use for the connection. The 'sslrootcert' parameter is optional when using SQLite. When using MsSql server or PostgreSQL server, these connection strings are used by default:
+- for MsSql server: "Driver={ODBC Driver 17 for SQL Server};Server=localhost;Database=orchestrator;Trusted_Connection=yes;"
+- for Postgres: "dbname=orchestrator host=localhost user=postgres password=postgres"
+If you want to use a different connection string, then you must specify the 'connection_string' parameter. The 'connection_string' parameter doesn't need to be specified when using SQLite.
+When running your first flow, all tables will be created in the 'orchestrator' database.
 
 #### The CheckList Engine
 The CheckListEngine runs any flow like the WorkflowEngine. The only difference is that the CheckListEngine will save the entire state of the whole flow in a separate file after each step.
