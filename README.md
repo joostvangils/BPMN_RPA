@@ -213,7 +213,12 @@ engine.run_flow(steps)
 
 ### Databases
 BPMN-RPA uses a SQLite database by default that is automatically generated. If you want to use MsSql server or PostgreSQL server instead, then install MsSqlServer or PostgreSQL on the host machine and manually create a database called "Orchestrator".
-The WorkflowEngine has a 'use_sql_server' and 'use_postgresql' parameter in the constructor. Set the parameter to True to use MsSql server or PostgreSQL server instead of the default SQLite database. When using either use_sql_server or use_postgresql, you can also specify the 'connection_string' parameter. Default the following connection string is used: 
+The WorkflowEngine has a 'use_sql_server' and 'use_postgresql' parameter in the constructor. Set the parameter to True to use MsSql server or PostgreSQL server instead of the default SQLite database. When using either use_sql_server or use_postgresql, you can also specify the 'connection_string' parameter:
+```python
+engine = WorkflowEngine(use_postgresql=True, connection_string="dbname=orchestrator host=my.postgres.server user=myusername password=mypassword")
+```
+
+Default the following connection strings are used: 
 - for MsSql server: "Driver={ODBC Driver 17 for SQL Server};Server=localhost;Database=orchestrator;Trusted_Connection=yes;"
 - for Postgres: "dbname=orchestrator host=localhost user=postgres password=postgres"
 
