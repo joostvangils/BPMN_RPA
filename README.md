@@ -52,8 +52,8 @@ If you want to generate your own DrawIO shape librar from your Python modules, t
   * start the flow with the WorkflowEngine in code
 
 #### First start
-The first time you will try to run a Flow, you will be asked to enter the path of your install directory. If you are using Windows, the path of the install directory will be saved in the registry (path saved in registry key 'HKEY_CURRENT_USER\Software\BPMN_RPA\dbPath') and is used to create a SQLite database for logging purposes, called 'Orchestrator.db'. The WorkflowEngine must also know where your python.exe is located. You will be asked to enter the full path to the python.exe file (including the '.exe' extension). Again, if you are using Windows this path will be saved in registry key 'HKEY_CURRENT_USER\Software\BPMN_RPA\PythonPath'. 
-<br><br>For Linux users a "settings" file together with the orchestrator database will be created in /etc/BPMN_RPA_settings.
+The first time you will try to run a Flow, you will be asked to enter the path of your install directory. If you are using Windows, the path of the installation directory will be saved in the registry (path saved in registry key 'HKEY_CURRENT_USER\Software\BPMN_RPA\dbPath') and is used to create a SQLite database for logging purposes, called 'Orchestrator.db'. The WorkflowEngine must also know where your python.exe is located. You will be asked to enter the full path to the python.exe file (including the '.exe' extension). Again, if you are using Windows this path will be saved in registry key 'HKEY_CURRENT_USER\Software\BPMN_RPA\PythonPath'. 
+<br><br>For Linux users a "settings" file together with the orchestrator database will be created (the settings file will be created in /etc/BPMN_RPA_settings).
 When you want to use MsSql server with a trusted connection instead of the automatically available SQLite database, then install MsSqlServer on the local machine and manually create a database called "Orchestrator". When running your first flow, all tables will be created.
 
 #### Recognized Shapes
