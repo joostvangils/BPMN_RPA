@@ -42,7 +42,7 @@ class ChecklistEngine:
     def __init__(self, flow_name="", full_path_save_as="", input_parameter="", save_images_in_folder: str = ""):
         """
         This Engine will start the flow and will svae the state of the flow after each step by pickeling the flow object.
-        A Checklist can run multiple copies of the original flow. Therefore you must give each instance a separate name.
+        A Checklist can run multiple copies of the original flow. Therefore, you must give each instance a separate name.
         :param flow_name: The full path of the flow to run, including the file name and extension. This may be the original flow (.flw) file when you are starting a first run of a new instance, or the full path to the instance of the flow with the saved state.
         :param input_parameter: The input parameter for the flow.
         :param full_path_save_as: The full path to save the flow instance to. This is used to save the state of the flow after each step. You can save the flow with another name than the original flow to create separate instances of the flow. It is advised to set this parameter when you are starting a new instance of the flow.

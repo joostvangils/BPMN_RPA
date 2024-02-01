@@ -38,7 +38,12 @@ There is no need for installing BPMN-RPA Studio, DrawIO or Visio to run the flow
 
 #### Quick start
 - Open the application for creating the flow (BPMN-RPA Studio is preferred, but you can also use diagram.net, DrawIO desktop app or Ms Visio)
-- For Draw.io only: Import the BPMN RPA Shape library ( file -> open library, which you can download for DrawIO [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.xml) and for MsVisio [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.vssx)).<br>Please notice that only [BPMN-RPA Studio](https://1ic.nl/download) contains all the Shapes for all the shipped functions in the Scripts folder.
+- For Draw.io only: Import the BPMN RPA Shape library ( file -> open library, which you can download for DrawIO [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.xml) and for MsVisio [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.vssx)).<br>
+If you want to generate your own DrawIO shape library from your Python modules, then use the generator provided [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Generate_drawIO_library.py). To use this generator from the commandline you must provide both the path to the python module as the first parameter and the folder in which to generate the DrawIO library as second parameter:<br>
+  ```console
+  python -m Generate_drawIO_library.py "\MyPythonModule.py" "\tmp\MyDrawIOShapesFolder"
+  ```
+  Please notice that only [BPMN-RPA Studio](https://1ic.nl/download) contains all the Shapes for all the shipped functions in the Scripts folder.
 - Create your Diagram in [BPMN-RPA Studio](https://1ic.nl/download), in https://app.diagrams.net/ or in the Desktop application (DrawIO or Ms Visio) by using the appropriate BPMN_RPA Shape-set
 - Save your diagram (as .flw for BPMN-RPA Studio, export it as XML for DrawIO or as vsdx for Visio)
 - You have several options to run your workflow:
