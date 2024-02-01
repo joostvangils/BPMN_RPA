@@ -39,20 +39,21 @@ There is no need for installing BPMN-RPA Studio, DrawIO or Visio to run the flow
 #### Quick start
 - Open the application for creating the flow (BPMN-RPA Studio is preferred, but you can also use diagram.net, DrawIO desktop app or Ms Visio)
 - For Draw.io only: Import the BPMN RPA Shape library ( file -> open library, which you can download for DrawIO [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.xml) and for MsVisio [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Shapes.vssx)).<br>
-If you want to generate your own DrawIO shape libraries from your Python modules, then use the generator provided [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Generate_drawIO_library.py). To use this generator from the commandline you must provide both the path to the python module as the first parameter and the folder in which to generate the DrawIO library as second parameter:<br>
+If you want to generate your own DrawIO shape librar from your Python modules, then use the generator provided [here](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/Generate_drawIO_library.py). To use this generator from the commandline you must provide both the path to the python module as the first parameter and the folder in which to generate the DrawIO library as second parameter:<br>
   ```console
-  python -m Generate_drawIO_library.py "\MyPythonModule.py" "\tmp\MyDrawIOShapesFolder"
+  python Generate_drawIO_library.py "\MyPythonModule.py" "\tmp\MyDrawIOShapesFolder"
   ```
   Please notice that only [BPMN-RPA Studio](https://1ic.nl/download) contains all the Shapes for all the shipped functions in the Scripts folder.
 - Create your Diagram in [BPMN-RPA Studio](https://1ic.nl/download), in https://app.diagrams.net/ or in the Desktop application (DrawIO or Ms Visio) by using the appropriate BPMN_RPA Shape-set
-- Save your diagram (as .flw for BPMN-RPA Studio, export it as XML for DrawIO or as vsdx for Visio)
+- Save your diagram (as .flw for BPMN-RPA Studio, .drawio or .xml for DrawIO or as vsdx for Visio)
 - You have several options to run your workflow:
   * by generating a single Python script in [BPMN-RPA Studio](https://1ic.nl/download) that can contains both the code to start the WorkflowEngine as the flow steps itself 
   * by using the [BPMN_RPA_Starter.py](https://github.com/joostvangils/BPMN_RPA/raw/main/BPMN_RPA/BPMN_RPA_Starter.py)
   * start the flow with the WorkflowEngine in code
 
 #### First start
-The first time you will try to run a Flow, you will be asked to enter the path of your install directory. If you are using Windows, the path of the install directory will be saved in the registry (path saved in registry key 'HKEY_CURRENT_USER\Software\BPMN_RPA\dbPath') and is used to create a SQLite database for logging purposes, called 'Orchestrator.db'. The WorkflowEngine must also know where your python.exe is located. You will be asked to enter the full path to the python.exe file (including the '.exe' extension). Again, if you are using Windows this path will be saved in registry key 'HKEY_CURRENT_USER\Software\BPMN_RPA\PythonPath'. For Linux users a "settings" file together with the orchestrator database will be created.
+The first time you will try to run a Flow, you will be asked to enter the path of your install directory. If you are using Windows, the path of the install directory will be saved in the registry (path saved in registry key 'HKEY_CURRENT_USER\Software\BPMN_RPA\dbPath') and is used to create a SQLite database for logging purposes, called 'Orchestrator.db'. The WorkflowEngine must also know where your python.exe is located. You will be asked to enter the full path to the python.exe file (including the '.exe' extension). Again, if you are using Windows this path will be saved in registry key 'HKEY_CURRENT_USER\Software\BPMN_RPA\PythonPath'. 
+<br><br>For Linux users a "settings" file together with the orchestrator database will be created in /etc/BPMN_RPA_settings.
 When you want to use MsSql server with a trusted connection instead of the automatically available SQLite database, then install MsSqlServer on the local machine and manually create a database called "Orchestrator". When running your first flow, all tables will be created.
 
 #### Recognized Shapes
@@ -81,7 +82,7 @@ You can use Tasks to call Python scripts. For the WorkflowEngine to recognize th
       <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/os_system.PNG" height="450" width="400" ></a>
     
 ##### GateWays
-   * For now you can only use the Exclusive Gateway and the Parallel Gateway. These Gateways must have a Data attribute named 'Type' with the value 'Exclusive Gateway' or 'Parallel Gateway' respectively. The use of the Parallel Gateway is momentarely restricted to transform multiple inputs into one output. At this moment multiple outputs are not yet allowed.
+   * For now, you can only use the Exclusive Gateway and the Parallel Gateway. These Gateways must have a Data attribute named 'Type' with the value 'Exclusive Gateway' or 'Parallel Gateway' respectively. The use of the Parallel Gateway is momentarely restricted to transform multiple inputs into one output. At this moment multiple outputs are not yet allowed.
    
 ##### Sequence flow arrow
    * If the Sequence flow arrow is originating from an Exclusive Gateway, the Sequence flow arrow must have a value of 'True' or 'False' ('Yes' or 'No' is also accepted).
@@ -136,10 +137,10 @@ Explanation:
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Looptest_attributes.PNG" height="100" width="400" ></a>
 4. The Exclusive Gateway is deciding which Sequence Flow Arrow to follow. If the loop is still ongoing, the 'Loop List' Task will be called again and the next element in the list will be returned.
 
-#### Retreiving information
+#### Retrieving information
 In order to retrieve a specific item of a list, you must use the following format (notation): %VariableName[ItemNumber]%. The “ItemNumber” should be 0 for the first item of the list, 1 for the second and so on. For example, if you have a list that is stored in the variable %MyList% and contains 10 items, you can retrieve the first item with: %MyList[0]% and the last item with %MyList[9]%. For data tables, you must use the following notation: %VariableName[RowNumber][ColumnNumber]%.
 
-If you would like to retreive an attribute of a stored object or dictionary in a variable, then you must use the %VariableName.attributeName% notation. Just use the %VariableName% notation to retreive the full object or dictionary.
+If you would like to retrieve an attribute of a stored object or dictionary in a variable, then you must use the %VariableName.attributeName% notation. Just use the %VariableName% notation to retreive the full object or dictionary.
 
 #### Instantiate a Class and use in Flow
 You can instantiate a Python class by using ony these attributes (leave the 'Function' attribute blank or delete it):<br>
@@ -149,15 +150,15 @@ You can call any function of the class object by use of these attributes in Task
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Instantiate_class2.PNG" height="100" width="400" ></a><br>
 
 #### Passing input to the WorkflowEngine
-You can pass input to the WorkflowEnging by using the 'input_parameter' argument. Please note that it is only possible to pass a single object to the WorkflowEngine. Wrap all your inputs into a single object (like: dictionary or custom object) to pass multiple values to the WorkflowEngine.
+You can pass input to the WorkflowEngine by using the 'input_parameter' argument. Please note that it is only possible to pass a single object to the WorkflowEngine. Wrap all your inputs into a single object (like: dictionary or custom object) to pass multiple values to the WorkflowEngine.
 ```Python
 myObject = ['this could be', 'any', 'type', 'of', 'object']
 engine = WorkflowEngine(input_parameter=myObject)
 ```
-Call the internal 'get_input_parameter' function to retreive this input value and assign it to a variable name for later use in your flow:<br>
+Call the internal 'get_input_parameter' function to retrieve this input value and assign it to a variable name for later use in your flow:<br>
 <a href="url"><img src="https://raw.githubusercontent.com/joostvangils/BPMN_RPA/main/BPMN_RPA/Images/Get_input_parameter.PNG" height="100" width="400" ></a><br>
 
-When starting a Workflow from the commandline, you may use the 'As_ditcionary' option in the 'Get input paramater' Shape of your Flow with the value 'True' to convert the string input to a dictionary object. P.e.: 
+When starting a Workflow from the commandline, you may use the 'As_dictionary' option in the 'Get input parameter' Shape of your Flow with the value 'True' to convert the string input to a dictionary object. P.e.: 
 ```console
 c:\> python BPMN_RPA_Starter.py test.xml "{\"key1\": \"value1\",\"key2\": \"value2\"}"
 ```
@@ -232,7 +233,7 @@ When running your first flow, all tables will be created in the 'orchestrator' d
 
 #### The CheckList Engine
 The CheckListEngine runs any flow like the WorkflowEngine. The only difference is that the CheckListEngine will save the entire state of the whole flow in a separate file after each step.
-This allows you to resume the flow from the last saved state. This is very useful when you have a long running flow with waiting periods between steps (like p.e. an onboarding flow for new employees).
+This allows you to resume the flow from the last saved state. This is very useful when you have a long-running flow with waiting periods between steps (like p.e. an onboarding flow for new employees).
 It is likely that you want to create several CheckList instances of the original flow, so that you can run several flows in parallel. This is possible by using the 'full_path_save_as' parameter in the CheckListEngine constructor. This parameter is optional and will default to the name of the original flow (without the .flw extension). If you want to run several flows in parallel, then you must use different instance names (i.e. 'full_path_save_as') for each flow. The CheckListEngine will create a separate file for each flow instance.
 
 To start a new instance of a flow, just use the CheckListEngine constructor:
