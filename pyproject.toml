@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "BPMN-RPA"
-version = "9.1.04"
+version = "9.1.05"
 description = "Robotic Process Automation by running BPMN diagram flows."
 authors = ["Joost van Gils <joostvangils@1ic.nl>"]
 readme = "README.md"
