@@ -613,8 +613,8 @@ class Code:
         :param variable: Optional. The name of the class variable to set as class in the function shape.
         """
         self.libpath = filepath
-        if function == "__init__":
-            function = ""
+        # if function == "__init__":
+        #     function = ""
         if len([x for x in self.libs if x.name == filepath]) == 0:
             dct = self.get_library(filepath)
             tmp_dct = self.TempDict(dct, filepath)
@@ -625,7 +625,7 @@ class Code:
         dct = tmp_dct.dict
         if len(title) == 0 and len(function) > 0:
             title = function.capitalize().replace("_", " ")
-        if len(function) == 0:
+        if function == "__init__":
             title = f"Create {classname} object"
         newentry = {'xml': '', 'w': 120, 'h': 80, 'aspect': 'fixed', 'title': title}
         newshape = f"<mxGraphModel><root><mxCell id=\"0\"/><mxCell id=\"1\" parent=\"0\"/><object label=\"{title}\" Module=\"{module}\" Class=\"{classname}\" Function=\"{function}\" Output_variable=\"\" id=\"2\" Shape_description=\"\"><mxCell style=\"shape=ext;rounded=1;html=1;whiteSpace=wrap;\" vertex=\"1\" parent=\"1\"><mxGeometry width=\"120\" height=\"80\" as=\"geometry\"/></mxCell></object></root></mxGraphModel>"
@@ -656,7 +656,7 @@ class Code:
                     if len(classname) > 0:
                         classobject = getattr(module_object, classname)
                         callobject = classobject
-                if len(function) > 0:
+                if len(function) > 0 and function != "__init__":
                     method_to_call = getattr(callobject, function)
                 else:
                     method_to_call = classobject
@@ -678,7 +678,7 @@ class Code:
                 if len(doc) == 0 and len(function) == 0:
                     doc = title
                 if not doc.lower().__contains__("return: ") and str(sig.return_annotation).lower() != "<class 'bool'>":
-                    if len(function) > 0:
+                    if len(function) > 0 and function != "__init__":
                         del found.attrib["Output_variable"]
                     else:
                         found.set("Output_variable", f"%{classname}%")
@@ -686,7 +686,7 @@ class Code:
                         title += "?"
                         newentry.update({"label": title})
                         found.set("label", title)
-                if len(function) == 0:
+                if len(function) == 0 or function == "__init__":
                     del found.attrib["Function"]
                 found.set("Shape_description", doc)
                 if len(classname) == 0 and len(variable) == 0:
@@ -774,7 +774,7 @@ class Code:
 
     def module_to_library(self, modulepath: str, libraryfolder: str):
         """
-        WCreate a DrawIo library from a module. For each function in the module a Task will be created in the library.
+        Create a DrawIo library from a module. For each function in the module a Task will be created in the library.
         :param modulepath: The path of the module to create the library for.
         :param libraryfolder: The folder in which the library will be created.
         """
