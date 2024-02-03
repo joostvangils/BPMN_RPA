@@ -882,7 +882,7 @@ class WorkflowEngine:
                                 step.module = str(step.module).replace("\\", "/")
                                 module_ = step.module
                                 if not str(step.module).__contains__("/") and str(step.module).lower().__contains__(
-                                        ".py") and str(step.module).__contains__(self.packages_folder):
+                                        ".py") and not str(step.module).__contains__(self.packages_folder):
                                     module_ = f"{self.packages_folder}/BPMN_RPA/Scripts/{step.module}"
                                 if not str(step.module).__contains__("/") and not str(step.module).lower().__contains__(
                                         ".py") and not str(step.module).__contains__(self.packages_folder):
