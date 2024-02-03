@@ -112,7 +112,7 @@ class WorkflowEngine:
             if os.name == 'nt':
                 message = "\nThe path to your Python.exe file is unknown. Please enter the path to your Python.exe file: "
             else:
-                message = "\nEnter the full path of your Python installation:"
+                message = "\nEnter the full path of your Python installation (check /usr/local/lib/python<x.x>): "
             pythonpath = input(message)
             if not os.path.exists(pythonpath):
                 self.set_python_path(pythonpath)
@@ -130,7 +130,13 @@ class WorkflowEngine:
         if os.name == 'nt':
             self.packages_folder = "\\".join(pythonpath.split('\\')[0:-1]) + "\\Lib\\site-packages"
         else:
-            self.packages_folder = pythonpath + "/dist-packages"
+            if os.path.exists(pythonpath + "/site-packages"):
+                self.packages_folder = pythonpath + "/dist-packages"
+            else:
+                if os.path.exists(pythonpath + "/site-packages"):
+                    self.packages_folder = pythonpath + "/site-packages"
+                else:
+                    self.packages_folder = pythonpath
         self.db = SQL(dbfolder=self.db_folder, useSQLserver=self.use_sql_server, usePostgres=self.use_postgresql, connection_string=self.connection_string)
         if delete_records_older_than_days > 0:
             self.db.remove_records_with_timestamp_older_than(delete_records_older_than_days)
