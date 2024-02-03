@@ -130,7 +130,7 @@ class WorkflowEngine:
         if os.name == 'nt':
             self.packages_folder = "\\".join(pythonpath.split('\\')[0:-1]) + "\\Lib\\site-packages"
         else:
-            if os.path.exists(pythonpath + "/site-packages"):
+            if os.path.exists(pythonpath + "/dist-packages"):
                 self.packages_folder = pythonpath + "/dist-packages"
             else:
                 if os.path.exists(pythonpath + "/site-packages"):
