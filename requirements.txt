@@ -30,3 +30,4 @@ defusedxml
 Werkzeug
 dill
 setuptools
+dnspython>=2.6.0rc1 # not directly required, pinned by Snyk to avoid a vulnerability
