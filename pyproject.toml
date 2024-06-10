@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "BPMN-RPA"
-version = "9.2.4"
+version = "9.2.5"
 description = "Robotic Process Automation by running BPMN diagram flows."
 authors = ["Joost van Gils <joostvangils@1ic.nl>"]
 readme = "README.md"
@@ -36,7 +36,6 @@ pypiwin32 = ">=223"
 pywin32 = ">=300"
 psycopg2-binary = ">=2.8.6"
 keyboard = ">=0.13.5"
-uuid = ">=1.30"
 pyodbc = ">=4.0.30"
 matplotlib = ">=3.3.4"
 spacy = ">=3.0.1"
