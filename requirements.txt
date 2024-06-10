@@ -16,10 +16,10 @@ pykeepass
 openai
 pywin32
 keyboard
-uuid
 pyodbc
 matplotlib
 spacy
 tensorflow
 Werkzeug
 dill
+jsonpickle
