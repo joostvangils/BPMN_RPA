@@ -23,4 +23,3 @@ spacy
 tensorflow
 Werkzeug
 dill
-jsonpickle
