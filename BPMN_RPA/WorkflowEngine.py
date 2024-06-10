@@ -577,7 +577,7 @@ class WorkflowEngine:
                                         if isinstance(replace_value, list) and not str(replace_value).__contains__(
                                                 "Message(mime_content="):
                                             if not tv.__contains__("."):
-                                                if len(replace_value) == 1 and not isinstance(replace_value[0], list):
+                                                if len(replace_value) == 1 and not isinstance(replace_value[0], list) and not isinstance(replace_value[0], tuple):
                                                     try:
                                                         val = str(val).replace(tv, replace_value[0])
                                                     except Exception as e:

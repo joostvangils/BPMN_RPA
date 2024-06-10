@@ -9,7 +9,9 @@ import sys
 import zlib
 import urllib.parse
 from pathlib import Path
+from typing import List, Any
 
+import jsonpickle
 import xmltodict
 from lxml import etree as eltree
 from BPMN_RPA.WorkflowEngine import WorkflowEngine
@@ -123,7 +125,6 @@ class Code:
             return url_decode
         retn = xmltodict.parse(url_decode)
         return retn, root
-
 
     @staticmethod
     def saveflow(filepath: str, dct: any, original: any) -> any:
@@ -413,35 +414,46 @@ class Code:
                     return True
         return False
 
-    def get_docstring_from_code(self, module: str, function: str, filepath: str, classname: str = "") -> str:
+    def get_docstring_from_code(self, module: str, function: str, classname: str = "") -> str:
         """
-        Retreive the comments from code.
+        Retrieve the comments from code.
         :param module: The module name, including the path.
         :param function: The function name.
-        :param filepath: The full path of the library file.
         :param classname: Optional. The Classname.
         :return: A string with the comments from code.
         """
-        if classname == "":
-            classname = None
-        f = open(module, "r")
-        body = f.read()
-        f.close()
+
+        def find_function(node, function_name):
+            if isinstance(node, ast.FunctionDef) and node.name == function_name:
+                return node
+            for child in ast.iter_child_nodes(node):
+                result = find_function(child, function_name)
+                if result is not None:
+                    return result
+            return None
+
+        with open(module, "r") as f:
+            body = f.read()
+
         mdl = ast.parse(body)
-        if classname is not None:
+
+        if classname:
             classdefs = [stmt for stmt in mdl.body if isinstance(stmt, ast.ClassDef)]
-            if len(classdefs) > 0:
-                classdef = [x for x in classdefs if x.name == classname][0]
-            methods = [x for x in classdef.body if isinstance(x, ast.FunctionDef)]
+            classdef = next((x for x in classdefs if x.name == classname), None)
+            if classdef:
+                method = find_function(classdef, function)
+            else:
+                return ""
         else:
-            methods = [x for x in mdl.body if isinstance(x, ast.FunctionDef)]
-        method = [x for x in methods if x.name == function][0]
-        doc = ast.get_docstring(method)
-        # doc = inspect.getdoc(method_to_call)
-        if doc is not None:
-            doc = doc.replace(":param ", "\n").replace(":return: ", "\nReturn: ").replace(":returns: ",
-                                                                                          "\nReturn: ")
-            return doc
+            method = find_function(mdl, function)
+
+        if method:
+            doc = ast.get_docstring(method)
+            if doc is not None:
+                doc = doc.replace(":param ", "\n").replace(":return: ", "\nReturn: ").replace(":returns: ", "\nReturn: ")
+                return doc
+            else:
+                return ""
         else:
             return ""
 
@@ -762,15 +774,48 @@ class Code:
     @staticmethod
     def get_functions_from_module(module: str) -> any:
         """
-        Retreive the comments from code.
+        Retrieve the comments from code.
         :param module: The module name, including the path.
         :return: A Tuple with class and function objects.
         """
+
+        def get_class_functions(class_node_):
+            return [n for n in class_node_.body if isinstance(n, ast.FunctionDef)]
+
         with open(module, "r") as file:
             node = ast.parse(file.read())
+
         functions = [n for n in node.body if isinstance(n, ast.FunctionDef)]
         classes = [n for n in node.body if isinstance(n, ast.ClassDef)]
+
+        # Find functions within classes
+        for class_node in classes:
+            functions.extend(get_class_functions(class_node))
+
         return classes, functions
+
+    def get_classnames(self, file_path: str) -> list[str]:
+        """
+        Parses the given Python file and returns a list of class names defined in it.
+        :param file_path: Full path to the Python (.py) file
+        :return: List of class names as strings
+        """
+
+        class ClassNameVisitor(ast.NodeVisitor):
+            def __init__(self):
+                self.class_names = []
+
+            def visit_ClassDef(self, node):
+                self.class_names.append(node.name)
+                self.generic_visit(node)
+
+        with open(file_path, 'r') as file:
+            file_content = file.read()
+        tree = ast.parse(file_content)
+        visitor = ClassNameVisitor()
+        visitor.visit(tree)
+        # string representation of class names
+        return visitor.class_names
 
     def module_to_library(self, modulepath: str, libraryfolder: str):
         """
